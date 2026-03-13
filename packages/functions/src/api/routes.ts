@@ -66,7 +66,7 @@ app.use(
 app.use("/api/*", sessionMiddleware);
 
 app.get("/", (c) =>
-  c.json({ name: "thousand-hills", status: "ok", docs: "/api" }),
+  c.json({ name: "wreny", status: "ok", docs: "/api" }),
 );
 app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
 app.route("/api", apiRoutes);
