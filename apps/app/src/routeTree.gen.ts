@@ -9,50 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as CheckoutRouteImport } from './routes/checkout'
-import { Route as CartRouteImport } from './routes/cart'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AboutRouteImport } from './routes/about'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SigninRouteImport } from './routes/signin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
-import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
-import { Route as AdminSuppliersRouteImport } from './routes/admin/suppliers'
-import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
-import { Route as AdminSalesOrdersRouteImport } from './routes/admin/sales-orders'
-import { Route as AdminReportsRouteImport } from './routes/admin/reports'
-import { Route as AdminProductsRouteImport } from './routes/admin/products'
-import { Route as AdminLocationsRouteImport } from './routes/admin/locations'
-import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
-import { Route as AdminEquipmentRouteImport } from './routes/admin/equipment'
-import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as DashboardResumeIndexRouteImport } from './routes/dashboard/resume/index'
+import { Route as DashboardJobsIndexRouteImport } from './routes/dashboard/jobs/index'
+import { Route as DashboardCoverLettersIndexRouteImport } from './routes/dashboard/cover-letters/index'
+import { Route as DashboardResumeIdRouteImport } from './routes/dashboard/resume/$id'
+import { Route as DashboardJobsIdRouteImport } from './routes/dashboard/jobs/$id'
+import { Route as DashboardCoverLettersIdRouteImport } from './routes/dashboard/cover-letters/$id'
 
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CheckoutRoute = CheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CartRoute = CartRouteImport.update({
-  id: '/cart',
-  path: '/cart',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -60,19 +36,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const ProductsSlugRoute = ProductsSlugRouteImport.update({
-  id: '/products/$slug',
-  path: '/products/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CategoriesSlugRoute = CategoriesSlugRouteImport.update({
-  id: '/categories/$slug',
-  path: '/categories/$slug',
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -80,238 +46,148 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRoute,
+const DashboardResumeIndexRoute = DashboardResumeIndexRouteImport.update({
+  id: '/dashboard/resume/',
+  path: '/dashboard/resume/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSuppliersRoute = AdminSuppliersRouteImport.update({
-  id: '/suppliers',
-  path: '/suppliers',
-  getParentRoute: () => AdminRoute,
+const DashboardJobsIndexRoute = DashboardJobsIndexRouteImport.update({
+  id: '/dashboard/jobs/',
+  path: '/dashboard/jobs/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
+const DashboardCoverLettersIndexRoute =
+  DashboardCoverLettersIndexRouteImport.update({
+    id: '/dashboard/cover-letters/',
+    path: '/dashboard/cover-letters/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DashboardResumeIdRoute = DashboardResumeIdRouteImport.update({
+  id: '/dashboard/resume/$id',
+  path: '/dashboard/resume/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSalesOrdersRoute = AdminSalesOrdersRouteImport.update({
-  id: '/sales-orders',
-  path: '/sales-orders',
-  getParentRoute: () => AdminRoute,
+const DashboardJobsIdRoute = DashboardJobsIdRouteImport.update({
+  id: '/dashboard/jobs/$id',
+  path: '/dashboard/jobs/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProductsRoute = AdminProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLocationsRoute = AdminLocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminInventoryRoute = AdminInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminEquipmentRoute = AdminEquipmentRouteImport.update({
-  id: '/equipment',
-  path: '/equipment',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AdminRoute,
+const DashboardCoverLettersIdRoute = DashboardCoverLettersIdRouteImport.update({
+  id: '/dashboard/cover-letters/$id',
+  path: '/dashboard/cover-letters/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/cart': typeof CartRoute
-  '/checkout': typeof CheckoutRoute
-  '/search': typeof SearchRoute
-  '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/equipment': typeof AdminEquipmentRoute
-  '/admin/inventory': typeof AdminInventoryRoute
-  '/admin/locations': typeof AdminLocationsRoute
-  '/admin/products': typeof AdminProductsRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/sales-orders': typeof AdminSalesOrdersRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/suppliers': typeof AdminSuppliersRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
-  '/categories/$slug': typeof CategoriesSlugRoute
-  '/products/$slug': typeof ProductsSlugRoute
-  '/admin/': typeof AdminIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
+  '/dashboard/jobs/$id': typeof DashboardJobsIdRoute
+  '/dashboard/resume/$id': typeof DashboardResumeIdRoute
+  '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
+  '/dashboard/jobs/': typeof DashboardJobsIndexRoute
+  '/dashboard/resume/': typeof DashboardResumeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/cart': typeof CartRoute
-  '/checkout': typeof CheckoutRoute
-  '/search': typeof SearchRoute
-  '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/equipment': typeof AdminEquipmentRoute
-  '/admin/inventory': typeof AdminInventoryRoute
-  '/admin/locations': typeof AdminLocationsRoute
-  '/admin/products': typeof AdminProductsRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/sales-orders': typeof AdminSalesOrdersRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/suppliers': typeof AdminSuppliersRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
-  '/categories/$slug': typeof CategoriesSlugRoute
-  '/products/$slug': typeof ProductsSlugRoute
-  '/admin': typeof AdminIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
+  '/dashboard/jobs/$id': typeof DashboardJobsIdRoute
+  '/dashboard/resume/$id': typeof DashboardResumeIdRoute
+  '/dashboard/cover-letters': typeof DashboardCoverLettersIndexRoute
+  '/dashboard/jobs': typeof DashboardJobsIndexRoute
+  '/dashboard/resume': typeof DashboardResumeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/cart': typeof CartRoute
-  '/checkout': typeof CheckoutRoute
-  '/search': typeof SearchRoute
-  '/admin/categories': typeof AdminCategoriesRoute
-  '/admin/equipment': typeof AdminEquipmentRoute
-  '/admin/inventory': typeof AdminInventoryRoute
-  '/admin/locations': typeof AdminLocationsRoute
-  '/admin/products': typeof AdminProductsRoute
-  '/admin/reports': typeof AdminReportsRoute
-  '/admin/sales-orders': typeof AdminSalesOrdersRoute
-  '/admin/settings': typeof AdminSettingsRoute
-  '/admin/suppliers': typeof AdminSuppliersRoute
-  '/admin/users': typeof AdminUsersRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
-  '/categories/$slug': typeof CategoriesSlugRoute
-  '/products/$slug': typeof ProductsSlugRoute
-  '/admin/': typeof AdminIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
+  '/dashboard/jobs/$id': typeof DashboardJobsIdRoute
+  '/dashboard/resume/$id': typeof DashboardResumeIdRoute
+  '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
+  '/dashboard/jobs/': typeof DashboardJobsIndexRoute
+  '/dashboard/resume/': typeof DashboardResumeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
-    | '/admin'
-    | '/cart'
-    | '/checkout'
-    | '/search'
-    | '/admin/categories'
-    | '/admin/equipment'
-    | '/admin/inventory'
-    | '/admin/locations'
-    | '/admin/products'
-    | '/admin/reports'
-    | '/admin/sales-orders'
-    | '/admin/settings'
-    | '/admin/suppliers'
-    | '/admin/users'
+    | '/signin'
+    | '/signup'
     | '/api/$'
-    | '/categories/$slug'
-    | '/products/$slug'
-    | '/admin/'
+    | '/dashboard/'
+    | '/dashboard/cover-letters/$id'
+    | '/dashboard/jobs/$id'
+    | '/dashboard/resume/$id'
+    | '/dashboard/cover-letters/'
+    | '/dashboard/jobs/'
+    | '/dashboard/resume/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
-    | '/cart'
-    | '/checkout'
-    | '/search'
-    | '/admin/categories'
-    | '/admin/equipment'
-    | '/admin/inventory'
-    | '/admin/locations'
-    | '/admin/products'
-    | '/admin/reports'
-    | '/admin/sales-orders'
-    | '/admin/settings'
-    | '/admin/suppliers'
-    | '/admin/users'
+    | '/signin'
+    | '/signup'
     | '/api/$'
-    | '/categories/$slug'
-    | '/products/$slug'
-    | '/admin'
+    | '/dashboard'
+    | '/dashboard/cover-letters/$id'
+    | '/dashboard/jobs/$id'
+    | '/dashboard/resume/$id'
+    | '/dashboard/cover-letters'
+    | '/dashboard/jobs'
+    | '/dashboard/resume'
   id:
     | '__root__'
     | '/'
-    | '/about'
-    | '/admin'
-    | '/cart'
-    | '/checkout'
-    | '/search'
-    | '/admin/categories'
-    | '/admin/equipment'
-    | '/admin/inventory'
-    | '/admin/locations'
-    | '/admin/products'
-    | '/admin/reports'
-    | '/admin/sales-orders'
-    | '/admin/settings'
-    | '/admin/suppliers'
-    | '/admin/users'
+    | '/signin'
+    | '/signup'
     | '/api/$'
-    | '/categories/$slug'
-    | '/products/$slug'
-    | '/admin/'
+    | '/dashboard/'
+    | '/dashboard/cover-letters/$id'
+    | '/dashboard/jobs/$id'
+    | '/dashboard/resume/$id'
+    | '/dashboard/cover-letters/'
+    | '/dashboard/jobs/'
+    | '/dashboard/resume/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRouteWithChildren
-  CartRoute: typeof CartRoute
-  CheckoutRoute: typeof CheckoutRoute
-  SearchRoute: typeof SearchRoute
+  SigninRoute: typeof SigninRoute
+  SignupRoute: typeof SignupRoute
   ApiSplatRoute: typeof ApiSplatRoute
-  CategoriesSlugRoute: typeof CategoriesSlugRoute
-  ProductsSlugRoute: typeof ProductsSlugRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardCoverLettersIdRoute: typeof DashboardCoverLettersIdRoute
+  DashboardJobsIdRoute: typeof DashboardJobsIdRoute
+  DashboardResumeIdRoute: typeof DashboardResumeIdRoute
+  DashboardCoverLettersIndexRoute: typeof DashboardCoverLettersIndexRoute
+  DashboardJobsIndexRoute: typeof DashboardJobsIndexRoute
+  DashboardResumeIndexRoute: typeof DashboardResumeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/checkout': {
-      id: '/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cart': {
-      id: '/cart'
-      path: '/cart'
-      fullPath: '/cart'
-      preLoaderRoute: typeof CartRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -321,25 +197,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/products/$slug': {
-      id: '/products/$slug'
-      path: '/products/$slug'
-      fullPath: '/products/$slug'
-      preLoaderRoute: typeof ProductsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/categories/$slug': {
-      id: '/categories/$slug'
-      path: '/categories/$slug'
-      fullPath: '/categories/$slug'
-      preLoaderRoute: typeof CategoriesSlugRouteImport
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -349,119 +211,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/resume/': {
+      id: '/dashboard/resume/'
+      path: '/dashboard/resume'
+      fullPath: '/dashboard/resume/'
+      preLoaderRoute: typeof DashboardResumeIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/suppliers': {
-      id: '/admin/suppliers'
-      path: '/suppliers'
-      fullPath: '/admin/suppliers'
-      preLoaderRoute: typeof AdminSuppliersRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/jobs/': {
+      id: '/dashboard/jobs/'
+      path: '/dashboard/jobs'
+      fullPath: '/dashboard/jobs/'
+      preLoaderRoute: typeof DashboardJobsIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/cover-letters/': {
+      id: '/dashboard/cover-letters/'
+      path: '/dashboard/cover-letters'
+      fullPath: '/dashboard/cover-letters/'
+      preLoaderRoute: typeof DashboardCoverLettersIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/sales-orders': {
-      id: '/admin/sales-orders'
-      path: '/sales-orders'
-      fullPath: '/admin/sales-orders'
-      preLoaderRoute: typeof AdminSalesOrdersRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/resume/$id': {
+      id: '/dashboard/resume/$id'
+      path: '/dashboard/resume/$id'
+      fullPath: '/dashboard/resume/$id'
+      preLoaderRoute: typeof DashboardResumeIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/jobs/$id': {
+      id: '/dashboard/jobs/$id'
+      path: '/dashboard/jobs/$id'
+      fullPath: '/dashboard/jobs/$id'
+      preLoaderRoute: typeof DashboardJobsIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/products': {
-      id: '/admin/products'
-      path: '/products'
-      fullPath: '/admin/products'
-      preLoaderRoute: typeof AdminProductsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/locations': {
-      id: '/admin/locations'
-      path: '/locations'
-      fullPath: '/admin/locations'
-      preLoaderRoute: typeof AdminLocationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/inventory': {
-      id: '/admin/inventory'
-      path: '/inventory'
-      fullPath: '/admin/inventory'
-      preLoaderRoute: typeof AdminInventoryRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/equipment': {
-      id: '/admin/equipment'
-      path: '/equipment'
-      fullPath: '/admin/equipment'
-      preLoaderRoute: typeof AdminEquipmentRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/categories': {
-      id: '/admin/categories'
-      path: '/categories'
-      fullPath: '/admin/categories'
-      preLoaderRoute: typeof AdminCategoriesRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/cover-letters/$id': {
+      id: '/dashboard/cover-letters/$id'
+      path: '/dashboard/cover-letters/$id'
+      fullPath: '/dashboard/cover-letters/$id'
+      preLoaderRoute: typeof DashboardCoverLettersIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AdminRouteChildren {
-  AdminCategoriesRoute: typeof AdminCategoriesRoute
-  AdminEquipmentRoute: typeof AdminEquipmentRoute
-  AdminInventoryRoute: typeof AdminInventoryRoute
-  AdminLocationsRoute: typeof AdminLocationsRoute
-  AdminProductsRoute: typeof AdminProductsRoute
-  AdminReportsRoute: typeof AdminReportsRoute
-  AdminSalesOrdersRoute: typeof AdminSalesOrdersRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminSuppliersRoute: typeof AdminSuppliersRoute
-  AdminUsersRoute: typeof AdminUsersRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminCategoriesRoute: AdminCategoriesRoute,
-  AdminEquipmentRoute: AdminEquipmentRoute,
-  AdminInventoryRoute: AdminInventoryRoute,
-  AdminLocationsRoute: AdminLocationsRoute,
-  AdminProductsRoute: AdminProductsRoute,
-  AdminReportsRoute: AdminReportsRoute,
-  AdminSalesOrdersRoute: AdminSalesOrdersRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
-  AdminSuppliersRoute: AdminSuppliersRoute,
-  AdminUsersRoute: AdminUsersRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  AdminRoute: AdminRouteWithChildren,
-  CartRoute: CartRoute,
-  CheckoutRoute: CheckoutRoute,
-  SearchRoute: SearchRoute,
+  SigninRoute: SigninRoute,
+  SignupRoute: SignupRoute,
   ApiSplatRoute: ApiSplatRoute,
-  CategoriesSlugRoute: CategoriesSlugRoute,
-  ProductsSlugRoute: ProductsSlugRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+  DashboardCoverLettersIdRoute: DashboardCoverLettersIdRoute,
+  DashboardJobsIdRoute: DashboardJobsIdRoute,
+  DashboardResumeIdRoute: DashboardResumeIdRoute,
+  DashboardCoverLettersIndexRoute: DashboardCoverLettersIndexRoute,
+  DashboardJobsIndexRoute: DashboardJobsIndexRoute,
+  DashboardResumeIndexRoute: DashboardResumeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

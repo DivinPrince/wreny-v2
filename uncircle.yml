@@ -1,9 +1,15 @@
 name: wreny-v2
+agents:
+  Cursor:
+    command: agent
+    auto_start: true
+    auto_restart: true
+    preset: cursor
 processes:
+  sst:dev:
+    command: bun run sst:dev
+    auto_start: true
   web:dev:
     command: bun run dev
     working_dir: apps/app
-    auto_start: true
-  sst:dev:
-    command: bun run sst:dev
     auto_start: true

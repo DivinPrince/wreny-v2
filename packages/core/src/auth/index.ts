@@ -1,7 +1,7 @@
 import "../../sst-env.d.ts";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, openAPI, bearer, customSession } from "better-auth/plugins";
+import { admin, openAPI, bearer, customSession, emailOTP } from "better-auth/plugins";
 import { db } from "../drizzle";
 import { dash } from "@better-auth/infra";
 import {
@@ -18,6 +18,25 @@ import {
   jwksTable,
 } from "../user/user.sql";
 import { createID } from "../util/id";
+
+const socialProviders = {
+  ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ? {
+        google: {
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        },
+      }
+    : {}),
+  ...(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET
+    ? {
+        linkedin: {
+          clientId: process.env.LINKEDIN_CLIENT_ID,
+          clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+        },
+      }
+    : {}),
+} satisfies NonNullable<BetterAuthOptions["socialProviders"]>;
 
 const authOptions = {
   basePath: "/api/auth",
@@ -45,6 +64,7 @@ const authOptions = {
     },
     sendOnSignUp: isEmailConfigured,
   },
+  socialProviders,
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
@@ -79,6 +99,18 @@ const authOptions = {
   },
   plugins: [
     bearer(),
+    emailOTP({
+      async sendVerificationOTP({ email, otp, type }) {
+        const subject = type === "sign-in" ? "Sign In OTP" :
+          type === "email-verification" ? "Verify Your Email" :
+            "Reset Your Password";
+
+        console.log(email, otp, type, subject);
+      },
+      otpLength: 6,
+      expiresIn: 600, // 10 minutes
+      sendVerificationOnSignUp: true
+    }),
     admin({
       ac,
       roles: {

@@ -4,17 +4,11 @@ import {
   Outlet,
   Scripts,
   createRootRoute,
-  useRouterState,
 } from '@tanstack/react-router'
-import Footer from '../components/Footer'
-import Header from '../components/Header'
-import { StorefrontToastContainer } from '../components/Toast'
-import { headerCategoriesQueryOptions } from '../lib/admin-queries'
 
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
-  loader: ({ context }) => context.queryClient.ensureQueryData(headerCategoriesQueryOptions),
   head: () => ({
     meta: [
       {
@@ -25,7 +19,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: '1000 Hills Engineering',
+        title: 'Wreny Studio',
       },
     ],
     links: [
@@ -39,17 +33,9 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
-  const pathname = useRouterState({
-    select: (state) => state.location.pathname,
-  })
-  const isAdminRoute = pathname.startsWith('/admin')
-
   return (
     <RootDocument>
-      {isAdminRoute ? null : <Header />}
       <Outlet />
-      {isAdminRoute ? null : <Footer />}
-      {isAdminRoute ? null : <StorefrontToastContainer />}
     </RootDocument>
   )
 }
