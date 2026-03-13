@@ -31,10 +31,6 @@
     "./storage": {
       "types": "./src/storage/index.ts",
       "default": "./src/storage/index.ts"
-    },
-    "./payment": {
-      "types": "./src/payment/index.ts",
-      "default": "./src/payment/index.ts"
     }
   },
   "scripts": {
@@ -43,12 +39,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "bun run src/cli/seed.ts",
-    "db:seed:clean": "bun run src/cli/seed.ts --clean",
-    "db:seed:sample-products": "bun run src/cli/seed-sample-products.ts",
     "typecheck": "tsc --noEmit",
-    "create-admin": "bun run src/cli/create-admin.ts",
-    "verify-stock": "bun run src/cli/verify-stock-consistency.ts"
+    "create-admin": "bun run src/cli/create-admin.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.18",

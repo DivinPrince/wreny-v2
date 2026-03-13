@@ -38,9 +38,7 @@ export const api = new sst.aws.Router("Api", {
   },
   domain: {
     name: apiDomain,
-    dns: sst.vercel.dns({
-      domain: domain,
-    }),
+    dns: sst.cloudflare.dns(),
   },
 });
 

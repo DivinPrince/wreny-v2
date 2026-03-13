@@ -1,5 +1,4 @@
 import { Actor } from "@repo/core/actor";
-import { AddressService } from "@repo/core/address";
 import { UserService } from "@repo/core/user";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -10,15 +9,10 @@ import {
   parseIntegerParam,
   requireAdmin,
   requireAuth,
-  success,
   validate,
 } from "./common";
 
 const userIdSchema = z.object({
-  id: z.string(),
-});
-
-const addressIdSchema = z.object({
   id: z.string(),
 });
 
@@ -40,28 +34,12 @@ const updateUserSchema = UserService.UpdateInput.omit({
   id: true,
 });
 
-const createAddressSchema = AddressService.CreateInput.omit({
-  userId: true,
-});
-
-const updateAddressSchema = AddressService.UpdateInput.omit({
-  id: true,
-});
-
 async function getCurrentUser() {
   const user = await UserService.byId(Actor.userID());
   if (!user) {
     throw notFound("User", Actor.userID());
   }
   return user;
-}
-
-async function getOwnedAddress(addressId: string) {
-  const address = await AddressService.byId(addressId);
-  if (!address || address.userId !== Actor.userID()) {
-    throw notFound("Address", addressId);
-  }
-  return address;
 }
 
 const meApi = new Hono<AppEnv>()
@@ -76,54 +54,6 @@ const meApi = new Hono<AppEnv>()
     });
 
     return ok(c, user);
-  })
-  .get("/addresses", async (c) => {
-    const addresses = await AddressService.listByUser(Actor.userID());
-    return ok(c, addresses);
-  })
-  .get("/addresses/:id", validate("param", addressIdSchema), async (c) => {
-    const { id } = c.req.valid("param");
-    return ok(c, await getOwnedAddress(id));
-  })
-  .post("/addresses", validate("json", createAddressSchema), async (c) => {
-    const address = await AddressService.create({
-      userId: Actor.userID(),
-      ...c.req.valid("json"),
-    });
-
-    return ok(c, address, 201);
-  })
-  .put(
-    "/addresses/:id",
-    validate("param", addressIdSchema),
-    validate("json", updateAddressSchema),
-    async (c) => {
-      const { id } = c.req.valid("param");
-      await getOwnedAddress(id);
-
-      const address = await AddressService.update({
-        id,
-        ...c.req.valid("json"),
-      });
-
-      return ok(c, address);
-    },
-  )
-  .delete("/addresses/:id", validate("param", addressIdSchema), async (c) => {
-    const { id } = c.req.valid("param");
-    await getOwnedAddress(id);
-    await AddressService.remove(id);
-    return success(c);
-  })
-  .post("/addresses/:id/default", validate("param", addressIdSchema), async (c) => {
-    const { id } = c.req.valid("param");
-    await getOwnedAddress(id);
-    const address = await AddressService.update({
-      id,
-      isDefault: true,
-    });
-
-    return ok(c, address);
   });
 
 export const usersApi = new Hono<AppEnv>()

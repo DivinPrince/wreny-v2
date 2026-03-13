@@ -5,6 +5,9 @@ export type EntityPrefix =
   | "ses"
   | "acc"
   | "ver"
+  | "res"
+  | "clt"
+  | "job"
   | "prd"
   | "var"
   | "cat"
@@ -40,6 +43,9 @@ const prefixMap: Record<string, EntityPrefix> = {
   session: "ses",
   account: "acc",
   verification: "ver",
+  resume: "res",
+  cover_letter: "clt",
+  job: "job",
   product: "prd",
   product_variant: "var",
   category: "cat",

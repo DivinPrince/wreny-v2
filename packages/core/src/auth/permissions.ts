@@ -6,25 +6,22 @@ import {
 
 const statement = {
   ...defaultStatements,
-  product: ["create", "read", "update", "delete", "list"],
-  category: ["create", "read", "update", "delete", "list"],
-  brand: ["create", "read", "update", "delete", "list"],
-  order: ["read", "update", "list", "cancel", "refund"],
+  resume: ["create", "read", "update", "delete", "list"],
+  coverLetter: ["create", "read", "update", "delete", "list"],
+  job: ["create", "read", "update", "delete", "list"],
 } as const;
 
 export const ac = createAccessControl(statement);
 
 export const adminRole = ac.newRole({
   ...adminAc.statements,
-  product: ["create", "read", "update", "delete", "list"],
-  category: ["create", "read", "update", "delete", "list"],
-  brand: ["create", "read", "update", "delete", "list"],
-  order: ["read", "update", "list", "cancel", "refund"],
+  resume: ["create", "read", "update", "delete", "list"],
+  coverLetter: ["create", "read", "update", "delete", "list"],
+  job: ["create", "read", "update", "delete", "list"],
 });
 
 export const userRole = ac.newRole({
-  product: ["read", "list"],
-  category: ["read", "list"],
-  brand: ["read", "list"],
-  order: ["read", "list"],
+  resume: ["create", "read", "update", "delete", "list"],
+  coverLetter: ["create", "read", "update", "delete", "list"],
+  job: ["create", "read", "update", "delete", "list"],
 });

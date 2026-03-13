@@ -1,18 +1,11 @@
 import { auth } from "@repo/core/auth";
 import { Hono } from "hono";
-import { logger } from "hono/logger";
 import { cors } from "hono/cors";
-import { brandsApi } from "./brands";
-import { cartApi } from "./cart";
-import { checkoutApi } from "./checkout";
-import { categoriesApi } from "./categories";
+import { logger } from "hono/logger";
+import { coverLettersApi } from "./cover-letters";
 import { handleError, type AppEnv, sessionMiddleware } from "./common";
-import { equipmentApi } from "./equipment";
-import { locationsApi } from "./locations";
-import { ordersApi } from "./orders";
-import { productsApi } from "./products";
-import { stockApi } from "./stock";
-import { suppliersApi } from "./suppliers";
+import { jobsApi } from "./jobs";
+import { resumesApi } from "./resumes";
 import { uploadApi } from "./upload";
 import { usersApi } from "./users";
 
@@ -23,17 +16,10 @@ const apiRoutes = new Hono<AppEnv>()
       status: "ok",
       routes: [
         "/api/auth/*",
-        "/api/products",
-        "/api/categories",
-        "/api/brands",
-        "/api/suppliers",
-        "/api/equipment",
-        "/api/cart",
-        "/api/orders",
+        "/api/resumes",
+        "/api/cover-letters",
+        "/api/jobs",
         "/api/users",
-        "/api/locations",
-        "/api/stock",
-        "/api/checkout",
         "/api/cms/upload",
       ],
     }),
@@ -45,32 +31,18 @@ const apiRoutes = new Hono<AppEnv>()
       note: "Route inventory endpoint. Full OpenAPI generation can be added once the API surface stabilizes.",
       groups: {
         auth: "/api/auth/*",
-        categories: "/api/categories",
-        products: "/api/products",
-        brands: "/api/brands",
-        suppliers: "/api/suppliers",
-        equipment: "/api/equipment",
-        cart: "/api/cart",
-        orders: "/api/orders",
+        resumes: "/api/resumes",
+        coverLetters: "/api/cover-letters",
+        jobs: "/api/jobs",
         users: "/api/users",
-        locations: "/api/locations",
-        stock: "/api/stock",
-        checkout: "/api/checkout",
         upload: "/api/cms/upload",
       },
     }),
   )
-  .route("/categories", categoriesApi)
-  .route("/products", productsApi)
-  .route("/brands", brandsApi)
-  .route("/suppliers", suppliersApi)
-  .route("/equipment", equipmentApi)
-  .route("/cart", cartApi)
-  .route("/orders", ordersApi)
+  .route("/resumes", resumesApi)
+  .route("/cover-letters", coverLettersApi)
+  .route("/jobs", jobsApi)
   .route("/users", usersApi)
-  .route("/locations", locationsApi)
-  .route("/stock", stockApi)
-  .route("/checkout", checkoutApi)
   .route("/cms", uploadApi);
 
 export const app = new Hono<AppEnv>();

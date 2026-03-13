@@ -8,7 +8,7 @@ export default $config({
         aws: {
           region: "us-east-1",
         },
-        vercel: "4.6.1",
+        cloudflare: true,
       },
     };
   },

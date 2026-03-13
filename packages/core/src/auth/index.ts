@@ -1,9 +1,7 @@
 import "../../sst-env.d.ts";
-import { Resource } from "sst";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, openAPI, bearer, customSession } from "better-auth/plugins";
-import { AddressService } from "../address";
 import { db } from "../drizzle";
 import { dash } from "@better-auth/infra";
 import {
@@ -99,13 +97,7 @@ export const auth = betterAuth({
   ...authOptions,
   plugins: [
     ...(authOptions.plugins ?? []),
-    customSession(async ({ user, session }) => {
-      const addresses = await AddressService.listByUser(user.id);
-      return {
-        user: { ...user, addresses },
-        session,
-      };
-    }, authOptions),
+    customSession(async ({ user, session }) => ({ user, session }), authOptions),
   ],
 });
 

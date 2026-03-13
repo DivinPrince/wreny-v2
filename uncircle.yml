@@ -4,3 +4,6 @@ processes:
     command: bun run dev
     working_dir: apps/app
     auto_start: true
+  sst:dev:
+    command: bun run sst:dev
+    auto_start: true

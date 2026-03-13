@@ -46,7 +46,6 @@ export type NewDomain = typeof domainTable.$inferInsert;
 ### Service File (`index.ts`) - CRITICAL PATTERNS
 
 ```typescript
-import "zod-openapi/extend";  // REQUIRED - must be first import
 import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { useTransaction } from "../drizzle/transaction";
@@ -135,7 +134,8 @@ export namespace DomainService {
 
 ## OpenAPI Schema Rules
 
-1. **ALWAYS add `import "zod-openapi/extend"` as first import**
+1. **Do not import `zod-openapi/extend`**
+   `zod-openapi@5` uses Zod's native `.meta()` API and does not export the `/extend` subpath.
 
 2. **ALWAYS add `.meta()` to Info schemas:**
    ```typescript
@@ -226,7 +226,7 @@ attributes: z.record(z.string(), z.string()).nullable().meta({ description: "Key
    - Export types
 
 2. Create `packages/core/src/<domain>/index.ts`:
-   - Import `"zod-openapi/extend"` first
+   - Do not import `"zod-openapi/extend"`
    - Create namespace with Info schema (with `.meta()`)
    - Add CreateInput, UpdateInput schemas
    - Implement service functions
