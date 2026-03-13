@@ -1,0 +1,6 @@
+name: wreny-v2
+processes:
+  web:dev:
+    command: bun run dev
+    working_dir: apps/app
+    auto_start: true

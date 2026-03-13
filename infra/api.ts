@@ -26,11 +26,8 @@ const apiFn = new sst.aws.Function("ApiFn", {
     API_URL: publicApiUrl,
     BETTER_AUTH_URL: publicApiUrl,
     FRONTEND_URL: secret.FrontendUrl.value,
-    PAYMENT_PROVIDER: "stripe",
     DATABASE_URL: secret.DatabaseUrl.value,
     BETTER_AUTH_SECRET: secret.BetterAuthSecret.value,
-    STRIPE_SECRET_KEY: secret.StripeSecret.value,
-    STRIPE_WEBHOOK_SECRET: secret.StripeWebhookSecret.value,
     S3_BUCKET_NAME: mediaBucket.name,
   },
 });
@@ -41,7 +38,9 @@ export const api = new sst.aws.Router("Api", {
   },
   domain: {
     name: apiDomain,
-    dns: sst.cloudflare.dns(),
+    dns: sst.vercel.dns({
+      domain: domain,
+    }),
   },
 });
 

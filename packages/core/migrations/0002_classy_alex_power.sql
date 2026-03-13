@@ -1,1 +1,0 @@
-ALTER TABLE "product_stock" DROP COLUMN "bin_location";

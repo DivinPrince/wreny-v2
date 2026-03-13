@@ -1,0 +1,11 @@
+{
+  "include": ["sst.config.ts", "infra/**/*.ts", "sst-globals.d.ts"],
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}

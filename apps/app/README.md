@@ -9,6 +9,8 @@ bun install
 bun --bun run dev
 ```
 
+Use Node 24 for this workspace. Node 25 currently breaks the Bun and Vite toolchain on Windows in this repo.
+
 # Building For Production
 
 To build this application for production:
