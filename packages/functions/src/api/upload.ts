@@ -5,7 +5,7 @@ import {
   type AppEnv,
   noContent,
   ok,
-  requireAdmin,
+  requireAuth,
   validate,
 } from "./common";
 
@@ -14,7 +14,7 @@ const deleteQuerySchema = z.object({
 });
 
 export const uploadApi = new Hono<AppEnv>()
-  .use("*", requireAdmin)
+  .use("*", requireAuth)
   .post("/upload", async (c) => {
     const form = await c.req.formData();
     const fileEntry = form.get("file");

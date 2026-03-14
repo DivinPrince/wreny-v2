@@ -2,6 +2,7 @@ import { Actor } from "@repo/core/actor";
 import { ResumeService } from "@repo/core/resume";
 import { Hono } from "hono";
 import { z } from "zod";
+import { generateResumePdf } from "./resume-pdf";
 
 import {
   type AppEnv,
@@ -55,6 +56,26 @@ export const resumesApi = new Hono<AppEnv>()
   .get("/:id", validate("param", resumeIdSchema), async (c) => {
     const { id } = c.req.valid("param");
     return ok(c, await getOwnedResume(id));
+  })
+  .get("/:id/pdf", validate("param", resumeIdSchema), async (c) => {
+    const { id } = c.req.valid("param");
+    const resume = await getOwnedResume(id);
+    const pdf = await generateResumePdf({
+      resume,
+      cookieHeader: c.req.header("cookie"),
+    });
+
+    c.header("Content-Type", "application/pdf");
+    c.header(
+      "Content-Disposition",
+      `attachment; filename="${resume.title.replace(/"/g, "")}.pdf"`,
+    );
+    c.header("Cache-Control", "private, no-store");
+
+    return new Response(new Uint8Array(pdf), {
+      status: 200,
+      headers: c.res.headers,
+    });
   })
   .put(
     "/:id",

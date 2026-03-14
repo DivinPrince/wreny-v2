@@ -33,22 +33,22 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "env": ["API_URL", "VITE_API_URL"],
+      "env": ["API_URL", "VITE_API_URL", "FRONTEND_URL"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "lint": {
       "dependsOn": ["^lint"],
-      "env": ["API_URL", "VITE_API_URL"]
+      "env": ["API_URL", "VITE_API_URL", "FRONTEND_URL"]
     },
     "check-types": {
       "dependsOn": ["^check-types"],
-      "env": ["API_URL", "VITE_API_URL"]
+      "env": ["API_URL", "VITE_API_URL", "FRONTEND_URL"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "env": ["API_URL", "VITE_API_URL"]
+      "env": ["API_URL", "VITE_API_URL", "FRONTEND_URL"]
     }
   }
 }

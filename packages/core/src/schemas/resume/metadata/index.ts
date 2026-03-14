@@ -26,7 +26,10 @@ export const metadataSchema = z.object({
   theme: z.object({
     background: z.string().default("#ffffff"),
     text: z.string().default("#000000"),
+    /** Legacy text/accent color field kept for template compatibility */
     primary: z.string().default("#dc2626"),
+    /** Highlight color for backgrounds, borders, skill bars */
+    highlight: z.string().optional(),
   }),
   typography: z.object({
     font: z.object({
