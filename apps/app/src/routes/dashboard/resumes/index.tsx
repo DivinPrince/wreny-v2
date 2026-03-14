@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 
 import { Button } from '#/components/ui/button'
+import { useSession } from '#/lib/auth-client'
 
 import { CreateNewResumeCard } from '#/features/resume/components/create-new-resume-card'
 import { ResumePreviewCard } from '#/features/resume/components/resume-preview-card'
@@ -54,11 +55,12 @@ function RouteComponent() {
 }
 
 function CreateResumeButton() {
+  const { data: session } = useSession()
   const createMutation = useCreateResume()
 
   return (
     <Button
-      onClick={() => createMutation.mutate()}
+      onClick={() => createMutation.mutate({ user: session?.user })}
       disabled={createMutation.isPending}
     >
       <Plus className="size-4" />

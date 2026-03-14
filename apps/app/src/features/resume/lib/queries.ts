@@ -9,6 +9,16 @@ import { api } from '#/lib/api'
 import { type TemplateId } from './template-registry'
 import { resolveTemplateId } from '../templates'
 
+/** Minimal user shape from session - only real profile data for prefilling */
+type SessionUser = { name?: string | null; email?: string | null; image?: string | null; phone?: string | null }
+
+function applyUserProfileToResume(doc: ResumeDocument, user: SessionUser): void {
+  if (user.name && user.name.trim()) doc.basics.name = user.name.trim()
+  if (user.email && user.email.trim()) doc.basics.email = user.email.trim()
+  if (user.phone && user.phone.trim()) doc.basics.phone = user.phone.trim()
+  if (user.image && user.image.trim()) doc.basics.picture.url = user.image.trim()
+}
+
 export const resumeKeys = {
   all: ['resumes'] as const,
   detail: (resumeId: string) => ['resumes', resumeId] as const,
@@ -62,6 +72,14 @@ export function buildStarterResume(template: TemplateId = 'onyx'): ResumeDocumen
   return next
 }
 
+/** Builds a blank resume with only user profile data prefilled (no sample data) */
+export function buildNewResume(template: TemplateId = 'onyx', user?: SessionUser | null): ResumeDocument {
+  const next = cloneResumeDocument(defaultResumeDocument)
+  next.metadata.template = template
+  if (user) applyUserProfileToResume(next, user)
+  return next
+}
+
 export function buildBlankResume(template: TemplateId = 'onyx'): ResumeDocument {
   const next = cloneResumeDocument(defaultResumeDocument)
   next.metadata.template = template
@@ -78,10 +96,10 @@ export function useCreateResume() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: () =>
+    mutationFn: (vars?: { user?: SessionUser | null }) =>
       createResume({
         title: 'Untitled Resume',
-        data: buildStarterResume('onyx'),
+        data: buildNewResume('onyx', vars?.user),
       }),
     onSuccess: (resume) => {
       queryClient.invalidateQueries({ queryKey: resumeKeys.all })
