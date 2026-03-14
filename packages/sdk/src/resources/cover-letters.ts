@@ -16,6 +16,15 @@ export class CoverLettersResource extends APIResource {
     return this._client.get(`/api/cover-letters/${id}`, options);
   }
 
+  async downloadPdf(
+    id: string,
+    options?: RequestOptions,
+  ): Promise<globalThis.Response> {
+    return this._client
+      .get<never>(`/api/cover-letters/${id}/pdf`, options)
+      .asResponse();
+  }
+
   create(
     data: Omit<CoverLetterCreateInput, "userId">,
     options?: RequestOptions,

@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as ResumePdfIdRouteImport } from './routes/resume-pdf/$id'
+import { Route as CoverLetterPdfIdRouteImport } from './routes/cover-letter-pdf/$id'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as DashboardResumesIndexRouteImport } from './routes/dashboard/resumes/index'
 import { Route as DashboardJobsIndexRouteImport } from './routes/dashboard/jobs/index'
@@ -22,7 +23,9 @@ import { Route as DashboardCoverLettersIndexRouteImport } from './routes/dashboa
 import { Route as DashboardResumesIdRouteImport } from './routes/dashboard/resumes/$id'
 import { Route as DashboardCoverLettersIdRouteImport } from './routes/dashboard/cover-letters/$id'
 import { Route as DashboardResumesIdIndexRouteImport } from './routes/dashboard/resumes/$id/index'
+import { Route as DashboardCoverLettersIdIndexRouteImport } from './routes/dashboard/cover-letters/$id/index'
 import { Route as DashboardResumesIdStepRouteImport } from './routes/dashboard/resumes/$id/$step'
+import { Route as DashboardCoverLettersIdStepRouteImport } from './routes/dashboard/cover-letters/$id/$step'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -52,6 +55,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
 const ResumePdfIdRoute = ResumePdfIdRouteImport.update({
   id: '/resume-pdf/$id',
   path: '/resume-pdf/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoverLetterPdfIdRoute = CoverLetterPdfIdRouteImport.update({
+  id: '/cover-letter-pdf/$id',
+  path: '/cover-letter-pdf/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -90,11 +98,23 @@ const DashboardResumesIdIndexRoute = DashboardResumesIdIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardResumesIdRoute,
 } as any)
+const DashboardCoverLettersIdIndexRoute =
+  DashboardCoverLettersIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardCoverLettersIdRoute,
+  } as any)
 const DashboardResumesIdStepRoute = DashboardResumesIdStepRouteImport.update({
   id: '/$step',
   path: '/$step',
   getParentRoute: () => DashboardResumesIdRoute,
 } as any)
+const DashboardCoverLettersIdStepRoute =
+  DashboardCoverLettersIdStepRouteImport.update({
+    id: '/$step',
+    path: '/$step',
+    getParentRoute: () => DashboardCoverLettersIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,14 +122,17 @@ export interface FileRoutesByFullPath {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
+  '/cover-letter-pdf/$id': typeof CoverLetterPdfIdRoute
   '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
+  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRouteWithChildren
   '/dashboard/resumes/$id': typeof DashboardResumesIdRouteWithChildren
   '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs/': typeof DashboardJobsIndexRoute
   '/dashboard/resumes/': typeof DashboardResumesIndexRoute
+  '/dashboard/cover-letters/$id/$step': typeof DashboardCoverLettersIdStepRoute
   '/dashboard/resumes/$id/$step': typeof DashboardResumesIdStepRoute
+  '/dashboard/cover-letters/$id/': typeof DashboardCoverLettersIdIndexRoute
   '/dashboard/resumes/$id/': typeof DashboardResumesIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -117,13 +140,15 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
+  '/cover-letter-pdf/$id': typeof CoverLetterPdfIdRoute
   '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
   '/dashboard/cover-letters': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs': typeof DashboardJobsIndexRoute
   '/dashboard/resumes': typeof DashboardResumesIndexRoute
+  '/dashboard/cover-letters/$id/$step': typeof DashboardCoverLettersIdStepRoute
   '/dashboard/resumes/$id/$step': typeof DashboardResumesIdStepRoute
+  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdIndexRoute
   '/dashboard/resumes/$id': typeof DashboardResumesIdIndexRoute
 }
 export interface FileRoutesById {
@@ -133,14 +158,17 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
+  '/cover-letter-pdf/$id': typeof CoverLetterPdfIdRoute
   '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
+  '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRouteWithChildren
   '/dashboard/resumes/$id': typeof DashboardResumesIdRouteWithChildren
   '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs/': typeof DashboardJobsIndexRoute
   '/dashboard/resumes/': typeof DashboardResumesIndexRoute
+  '/dashboard/cover-letters/$id/$step': typeof DashboardCoverLettersIdStepRoute
   '/dashboard/resumes/$id/$step': typeof DashboardResumesIdStepRoute
+  '/dashboard/cover-letters/$id/': typeof DashboardCoverLettersIdIndexRoute
   '/dashboard/resumes/$id/': typeof DashboardResumesIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -151,6 +179,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/api/$'
+    | '/cover-letter-pdf/$id'
     | '/resume-pdf/$id'
     | '/dashboard/'
     | '/dashboard/cover-letters/$id'
@@ -158,7 +187,9 @@ export interface FileRouteTypes {
     | '/dashboard/cover-letters/'
     | '/dashboard/jobs/'
     | '/dashboard/resumes/'
+    | '/dashboard/cover-letters/$id/$step'
     | '/dashboard/resumes/$id/$step'
+    | '/dashboard/cover-letters/$id/'
     | '/dashboard/resumes/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -166,13 +197,15 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/api/$'
+    | '/cover-letter-pdf/$id'
     | '/resume-pdf/$id'
     | '/dashboard'
-    | '/dashboard/cover-letters/$id'
     | '/dashboard/cover-letters'
     | '/dashboard/jobs'
     | '/dashboard/resumes'
+    | '/dashboard/cover-letters/$id/$step'
     | '/dashboard/resumes/$id/$step'
+    | '/dashboard/cover-letters/$id'
     | '/dashboard/resumes/$id'
   id:
     | '__root__'
@@ -181,6 +214,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/api/$'
+    | '/cover-letter-pdf/$id'
     | '/resume-pdf/$id'
     | '/dashboard/'
     | '/dashboard/cover-letters/$id'
@@ -188,7 +222,9 @@ export interface FileRouteTypes {
     | '/dashboard/cover-letters/'
     | '/dashboard/jobs/'
     | '/dashboard/resumes/'
+    | '/dashboard/cover-letters/$id/$step'
     | '/dashboard/resumes/$id/$step'
+    | '/dashboard/cover-letters/$id/'
     | '/dashboard/resumes/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -198,6 +234,7 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   ApiSplatRoute: typeof ApiSplatRoute
+  CoverLetterPdfIdRoute: typeof CoverLetterPdfIdRoute
   ResumePdfIdRoute: typeof ResumePdfIdRoute
 }
 
@@ -243,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/resume-pdf/$id'
       fullPath: '/resume-pdf/$id'
       preLoaderRoute: typeof ResumePdfIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cover-letter-pdf/$id': {
+      id: '/cover-letter-pdf/$id'
+      path: '/cover-letter-pdf/$id'
+      fullPath: '/cover-letter-pdf/$id'
+      preLoaderRoute: typeof CoverLetterPdfIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -294,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardResumesIdIndexRouteImport
       parentRoute: typeof DashboardResumesIdRoute
     }
+    '/dashboard/cover-letters/$id/': {
+      id: '/dashboard/cover-letters/$id/'
+      path: '/'
+      fullPath: '/dashboard/cover-letters/$id/'
+      preLoaderRoute: typeof DashboardCoverLettersIdIndexRouteImport
+      parentRoute: typeof DashboardCoverLettersIdRoute
+    }
     '/dashboard/resumes/$id/$step': {
       id: '/dashboard/resumes/$id/$step'
       path: '/$step'
@@ -301,8 +352,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardResumesIdStepRouteImport
       parentRoute: typeof DashboardResumesIdRoute
     }
+    '/dashboard/cover-letters/$id/$step': {
+      id: '/dashboard/cover-letters/$id/$step'
+      path: '/$step'
+      fullPath: '/dashboard/cover-letters/$id/$step'
+      preLoaderRoute: typeof DashboardCoverLettersIdStepRouteImport
+      parentRoute: typeof DashboardCoverLettersIdRoute
+    }
   }
 }
+
+interface DashboardCoverLettersIdRouteChildren {
+  DashboardCoverLettersIdStepRoute: typeof DashboardCoverLettersIdStepRoute
+  DashboardCoverLettersIdIndexRoute: typeof DashboardCoverLettersIdIndexRoute
+}
+
+const DashboardCoverLettersIdRouteChildren: DashboardCoverLettersIdRouteChildren =
+  {
+    DashboardCoverLettersIdStepRoute: DashboardCoverLettersIdStepRoute,
+    DashboardCoverLettersIdIndexRoute: DashboardCoverLettersIdIndexRoute,
+  }
+
+const DashboardCoverLettersIdRouteWithChildren =
+  DashboardCoverLettersIdRoute._addFileChildren(
+    DashboardCoverLettersIdRouteChildren,
+  )
 
 interface DashboardResumesIdRouteChildren {
   DashboardResumesIdStepRoute: typeof DashboardResumesIdStepRoute
@@ -319,7 +393,7 @@ const DashboardResumesIdRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardCoverLettersIdRoute: typeof DashboardCoverLettersIdRoute
+  DashboardCoverLettersIdRoute: typeof DashboardCoverLettersIdRouteWithChildren
   DashboardResumesIdRoute: typeof DashboardResumesIdRouteWithChildren
   DashboardCoverLettersIndexRoute: typeof DashboardCoverLettersIndexRoute
   DashboardJobsIndexRoute: typeof DashboardJobsIndexRoute
@@ -328,7 +402,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardCoverLettersIdRoute: DashboardCoverLettersIdRoute,
+  DashboardCoverLettersIdRoute: DashboardCoverLettersIdRouteWithChildren,
   DashboardResumesIdRoute: DashboardResumesIdRouteWithChildren,
   DashboardCoverLettersIndexRoute: DashboardCoverLettersIndexRoute,
   DashboardJobsIndexRoute: DashboardJobsIndexRoute,
@@ -345,6 +419,7 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   ApiSplatRoute: ApiSplatRoute,
+  CoverLetterPdfIdRoute: CoverLetterPdfIdRoute,
   ResumePdfIdRoute: ResumePdfIdRoute,
 }
 export const routeTree = rootRouteImport
@@ -352,10 +427,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

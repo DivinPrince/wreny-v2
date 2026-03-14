@@ -2,6 +2,7 @@ import { Actor } from "@repo/core/actor";
 import { CoverLetterService } from "@repo/core/cover-letter";
 import { Hono } from "hono";
 import { z } from "zod";
+import { generateCoverLetterPdf } from "./cover-letter-pdf";
 
 import {
   type AppEnv,
@@ -55,6 +56,26 @@ export const coverLettersApi = new Hono<AppEnv>()
   .get("/:id", validate("param", coverLetterIdSchema), async (c) => {
     const { id } = c.req.valid("param");
     return ok(c, await getOwnedCoverLetter(id));
+  })
+  .get("/:id/pdf", validate("param", coverLetterIdSchema), async (c) => {
+    const { id } = c.req.valid("param");
+    const coverLetter = await getOwnedCoverLetter(id);
+    const pdf = await generateCoverLetterPdf({
+      coverLetter,
+      cookieHeader: c.req.header("cookie"),
+    });
+
+    c.header("Content-Type", "application/pdf");
+    c.header(
+      "Content-Disposition",
+      `attachment; filename="${coverLetter.title.replace(/"/g, "")}.pdf"`,
+    );
+    c.header("Cache-Control", "private, no-store");
+
+    return new Response(new Uint8Array(pdf), {
+      status: 200,
+      headers: c.res.headers,
+    });
   })
   .put(
     "/:id",
