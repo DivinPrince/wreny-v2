@@ -11,15 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as ResumePdfIdRouteImport } from './routes/resume-pdf/$id'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
-import { Route as DashboardResumeIndexRouteImport } from './routes/dashboard/resume/index'
+import { Route as DashboardResumesIndexRouteImport } from './routes/dashboard/resumes/index'
 import { Route as DashboardJobsIndexRouteImport } from './routes/dashboard/jobs/index'
 import { Route as DashboardCoverLettersIndexRouteImport } from './routes/dashboard/cover-letters/index'
-import { Route as DashboardResumeIdRouteImport } from './routes/dashboard/resume/$id'
-import { Route as DashboardJobsIdRouteImport } from './routes/dashboard/jobs/$id'
+import { Route as DashboardResumesIdRouteImport } from './routes/dashboard/resumes/$id'
 import { Route as DashboardCoverLettersIdRouteImport } from './routes/dashboard/cover-letters/$id'
+import { Route as DashboardResumesIdIndexRouteImport } from './routes/dashboard/resumes/$id/index'
+import { Route as DashboardResumesIdStepRouteImport } from './routes/dashboard/resumes/$id/$step'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -31,14 +34,24 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const ResumePdfIdRoute = ResumePdfIdRouteImport.update({
+  id: '/resume-pdf/$id',
+  path: '/resume-pdf/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -46,132 +59,146 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardResumeIndexRoute = DashboardResumeIndexRouteImport.update({
-  id: '/dashboard/resume/',
-  path: '/dashboard/resume/',
-  getParentRoute: () => rootRouteImport,
+const DashboardResumesIndexRoute = DashboardResumesIndexRouteImport.update({
+  id: '/resumes/',
+  path: '/resumes/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardJobsIndexRoute = DashboardJobsIndexRouteImport.update({
-  id: '/dashboard/jobs/',
-  path: '/dashboard/jobs/',
-  getParentRoute: () => rootRouteImport,
+  id: '/jobs/',
+  path: '/jobs/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardCoverLettersIndexRoute =
   DashboardCoverLettersIndexRouteImport.update({
-    id: '/dashboard/cover-letters/',
-    path: '/dashboard/cover-letters/',
-    getParentRoute: () => rootRouteImport,
+    id: '/cover-letters/',
+    path: '/cover-letters/',
+    getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardResumeIdRoute = DashboardResumeIdRouteImport.update({
-  id: '/dashboard/resume/$id',
-  path: '/dashboard/resume/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardJobsIdRoute = DashboardJobsIdRouteImport.update({
-  id: '/dashboard/jobs/$id',
-  path: '/dashboard/jobs/$id',
-  getParentRoute: () => rootRouteImport,
+const DashboardResumesIdRoute = DashboardResumesIdRouteImport.update({
+  id: '/resumes/$id',
+  path: '/resumes/$id',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardCoverLettersIdRoute = DashboardCoverLettersIdRouteImport.update({
-  id: '/dashboard/cover-letters/$id',
-  path: '/dashboard/cover-letters/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/cover-letters/$id',
+  path: '/cover-letters/$id',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardResumesIdIndexRoute = DashboardResumesIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardResumesIdRoute,
+} as any)
+const DashboardResumesIdStepRoute = DashboardResumesIdStepRouteImport.update({
+  id: '/$step',
+  path: '/$step',
+  getParentRoute: () => DashboardResumesIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
+  '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
-  '/dashboard/jobs/$id': typeof DashboardJobsIdRoute
-  '/dashboard/resume/$id': typeof DashboardResumeIdRoute
+  '/dashboard/resumes/$id': typeof DashboardResumesIdRouteWithChildren
   '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs/': typeof DashboardJobsIndexRoute
-  '/dashboard/resume/': typeof DashboardResumeIndexRoute
+  '/dashboard/resumes/': typeof DashboardResumesIndexRoute
+  '/dashboard/resumes/$id/$step': typeof DashboardResumesIdStepRoute
+  '/dashboard/resumes/$id/': typeof DashboardResumesIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
+  '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
-  '/dashboard/jobs/$id': typeof DashboardJobsIdRoute
-  '/dashboard/resume/$id': typeof DashboardResumeIdRoute
   '/dashboard/cover-letters': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs': typeof DashboardJobsIndexRoute
-  '/dashboard/resume': typeof DashboardResumeIndexRoute
+  '/dashboard/resumes': typeof DashboardResumesIndexRoute
+  '/dashboard/resumes/$id/$step': typeof DashboardResumesIdStepRoute
+  '/dashboard/resumes/$id': typeof DashboardResumesIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/api/$': typeof ApiSplatRoute
+  '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRoute
-  '/dashboard/jobs/$id': typeof DashboardJobsIdRoute
-  '/dashboard/resume/$id': typeof DashboardResumeIdRoute
+  '/dashboard/resumes/$id': typeof DashboardResumesIdRouteWithChildren
   '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs/': typeof DashboardJobsIndexRoute
-  '/dashboard/resume/': typeof DashboardResumeIndexRoute
+  '/dashboard/resumes/': typeof DashboardResumesIndexRoute
+  '/dashboard/resumes/$id/$step': typeof DashboardResumesIdStepRoute
+  '/dashboard/resumes/$id/': typeof DashboardResumesIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
     | '/signin'
     | '/signup'
     | '/api/$'
+    | '/resume-pdf/$id'
     | '/dashboard/'
     | '/dashboard/cover-letters/$id'
-    | '/dashboard/jobs/$id'
-    | '/dashboard/resume/$id'
+    | '/dashboard/resumes/$id'
     | '/dashboard/cover-letters/'
     | '/dashboard/jobs/'
-    | '/dashboard/resume/'
+    | '/dashboard/resumes/'
+    | '/dashboard/resumes/$id/$step'
+    | '/dashboard/resumes/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/signin'
     | '/signup'
     | '/api/$'
+    | '/resume-pdf/$id'
     | '/dashboard'
     | '/dashboard/cover-letters/$id'
-    | '/dashboard/jobs/$id'
-    | '/dashboard/resume/$id'
     | '/dashboard/cover-letters'
     | '/dashboard/jobs'
-    | '/dashboard/resume'
+    | '/dashboard/resumes'
+    | '/dashboard/resumes/$id/$step'
+    | '/dashboard/resumes/$id'
   id:
     | '__root__'
     | '/'
+    | '/dashboard'
     | '/signin'
     | '/signup'
     | '/api/$'
+    | '/resume-pdf/$id'
     | '/dashboard/'
     | '/dashboard/cover-letters/$id'
-    | '/dashboard/jobs/$id'
-    | '/dashboard/resume/$id'
+    | '/dashboard/resumes/$id'
     | '/dashboard/cover-letters/'
     | '/dashboard/jobs/'
-    | '/dashboard/resume/'
+    | '/dashboard/resumes/'
+    | '/dashboard/resumes/$id/$step'
+    | '/dashboard/resumes/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   ApiSplatRoute: typeof ApiSplatRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardCoverLettersIdRoute: typeof DashboardCoverLettersIdRoute
-  DashboardJobsIdRoute: typeof DashboardJobsIdRoute
-  DashboardResumeIdRoute: typeof DashboardResumeIdRoute
-  DashboardCoverLettersIndexRoute: typeof DashboardCoverLettersIndexRoute
-  DashboardJobsIndexRoute: typeof DashboardJobsIndexRoute
-  DashboardResumeIndexRoute: typeof DashboardResumeIndexRoute
+  ResumePdfIdRoute: typeof ResumePdfIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -190,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -199,9 +233,16 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/': {
       id: '/dashboard/'
-      path: '/dashboard'
+      path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/resume-pdf/$id': {
+      id: '/resume-pdf/$id'
+      path: '/resume-pdf/$id'
+      fullPath: '/resume-pdf/$id'
+      preLoaderRoute: typeof ResumePdfIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -211,63 +252,100 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/resume/': {
-      id: '/dashboard/resume/'
-      path: '/dashboard/resume'
-      fullPath: '/dashboard/resume/'
-      preLoaderRoute: typeof DashboardResumeIndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/dashboard/resumes/': {
+      id: '/dashboard/resumes/'
+      path: '/resumes'
+      fullPath: '/dashboard/resumes/'
+      preLoaderRoute: typeof DashboardResumesIndexRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/jobs/': {
       id: '/dashboard/jobs/'
-      path: '/dashboard/jobs'
+      path: '/jobs'
       fullPath: '/dashboard/jobs/'
       preLoaderRoute: typeof DashboardJobsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/cover-letters/': {
       id: '/dashboard/cover-letters/'
-      path: '/dashboard/cover-letters'
+      path: '/cover-letters'
       fullPath: '/dashboard/cover-letters/'
       preLoaderRoute: typeof DashboardCoverLettersIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/dashboard/resume/$id': {
-      id: '/dashboard/resume/$id'
-      path: '/dashboard/resume/$id'
-      fullPath: '/dashboard/resume/$id'
-      preLoaderRoute: typeof DashboardResumeIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/jobs/$id': {
-      id: '/dashboard/jobs/$id'
-      path: '/dashboard/jobs/$id'
-      fullPath: '/dashboard/jobs/$id'
-      preLoaderRoute: typeof DashboardJobsIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/dashboard/resumes/$id': {
+      id: '/dashboard/resumes/$id'
+      path: '/resumes/$id'
+      fullPath: '/dashboard/resumes/$id'
+      preLoaderRoute: typeof DashboardResumesIdRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/cover-letters/$id': {
       id: '/dashboard/cover-letters/$id'
-      path: '/dashboard/cover-letters/$id'
+      path: '/cover-letters/$id'
       fullPath: '/dashboard/cover-letters/$id'
       preLoaderRoute: typeof DashboardCoverLettersIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/resumes/$id/': {
+      id: '/dashboard/resumes/$id/'
+      path: '/'
+      fullPath: '/dashboard/resumes/$id/'
+      preLoaderRoute: typeof DashboardResumesIdIndexRouteImport
+      parentRoute: typeof DashboardResumesIdRoute
+    }
+    '/dashboard/resumes/$id/$step': {
+      id: '/dashboard/resumes/$id/$step'
+      path: '/$step'
+      fullPath: '/dashboard/resumes/$id/$step'
+      preLoaderRoute: typeof DashboardResumesIdStepRouteImport
+      parentRoute: typeof DashboardResumesIdRoute
     }
   }
 }
 
+interface DashboardResumesIdRouteChildren {
+  DashboardResumesIdStepRoute: typeof DashboardResumesIdStepRoute
+  DashboardResumesIdIndexRoute: typeof DashboardResumesIdIndexRoute
+}
+
+const DashboardResumesIdRouteChildren: DashboardResumesIdRouteChildren = {
+  DashboardResumesIdStepRoute: DashboardResumesIdStepRoute,
+  DashboardResumesIdIndexRoute: DashboardResumesIdIndexRoute,
+}
+
+const DashboardResumesIdRouteWithChildren =
+  DashboardResumesIdRoute._addFileChildren(DashboardResumesIdRouteChildren)
+
+interface DashboardRouteChildren {
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardCoverLettersIdRoute: typeof DashboardCoverLettersIdRoute
+  DashboardResumesIdRoute: typeof DashboardResumesIdRouteWithChildren
+  DashboardCoverLettersIndexRoute: typeof DashboardCoverLettersIndexRoute
+  DashboardJobsIndexRoute: typeof DashboardJobsIndexRoute
+  DashboardResumesIndexRoute: typeof DashboardResumesIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardIndexRoute: DashboardIndexRoute,
+  DashboardCoverLettersIdRoute: DashboardCoverLettersIdRoute,
+  DashboardResumesIdRoute: DashboardResumesIdRouteWithChildren,
+  DashboardCoverLettersIndexRoute: DashboardCoverLettersIndexRoute,
+  DashboardJobsIndexRoute: DashboardJobsIndexRoute,
+  DashboardResumesIndexRoute: DashboardResumesIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   ApiSplatRoute: ApiSplatRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
-  DashboardCoverLettersIdRoute: DashboardCoverLettersIdRoute,
-  DashboardJobsIdRoute: DashboardJobsIdRoute,
-  DashboardResumeIdRoute: DashboardResumeIdRoute,
-  DashboardCoverLettersIndexRoute: DashboardCoverLettersIndexRoute,
-  DashboardJobsIndexRoute: DashboardJobsIndexRoute,
-  DashboardResumeIndexRoute: DashboardResumeIndexRoute,
+  ResumePdfIdRoute: ResumePdfIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
