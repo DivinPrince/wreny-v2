@@ -1,3 +1,6 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
+
 import { defaultResumeDocument, sampleCoverLetter, sampleResume, type ResumeDocument } from '@repo/core/schemas'
 import type { ResumeInfo } from '@repo/core/resume'
 
@@ -9,6 +12,13 @@ import { resolveTemplateId } from '../templates'
 export const resumeKeys = {
   all: ['resumes'] as const,
   detail: (resumeId: string) => ['resumes', resumeId] as const,
+}
+
+export function resumeDetailQueryOptions(resumeId: string) {
+  return {
+    queryKey: resumeKeys.detail(resumeId),
+    queryFn: () => getResume(resumeId),
+  }
 }
 
 export async function listResumes() {
@@ -62,6 +72,25 @@ export function normalizeResumeDocument(data: ResumeDocument): ResumeDocument {
   const next = cloneResumeDocument(data)
   next.metadata.template = resolveTemplateId(next.metadata.template)
   return next
+}
+
+export function useCreateResume() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () =>
+      createResume({
+        title: 'Untitled Resume',
+        data: buildStarterResume('onyx'),
+      }),
+    onSuccess: (resume) => {
+      queryClient.invalidateQueries({ queryKey: resumeKeys.all })
+      navigate({
+        to: '/dashboard/resumes/$id/$step',
+        params: { id: resume.id, step: 'contact' },
+      })
+    },
+  })
 }
 
 export { sampleCoverLetter }
