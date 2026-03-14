@@ -13,7 +13,7 @@ const editSteps = [
 
 const editorSteps = [
   ...editSteps,
-  { id: 'preview', label: 'Finish up & Preview' },
+  { id: 'preview', label: 'Preview' },
 ] as const
 
 export type ResumeEditorStep = (typeof editorSteps)[number]['id']
@@ -91,7 +91,7 @@ export function ResumeEditorShell({
                   : 'border-transparent bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground',
               )}
             >
-              Finish up & Preview
+              Preview
             </Link>
           </nav>
         </div>

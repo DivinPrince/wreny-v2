@@ -7,25 +7,46 @@ import {
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
 import { signOut, useSession } from "#/lib/auth-client";
+import Avatar from "boring-avatars";
 import { LogOut, Settings } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+
+// Emerald primary palette from theme – supports light/dark backgrounds
+const AVATAR_COLORS = [
+  "oklch(0.35 0.1 162)",
+  "oklch(0.45 0.12 162)",
+  "oklch(0.52 0.14 162)",
+  "oklch(0.65 0.12 162)",
+  "oklch(0.78 0.08 162)",
+];
 
 export default function UserButton() {
   const { data } = useSession();
   const user = data?.user;
+  const displayName = user?.name ?? user?.email ?? "User";
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-full p-0 overflow-hidden size-8 min-w-8 [&_svg]:size-full!"
+        >
           {user?.image ? (
             <img
-              className="h-8 w-8 rounded-full object-cover"
-              alt={user.name ?? user.email ?? "User"}
+              className="size-full rounded-full object-cover"
+              alt={displayName}
               src={user.image}
             />
           ) : (
-            <span className="h-8 w-8 rounded-full bg-linear-to-br from-lime-400 from-10% via-cyan-300 to-blue-500" />
+            <Avatar
+              name={displayName}
+              size={32}
+              variant="beam"
+              square={false}
+              colors={AVATAR_COLORS}
+            />
           )}
         </Button>
       </DropdownMenuTrigger>

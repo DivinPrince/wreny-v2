@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown, Download, Plus } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown, Download, Ellipsis, Plus } from 'lucide-react'
 
 import type {
   CoverLetterContext,
@@ -18,6 +18,7 @@ import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from '#/components/ui/popover'
@@ -33,7 +34,10 @@ import { cn } from '#/lib/utils'
 
 import { cloneCoverLetterDocument } from '../lib/queries'
 import { templates } from '../lib/template-registry'
-import { CoverLetterRenderer } from '../rendering/cover-letter-renderer'
+import {
+  COVER_LETTER_PAGE_WIDTH_PX,
+  CoverLetterRenderer,
+} from '../rendering/cover-letter-renderer'
 import type { CoverLetterEditorBindings } from '../templates/types'
 import { useCoverLetterEditor } from './cover-letter-editor-context'
 import { InlineEditable } from './inline-editable'
@@ -211,6 +215,99 @@ function applyFieldChange(
   })
 }
 
+function DetailsPopover({
+  draft,
+  onChangeField,
+  onChangeTone,
+}: {
+  draft: CoverLetterDocument
+  onChangeField: (fieldId: EditableFieldId, value: string) => void
+  onChangeTone: (tone: CoverLetterContext['tone']) => void
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="default"
+          className="h-8 shrink-0 px-2.5 text-sm"
+        >
+          Details
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="center" side="top" sideOffset={12} className="w-[380px] space-y-4 border-foreground/10 bg-background/95 p-4 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80">
+        <div className="space-y-2">
+          <Label htmlFor="cover-letter-notes">Positioning note</Label>
+          <Textarea
+            id="cover-letter-notes"
+            value={draft.metadata.notes}
+            onChange={(event) =>
+              onChangeField('metadata.notes', event.target.value)
+            }
+            className="min-h-24"
+            placeholder="Capture the angle for this version..."
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Tone</Label>
+          <div className="flex flex-wrap gap-2">
+            {toneOptions.map((tone) => (
+              <Button
+                key={tone}
+                type="button"
+                variant={draft.context.tone === tone ? 'default' : 'outline'}
+                onClick={() => onChangeTone(tone)}
+              >
+                {tone[0].toUpperCase()}
+                {tone.slice(1)}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="cover-letter-job-url">Job listing URL</Label>
+          <Input
+            id="cover-letter-job-url"
+            value={draft.context.jobUrl}
+            onChange={(event) =>
+              onChangeField('context.jobUrl', event.target.value)
+            }
+            placeholder="https://company.com/careers/role"
+          />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="cover-letter-site-label">Website label</Label>
+            <Input
+              id="cover-letter-site-label"
+              value={draft.sender.url.label}
+              onChange={(event) =>
+                onChangeField('sender.url.label', event.target.value)
+              }
+              placeholder="Portfolio"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cover-letter-site-url">Website URL</Label>
+            <Input
+              id="cover-letter-site-url"
+              value={draft.sender.url.href}
+              onChange={(event) =>
+                onChangeField('sender.url.href', event.target.value)
+              }
+              placeholder="https://yoursite.com"
+            />
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export function EditableLetterView() {
   const { coverLetter, coverLetterId, saveCoverLetter, isSaving, title } =
     useCoverLetterEditor()
@@ -220,10 +317,39 @@ export function EditableLetterView() {
   const [draftTitle, setDraftTitle] = useState(title)
   const [activeField, setActiveField] = useState<string | null>(null)
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [toolbarWidth, setToolbarWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
   const lastCoverLetterIdRef = useRef(coverLetterId)
   const draftRef = useRef(draft)
   const draftTitleRef = useRef(draftTitle)
   const validationMessage = useMemo(() => getValidationMessage(draft), [draft])
+
+  const previewContainerRef = useRef<HTMLDivElement>(null)
+  const [previewScale, setPreviewScale] = useState(1)
+
+  const updateScale = useCallback(() => {
+    const container = previewContainerRef.current
+    if (!container) return
+    const containerWidth = container.clientWidth - 32
+    const raw = containerWidth / COVER_LETTER_PAGE_WIDTH_PX
+    setPreviewScale(raw >= 0.5 ? Math.min(1, raw) : 1)
+  }, [])
+
+  useEffect(() => {
+    const container = previewContainerRef.current
+    if (!container) return
+    const observer = new ResizeObserver(updateScale)
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [updateScale])
+
+  useEffect(() => {
+    const onResize = () => setToolbarWidth(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const showDetails = toolbarWidth >= 480
 
   useEffect(() => {
     draftRef.current = draft
@@ -347,9 +473,9 @@ export function EditableLetterView() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5">
-      <div className="space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 pb-16">
+      <div className="flex items-center gap-3">
+        <h1 className="min-w-0 flex-1 text-2xl font-semibold tracking-tight">
           <InlineEditable
             element="span"
             value={draftTitle}
@@ -363,188 +489,19 @@ export function EditableLetterView() {
             editorClassName="h-11 max-w-xl text-base font-semibold"
           />
         </h1>
-
-        <TooltipProvider delayDuration={300}>
-          <div className="cover-letter-toolbar">
-            <div className="cover-letter-toolbar-group">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="default"
-                    className="h-8 gap-1.5 px-2.5"
-                  >
-                    <span
-                      className="size-2.5 rounded-full"
-                      style={{
-                        backgroundColor:
-                          templates.find(
-                            (template) => template.id === draft.metadata.template,
-                          )?.accent ?? '#1f2937',
-                      }}
-                    />
-                    <span className="max-w-24 truncate">
-                      {templates.find(
-                        (template) => template.id === draft.metadata.template,
-                      )?.name ?? 'Classic'}
-                    </span>
-                    <ChevronDown className="size-3.5 opacity-60" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[220px]">
-                  <DropdownMenuRadioGroup
-                    value={draft.metadata.template}
-                    onValueChange={(templateId) =>
-                      setDraft((current) =>
-                        updateDraft(current, (next) => {
-                          next.metadata.template = templateId
-                        }),
-                      )
-                    }
-                  >
-                    {templates.map((template) => (
-                      <DropdownMenuRadioItem key={template.id} value={template.id}>
-                        {template.name}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    className="h-8 w-8"
-                    onClick={handleAddParagraph}
-                  >
-                    <Plus className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>Add paragraph</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="default"
-                    className="h-8 px-2.5 text-sm"
-                  >
-                    Details
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-[380px] space-y-4 p-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cover-letter-notes">Positioning note</Label>
-                    <Textarea
-                      id="cover-letter-notes"
-                      value={draft.metadata.notes}
-                      onChange={(event) =>
-                        handleChangeField('metadata.notes', event.target.value)
-                      }
-                      className="min-h-24"
-                      placeholder="Capture the angle for this version..."
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Tone</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {toneOptions.map((tone) => (
-                        <Button
-                          key={tone}
-                          type="button"
-                          variant={
-                            draft.context.tone === tone ? 'default' : 'outline'
-                          }
-                          onClick={() => handleChangeTone(tone)}
-                        >
-                          {tone[0].toUpperCase()}
-                          {tone.slice(1)}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cover-letter-job-url">Job listing URL</Label>
-                    <Input
-                      id="cover-letter-job-url"
-                      value={draft.context.jobUrl}
-                      onChange={(event) =>
-                        handleChangeField('context.jobUrl', event.target.value)
-                      }
-                      placeholder="https://company.com/careers/role"
-                    />
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="cover-letter-site-label">Website label</Label>
-                      <Input
-                        id="cover-letter-site-label"
-                        value={draft.sender.url.label}
-                        onChange={(event) =>
-                          handleChangeField('sender.url.label', event.target.value)
-                        }
-                        placeholder="Portfolio"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="cover-letter-site-url">Website URL</Label>
-                      <Input
-                        id="cover-letter-site-url"
-                        value={draft.sender.url.href}
-                        onChange={(event) =>
-                          handleChangeField('sender.url.href', event.target.value)
-                        }
-                        placeholder="https://yoursite.com"
-                      />
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="cover-letter-toolbar-group">
-              <Button
-                type="button"
-                variant="ghost"
-                size="default"
-                className="h-8 gap-1.5 px-2.5"
-                onClick={handleDownloadPdf}
-                disabled={isDownloadingPdf}
-              >
-                <Download className="size-4" />
-                {isDownloadingPdf ? 'Preparing PDF...' : 'Download PDF'}
-              </Button>
-            </div>
-          </div>
-        </TooltipProvider>
-
-        <p className="text-sm text-muted-foreground">
-          Hover any text in the letter, click once, and type directly in place.
-        </p>
+        {validationMessage && (
+          <p className="shrink-0 text-sm text-amber-600">{validationMessage}</p>
+        )}
       </div>
 
-      <p
-        className={cn(
-          'min-h-5 text-sm transition-colors',
-          validationMessage ? 'text-amber-600' : 'text-muted-foreground',
-        )}
-        aria-live="polite"
+      <div
+        ref={previewContainerRef}
+        className="cover-letter-print-root min-h-0 flex-1 overflow-auto rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4"
       >
-        {validationMessage ?? (isSaving ? 'Saving...' : '')}
-      </p>
-
-      <div className="cover-letter-print-root min-h-0 flex-1 overflow-auto border border-dashed border-muted-foreground/30 bg-muted/20 p-4">
-        <div className="cover-letter-print-frame mx-auto max-w-[860px]">
+        <div
+          className="cover-letter-print-frame mx-auto max-w-[860px]"
+          style={{ zoom: previewScale }}
+        >
           <div className="cover-letter-stage">
             <CoverLetterRenderer
               coverLetter={draft}
@@ -554,6 +511,138 @@ export function EditableLetterView() {
           </div>
         </div>
       </div>
+
+      <TooltipProvider delayDuration={300}>
+        <Popover open={moreOpen} onOpenChange={setMoreOpen}>
+          <PopoverAnchor asChild>
+            <div className={cn(
+              "fixed bottom-6 left-1/2 z-50 w-auto max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
+              moreOpen ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
+            )}>
+              <div className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="default"
+                        className="h-8 shrink-0 gap-1.5 px-2.5"
+                      >
+                        <span
+                          className="size-2.5 shrink-0 rounded-full"
+                          style={{
+                            backgroundColor:
+                              templates.find(
+                                (t) => t.id === draft.metadata.template,
+                              )?.accent ?? '#1f2937',
+                          }}
+                        />
+                        <span className="hidden max-w-24 truncate sm:inline">
+                          {templates.find(
+                            (t) => t.id === draft.metadata.template,
+                          )?.name ?? 'Classic'}
+                        </span>
+                        <ChevronDown className="size-3.5 opacity-60" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" side="top" className="min-w-[220px]">
+                      <DropdownMenuRadioGroup
+                        value={draft.metadata.template}
+                        onValueChange={(templateId) =>
+                          setDraft((current) =>
+                            updateDraft(current, (next) => {
+                              next.metadata.template = templateId
+                            }),
+                          )
+                        }
+                      >
+                        {templates.map((template) => (
+                          <DropdownMenuRadioItem key={template.id} value={template.id}>
+                            {template.name}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="default"
+                      className="h-8 w-8 shrink-0 px-0"
+                      onClick={handleAddParagraph}
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><p>Add paragraph</p></TooltipContent>
+                </Tooltip>
+
+                {showDetails && (
+                  <DetailsPopover
+                    draft={draft}
+                    onChangeField={handleChangeField}
+                    onChangeTone={handleChangeTone}
+                  />
+                )}
+
+                <div className="min-w-0 flex-1" />
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="default"
+                      className="h-8 shrink-0"
+                      onClick={handleDownloadPdf}
+                      disabled={isDownloadingPdf}
+                    >
+                      <Download className="size-4" />
+                      <span className="hidden sm:inline">
+                        {isDownloadingPdf ? 'Preparing…' : 'Download PDF'}
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><p>Print or save as PDF</p></TooltipContent>
+                </Tooltip>
+
+                {!showDetails && (
+                  <>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="default"
+                            className="h-8 w-8 shrink-0 px-0"
+                          >
+                            <Ellipsis className="size-4" />
+                          </Button>
+                        </PopoverTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent side="top"><p>More options</p></TooltipContent>
+                    </Tooltip>
+                    <PopoverContent side="top" align="center" sideOffset={0} className="w-(--radix-popper-anchor-width) rounded-b-none rounded-t-xl border border-foreground/10 ring-0 bg-background/95 p-2.5 shadow-none backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {!showDetails && (
+                          <DetailsPopover
+                            draft={draft}
+                            onChangeField={handleChangeField}
+                            onChangeTone={handleChangeTone}
+                          />
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </>
+                )}
+              </div>
+            </div>
+          </PopoverAnchor>
+        </Popover>
+      </TooltipProvider>
     </div>
   )
 }

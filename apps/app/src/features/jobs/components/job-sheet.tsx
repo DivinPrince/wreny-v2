@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { formatDistanceToNow } from "date-fns"
 import {
   BriefcaseBusiness,
+  ChevronDown,
   FileText,
   Info,
   Link as LinkIcon,
@@ -16,6 +17,13 @@ import type { JobInfo } from "../lib/types"
 import { JobStatus } from "../lib/types"
 
 import { Button } from "#/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "#/components/ui/dropdown-menu"
 import { Input } from "#/components/ui/input"
 import {
   Sheet,
@@ -113,58 +121,74 @@ export function JobSheet({ job, open, onOpenChange }: JobSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent
+        side="right"
+        className="flex w-full flex-col sm:max-w-md"
+      >
         <SheetTitle className="sr-only">{job.companyName}</SheetTitle>
-        <div className="pb-6">
-          <div className="flex items-center justify-between">
-            <SheetHeader className="pb-0">
-              <div className="flex items-center gap-2">
-                <div
-                  className="size-12 rounded-md flex items-center justify-center text-[12px] text-white font-bold"
-                  style={{ backgroundColor: job.logoColor ?? "#4A6EB0" }}
-                >
-                  {companyInitial}
-                </div>
-                <div>
-                  <h1 className="font-bold text-muted-foreground">Company</h1>
-                  <Input
-                    value={draft.companyName}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        companyName: event.target.value,
-                      }))
-                    }
-                    className="border-none shadow-none px-0 text-lg font-bold focus-visible:ring-0 focus-visible:ring-offset-0"
-                    placeholder="Company Name"
-                  />
-                  <SheetDescription className="text-xs">
-                    Last updated {lastUpdated}
-                  </SheetDescription>
-                </div>
-              </div>
-            </SheetHeader>
-          </div>
-        </div>
-
-        <form onSubmit={handleSave} className="space-y-4">
-          <DetailRow label="Status" icon={currentStatusMeta.icon}>
-            <select
-              value={draft.status}
-              onChange={(event) =>
-                setDraft((current) => ({
-                  ...current,
-                  status: event.target.value as JobStatus,
-                }))
-              }
-              className="h-8 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        <SheetHeader className="shrink-0 border-b pb-4">
+          <div className="flex items-center gap-3">
+            <div
+              className="size-12 shrink-0 rounded-md flex items-center justify-center text-[12px] text-white font-bold"
+              style={{ backgroundColor: job.logoColor ?? "#4A6EB0" }}
             >
-              {jobStatusOrder.map((status) => (
-                <option key={status} value={status}>
-                  {jobStatusMeta[status].label}
-                </option>
-              ))}
-            </select>
+              {companyInitial}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-muted-foreground">Company</p>
+              <Input
+                value={draft.companyName}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    companyName: event.target.value,
+                  }))
+                }
+                className="mt-0.5 border-none bg-transparent px-0 py-0 shadow-none text-base font-bold focus-visible:ring-0 focus-visible:ring-offset-0"
+                placeholder="Company Name"
+              />
+              <SheetDescription className="mt-1 text-xs">
+                Last updated {lastUpdated}
+              </SheetDescription>
+            </div>
+          </div>
+        </SheetHeader>
+
+        <form
+          onSubmit={handleSave}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+            <div className="space-y-4">
+          <DetailRow label="Status" icon={currentStatusMeta.icon}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="h-8 w-full justify-between font-normal"
+                >
+                  <span>{jobStatusMeta[draft.status].label}</span>
+                  <ChevronDown className="size-4 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-(--radix-dropdown-menu-trigger-width)">
+                <DropdownMenuRadioGroup
+                  value={draft.status}
+                  onValueChange={(value) =>
+                    setDraft((current) => ({
+                      ...current,
+                      status: value as JobStatus,
+                    }))
+                  }
+                >
+                  {jobStatusOrder.map((status) => (
+                    <DropdownMenuRadioItem key={status} value={status}>
+                      {jobStatusMeta[status].label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </DetailRow>
 
           <DetailRow label="Job Title" icon={BriefcaseBusiness}>
@@ -275,8 +299,10 @@ export function JobSheet({ job, open, onOpenChange }: JobSheetProps) {
               className="h-8"
             />
           </DetailRow>
+            </div>
+          </div>
 
-          <SheetFooter className="pt-4">
+          <SheetFooter className="shrink-0 border-t pt-4">
             <Button
               type="button"
               variant="destructive"
