@@ -1,5 +1,6 @@
-import { auth } from '@repo/core/auth'
 import { createMiddleware, createStart } from '@tanstack/react-start'
+
+const API_URL = process.env.API_URL
 
 function isProtectedPath(pathname: string) {
   return (
@@ -9,6 +10,28 @@ function isProtectedPath(pathname: string) {
   )
 }
 
+async function hasSession(request: Request) {
+  if (!API_URL) {
+    return false
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/auth/get-session`, {
+      method: 'GET',
+      headers: request.headers,
+    })
+
+    if (!response.ok) {
+      return false
+    }
+
+    const session = (await response.json().catch(() => null)) as unknown
+    return Boolean(session)
+  } catch {
+    return false
+  }
+}
+
 const dashboardAuthMiddleware = createMiddleware().server(async ({ next, request }) => {
   const url = new URL(request.url)
 
@@ -16,11 +39,7 @@ const dashboardAuthMiddleware = createMiddleware().server(async ({ next, request
     return next()
   }
 
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  })
-
-  if (session) {
+  if (await hasSession(request)) {
     return next()
   }
 
