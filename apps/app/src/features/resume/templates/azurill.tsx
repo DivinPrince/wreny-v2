@@ -19,8 +19,8 @@ import type {
 } from '@repo/core/schemas'
 import { Fragment, type ReactNode } from 'react'
 import { cn, isEmptyString, isUrl, linearTransform, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -130,13 +130,13 @@ function Summary() {
       </div>
 
       <div className="mb-2 hidden items-center gap-x-2 text-center font-bold text-primary group-[.sidebar]:flex">
-        <div className="size-1.5 rounded-full border border-primary" />
+        <div className="size-1.5 rounded-full border border-highlight" />
         <h4>{section.name}</h4>
-        <div className="size-1.5 rounded-full border border-primary" />
+        <div className="size-1.5 rounded-full border border-highlight" />
       </div>
 
-      <main className={cn('relative space-y-2', 'border-l border-primary pl-4')}>
-        <div className="absolute left-[-4.5px] top-[8px] hidden size-[8px] rounded-full bg-primary group-[.main]:block" />
+      <main className={cn('relative space-y-2', 'border-l border-highlight pl-4')}>
+        <div className="absolute left-[-4.5px] top-[8px] hidden size-[8px] rounded-full bg-highlight group-[.main]:block" />
 
         <div
           dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
@@ -151,9 +151,9 @@ function Summary() {
 function Rating({ level }: Readonly<RatingProps>) {
   return (
     <div className="relative h-1 w-[128px]">
-      <div className="absolute inset-0 h-1 w-[128px] rounded bg-primary opacity-25" />
+      <div className="absolute inset-0 h-1 w-[128px] rounded bg-highlight opacity-25" />
       <div
-        className="absolute inset-0 h-1 rounded bg-primary"
+        className="absolute inset-0 h-1 rounded bg-highlight"
         style={{ width: linearTransform(level, 0, 5, 0, 128) }}
       />
     </div>
@@ -215,9 +215,9 @@ function Section<T>({
         style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
       >
         <div className="mb-2 hidden items-center gap-x-2 font-bold text-primary group-[.sidebar]:flex">
-          <div className="size-1.5 rounded-full border border-primary" />
+          <div className="size-1.5 rounded-full border border-highlight" />
           <h4>{section.name}</h4>
-          <div className="size-1.5 rounded-full border border-primary" />
+          <div className="size-1.5 rounded-full border border-highlight" />
         </div>
 
         {section.items
@@ -239,7 +239,7 @@ function Section<T>({
                 key={item.id}
                 className={cn(
                   'relative space-y-2',
-                  'border-primary group-[.main]:border-l group-[.main]:pl-4',
+                  'border-highlight group-[.main]:border-l group-[.main]:pl-4',
                   className,
                 )}
               >
@@ -255,7 +255,7 @@ function Section<T>({
 
                 {url !== undefined && section.separateLinks && <Link url={url} />}
 
-                <div className="absolute left-[-4.5px] top-px hidden size-[8px] rounded-full bg-primary group-[.main]:block" />
+                <div className="absolute left-[-4.5px] top-px hidden size-[8px] rounded-full bg-highlight group-[.main]:block" />
               </div>
             )
           })}

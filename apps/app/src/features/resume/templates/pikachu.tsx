@@ -18,8 +18,8 @@ import type {
 } from '@repo/core/schemas'
 
 import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -36,7 +36,7 @@ const Header = () => {
 
   return (
     <div
-      className="summary group bg-primary px-6 pb-7 pt-6 text-background"
+      className="summary group bg-highlight px-6 pb-7 pt-6 text-background"
       style={{ borderRadius: `calc(${borderRadius}px - 2px)` }}
     >
       <div className="col-span-2 space-y-2.5">

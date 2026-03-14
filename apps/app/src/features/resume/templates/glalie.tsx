@@ -19,8 +19,8 @@ import type {
 } from '@repo/core/schemas'
 import { Fragment, type ReactNode } from 'react'
 import { cn, hexToRgb, isEmptyString, isUrl, linearTransform, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -78,7 +78,7 @@ function Header() {
           <div className="text-base">{basics.headline}</div>
         </div>
 
-        <div className="flex flex-col items-start gap-y-1.5 rounded border border-primary px-3 py-4 text-left text-sm">
+        <div className="flex flex-col items-start gap-y-1.5 rounded border border-highlight px-3 py-4 text-left text-sm">
           {basics.location && (
             <div className="flex items-center gap-x-1.5">
               <i className="ph ph-bold ph-map-pin text-primary" />
@@ -139,13 +139,15 @@ function Summary() {
 }
 
 function Rating({ level }: Readonly<RatingProps>) {
-  const primaryColor = useResumeStore((state) => state.resume.metadata.theme.primary)
+  const highlightColor = useResumeStore(
+    (state) => state.resume.metadata.theme.highlight ?? state.resume.metadata.theme.primary,
+  )
 
   return (
     <div className="relative">
-      <div className="h-2.5 w-full rounded-sm" style={{ backgroundColor: hexToRgb(primaryColor, 0.4) }} />
+      <div className="h-2.5 w-full rounded-sm" style={{ backgroundColor: hexToRgb(highlightColor, 0.4) }} />
       <div
-        className="absolute inset-y-0 left-0 h-2.5 w-full rounded-sm bg-primary"
+        className="absolute inset-y-0 left-0 h-2.5 w-full rounded-sm bg-highlight"
         style={{ width: `${linearTransform(level, 0, 5, 0, 100)}%` }}
       />
     </div>
@@ -563,13 +565,15 @@ function mapSectionToComponent(section: SectionKey) {
 
 export function Glalie({ columns, isFirstPage = false }: Readonly<TemplateProps>) {
   const [main, sidebar] = columns
-  const primaryColor = useResumeStore((state) => state.resume.metadata.theme.primary)
+  const highlightColor = useResumeStore(
+    (state) => state.resume.metadata.theme.highlight ?? state.resume.metadata.theme.primary,
+  )
 
   return (
     <div className="grid min-h-[inherit] grid-cols-3">
       <div
         className={cn('sidebar p-custom group space-y-4', sidebar.length === 0 && 'hidden')}
-        style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}
+        style={{ backgroundColor: hexToRgb(highlightColor, 0.2) }}
       >
         {isFirstPage && <Header />}
 

@@ -4,11 +4,92 @@
   --color-background: var(--resume-color-background);
   --color-foreground: var(--resume-color-foreground);
   --color-primary: var(--resume-color-primary);
+  --color-highlight: var(--resume-color-highlight);
   --spacing-custom: var(--resume-margin);
 }
 
 .resume-surface {
   color: var(--resume-color-foreground);
+}
+
+/* Resume preview runs inside the app shell, so these explicit mappings ensure
+   resume theme colors win even when Tailwind utilities are not emitted/scoped
+   the way the main app expects. */
+.resume-surface .text-primary {
+  color: var(--resume-color-primary) !important;
+}
+
+/* In resume templates, icons should follow the highlight color even when
+   adjacent text uses the main text color. */
+.resume-surface i.text-primary,
+.resume-surface .ph.text-primary {
+  color: var(--resume-color-highlight) !important;
+}
+
+.resume-surface .bg-primary {
+  background-color: var(--resume-color-primary) !important;
+}
+
+.resume-surface .border-primary {
+  border-color: var(--resume-color-primary) !important;
+}
+
+.resume-surface .text-highlight {
+  color: var(--resume-color-highlight) !important;
+}
+
+.resume-surface .bg-highlight {
+  background-color: var(--resume-color-highlight) !important;
+}
+
+.resume-surface .border-highlight {
+  border-color: var(--resume-color-highlight) !important;
+}
+
+.resume-surface .text-background {
+  color: var(--resume-color-background) !important;
+}
+
+.resume-surface .bg-background {
+  background-color: var(--resume-color-background) !important;
+}
+
+.resume-surface .border-background {
+  border-color: var(--resume-color-background) !important;
+}
+
+.resume-surface .text-foreground {
+  color: var(--resume-color-foreground) !important;
+}
+
+.resume-surface .bg-foreground {
+  background-color: var(--resume-color-foreground) !important;
+}
+
+.resume-surface .border-foreground {
+  border-color: var(--resume-color-foreground) !important;
+}
+
+.resume-surface .summary .group-\[\.summary\]\:text-background,
+.resume-surface .sidebar .group-\[\.sidebar\]\:text-background {
+  color: var(--resume-color-background) !important;
+}
+
+.resume-surface .sidebar .group-\[\.sidebar\]\:text-primary {
+  color: var(--resume-color-primary) !important;
+}
+
+.resume-surface .sidebar i.group-\[\.sidebar\]\:text-primary,
+.resume-surface .sidebar .ph.group-\[\.sidebar\]\:text-primary {
+  color: var(--resume-color-highlight) !important;
+}
+
+.resume-surface .sidebar .group-\[\.sidebar\]\:bg-background {
+  background-color: var(--resume-color-background) !important;
+}
+
+.resume-surface .sidebar .group-\[\.sidebar\]\:border-background {
+  border-color: var(--resume-color-background) !important;
 }
 
 .resume-page {
@@ -98,20 +179,84 @@
   pointer-events: none;
 }
 
+.resume-pdf-route {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background: #111827;
+}
+
+.resume-pdf-frame {
+  width: fit-content;
+  margin: 0 auto;
+}
+
 @media print {
-  .resume-stage {
+  .resume-pdf-route {
+    min-height: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  .resume-pdf-frame {
+    width: fit-content !important;
+    margin: 0 auto !important;
+  }
+
+  .resume-pdf-route .resume-page {
+    box-shadow: none !important;
+  }
+
+  html:has(body.resume-printing),
+  body.resume-printing {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body.resume-printing * {
+    visibility: hidden !important;
+  }
+
+  body.resume-printing .resume-print-root,
+  body.resume-printing .resume-print-root * {
+    visibility: visible !important;
+  }
+
+  body.resume-printing .resume-print-root {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: fit-content !important;
+    min-height: auto !important;
+    margin: 0 auto !important;
+    overflow: visible !important;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  body.resume-printing .resume-print-frame {
+    width: fit-content !important;
+    margin: 0 auto !important;
+    max-width: none !important;
+  }
+
+  body.resume-printing .resume-stage {
     overflow: visible;
     border: 0;
     background: transparent;
     box-shadow: none;
   }
 
-  .resume-stage-grid {
+  body.resume-printing .resume-stage-grid {
     padding: 0;
     gap: 0;
+    justify-content: center;
   }
 
-  .resume-page {
+  body.resume-printing .resume-page {
     box-shadow: none !important;
     page-break-after: always;
   }

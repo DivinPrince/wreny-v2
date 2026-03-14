@@ -11,6 +11,7 @@ export const templateIds = [
   'onyx',
   'pikachu',
   'rhyhorn',
+  'static',
 ] as const
 
 export type TemplateId = (typeof templateIds)[number]
@@ -107,5 +108,12 @@ export const templates: readonly TemplateSummary[] = [
     isRecommended: false,
     description: 'Classic recruiter-friendly layout with sturdy section grouping.',
     accent: '#6b7280',
+  },
+  {
+    id: 'static',
+    name: 'Static',
+    isRecommended: false,
+    description: 'Compact preview layout with sidebar skills and main content.',
+    accent: '#4b5563',
   },
 ] as const

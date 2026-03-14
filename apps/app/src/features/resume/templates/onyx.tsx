@@ -17,8 +17,8 @@ import type {
 } from '@repo/core/schemas'
 
 import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -34,7 +34,7 @@ const Header = () => {
   const profiles = useResumeStore((state) => state.resume.sections.profiles)
 
   return (
-    <div className="flex items-center justify-between space-x-4 border-b border-primary pb-5">
+    <div className="flex items-center justify-between space-x-4 border-b border-highlight pb-5">
       <Picture />
 
       <div className="flex-1 space-y-2">
@@ -130,7 +130,7 @@ const Rating = ({ level }: Readonly<RatingProps>) => (
     {Array.from({ length: 5 }).map((_, index) => (
       <div
         key={index}
-        className={cn('size-3 rounded border-2 border-primary', level > index && 'bg-primary')}
+        className={cn('size-3 rounded border-2 border-highlight', level > index && 'bg-highlight')}
       />
     ))}
   </div>

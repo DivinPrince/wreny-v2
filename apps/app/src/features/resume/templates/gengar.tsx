@@ -19,8 +19,8 @@ import type {
 } from '@repo/core/schemas'
 import { Fragment, type ReactNode } from 'react'
 import { cn, hexToRgb, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -69,7 +69,7 @@ function Header() {
   const basics = useResumeStore((state) => state.resume.basics)
 
   return (
-    <div className="p-custom space-y-4 bg-primary text-background">
+    <div className="p-custom space-y-4 bg-highlight text-background">
       <Picture className="border-background" />
 
       <div>
@@ -122,12 +122,14 @@ function Header() {
 
 function Summary() {
   const section = useResumeStore((state) => state.resume.sections.summary)
-  const primaryColor = useResumeStore((state) => state.resume.metadata.theme.primary)
+  const highlightColor = useResumeStore(
+    (state) => state.resume.metadata.theme.highlight ?? state.resume.metadata.theme.primary,
+  )
 
   if (!section.visible || isEmptyString(section.content)) return null
 
   return (
-    <div className="p-custom space-y-4" style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}>
+    <div className="p-custom space-y-4" style={{ backgroundColor: hexToRgb(highlightColor, 0.2) }}>
       <section id={section.id}>
         <div
           dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
@@ -143,7 +145,7 @@ function Rating({ level }: Readonly<RatingProps>) {
   return (
     <div className="flex items-center gap-x-1">
       {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} className={cn('h-2.5 w-5 border border-primary', level > index && 'bg-primary')} />
+        <div key={index} className={cn('h-2.5 w-5 border border-highlight', level > index && 'bg-highlight')} />
       ))}
     </div>
   )
@@ -563,14 +565,16 @@ function mapSectionToComponent(section: SectionKey) {
 
 export function Gengar({ columns, isFirstPage = false }: Readonly<TemplateProps>) {
   const [main, sidebar] = columns
-  const primaryColor = useResumeStore((state) => state.resume.metadata.theme.primary)
+  const highlightColor = useResumeStore(
+    (state) => state.resume.metadata.theme.highlight ?? state.resume.metadata.theme.primary,
+  )
 
   return (
     <div className="grid min-h-[inherit] grid-cols-3">
       <div className={cn('sidebar group flex flex-col', !(isFirstPage || sidebar.length > 0) && 'hidden')}>
         {isFirstPage && <Header />}
 
-        <div className="p-custom flex-1 space-y-4" style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}>
+        <div className="p-custom flex-1 space-y-4" style={{ backgroundColor: hexToRgb(highlightColor, 0.2) }}>
           {sidebar.map((section) => (
             <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
           ))}

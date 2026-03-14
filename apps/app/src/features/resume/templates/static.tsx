@@ -1,8 +1,8 @@
-import { Fragment, type ReactNode } from 'react'
 import type {
   Award,
   Certification,
   CustomSection,
+  CustomSectionGroup,
   Education,
   Experience,
   Interest,
@@ -12,11 +12,12 @@ import type {
   Publication,
   Reference,
   SectionKey,
+  SectionWithItem,
   Skill,
   URL,
   Volunteer,
 } from '@repo/core/schemas'
-
+import { Fragment, type ReactNode } from 'react'
 import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
 import { BrandIcon } from '../rendering/brand-icon'
 import { Picture } from '../rendering/picture'
@@ -30,13 +31,46 @@ const assertNever = (value: never): never => {
 const getCustomSectionId = (section: SectionKey) =>
   section.startsWith('custom.') ? section.slice('custom.'.length) : null
 
-const Header = () => {
+type RatingProps = {
+  level: number
+}
+
+type LinkProps = {
+  url: URL
+  icon?: ReactNode
+  iconOnRight?: boolean
+  label?: string
+  className?: string
+}
+
+type LinkedEntityProps = {
+  name: string
+  url: URL
+  separateLinks: boolean
+  className?: string
+}
+
+type SectionProps<T> = {
+  section: SectionWithItem<T> | CustomSectionGroup
+  children?: (item: T) => ReactNode
+  className?: string
+  urlKey?: keyof T
+  levelKey?: keyof T
+  summaryKey?: keyof T
+  keywordsKey?: keyof T
+}
+
+function getItemValue(item: Record<string, unknown>, key: string | undefined) {
+  if (!key) return undefined
+  return item[key]
+}
+
+function Header() {
   const basics = useResumeStore((state) => state.resume.basics)
 
   return (
     <div className="flex items-center space-x-4">
       <Picture />
-
       <div className="space-y-0.5">
         <div className="text-2xl font-bold">{basics.name}</div>
         <div className="text-base">{basics.headline}</div>
@@ -86,7 +120,7 @@ const Header = () => {
   )
 }
 
-const Summary = () => {
+function Summary() {
   const section = useResumeStore((state) => state.resume.sections.summary)
 
   if (!section.visible || isEmptyString(section.content)) return null
@@ -104,28 +138,20 @@ const Summary = () => {
   )
 }
 
-type RatingProps = { level: number }
-
-const Rating = ({ level }: Readonly<RatingProps>) => (
-  <div className="flex items-center gap-x-1.5">
-    {Array.from({ length: 5 }).map((_, index) => (
-      <div
-        key={index}
-        className={cn('size-2 rounded-full border border-highlight', level > index && 'bg-highlight')}
-      />
-    ))}
-  </div>
-)
-
-type LinkProps = {
-  url: URL
-  icon?: ReactNode
-  iconOnRight?: boolean
-  label?: string
-  className?: string
+function Rating({ level }: Readonly<RatingProps>) {
+  return (
+    <div className="flex items-center gap-x-1.5">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={index}
+          className={cn('size-2 rounded-full border border-highlight', level > index && 'bg-highlight')}
+        />
+      ))}
+    </div>
+  )
 }
 
-const Link = ({ url, icon, iconOnRight, label, className }: Readonly<LinkProps>) => {
+function Link({ url, icon, iconOnRight, label, className }: Readonly<LinkProps>) {
   if (!isUrl(url.href)) return null
 
   return (
@@ -144,14 +170,7 @@ const Link = ({ url, icon, iconOnRight, label, className }: Readonly<LinkProps>)
   )
 }
 
-type LinkedEntityProps = {
-  name: string
-  url: URL
-  separateLinks: boolean
-  className?: string
-}
-
-const LinkedEntity = ({ name, url, separateLinks, className }: Readonly<LinkedEntityProps>) => {
+function LinkedEntity({ name, url, separateLinks, className }: Readonly<LinkedEntityProps>) {
   return !separateLinks && isUrl(url.href) ? (
     <Link
       url={url}
@@ -165,26 +184,7 @@ const LinkedEntity = ({ name, url, separateLinks, className }: Readonly<LinkedEn
   )
 }
 
-type SectionGroup<T> = {
-  id: string
-  name: string
-  columns: number
-  separateLinks: boolean
-  visible: boolean
-  items: Array<T & { id: string; visible: boolean }>
-}
-
-type SectionProps<T> = {
-  section: SectionGroup<T>
-  children?: (item: T) => ReactNode
-  className?: string
-  urlKey?: keyof T
-  levelKey?: keyof T
-  summaryKey?: keyof T
-  keywordsKey?: keyof T
-}
-
-const Section = <T,>({
+function Section<T>({
   section,
   children,
   className,
@@ -192,7 +192,7 @@ const Section = <T,>({
   levelKey,
   summaryKey,
   keywordsKey,
-}: Readonly<SectionProps<T>>) => {
+}: Readonly<SectionProps<T>>) {
   if (!section.visible || section.items.length === 0) return null
 
   return (
@@ -206,10 +206,16 @@ const Section = <T,>({
         {section.items
           .filter((item) => item.visible)
           .map((item) => {
-            const url = (urlKey ? item[urlKey] : undefined) as URL | undefined
-            const level = (levelKey ? item[levelKey] : undefined) as number | undefined
-            const summary = (summaryKey ? item[summaryKey] : undefined) as string | undefined
-            const keywords = (keywordsKey ? item[keywordsKey] : undefined) as string[] | undefined
+            const itemRecord = item as Record<string, unknown>
+            const urlValue = getItemValue(itemRecord, urlKey as string | undefined)
+            const levelValue = getItemValue(itemRecord, levelKey as string | undefined)
+            const summaryValue = getItemValue(itemRecord, summaryKey as string | undefined)
+            const keywordsValue = getItemValue(itemRecord, keywordsKey as string | undefined)
+
+            const url = urlValue as URL | undefined
+            const level = typeof levelValue === 'number' ? levelValue : undefined
+            const summary = typeof summaryValue === 'string' ? summaryValue : undefined
+            const keywords = Array.isArray(keywordsValue) ? keywordsValue : undefined
 
             return (
               <div key={item.id} className={cn('space-y-2', className)}>
@@ -238,7 +244,7 @@ const Section = <T,>({
   )
 }
 
-const ProfilesSection = () => {
+function Profiles() {
   const section = useResumeStore((state) => state.resume.sections.profiles)
 
   return (
@@ -257,7 +263,7 @@ const ProfilesSection = () => {
   )
 }
 
-const ExperienceSection = () => {
+function Experience() {
   const section = useResumeStore((state) => state.resume.sections.experience)
 
   return (
@@ -284,7 +290,7 @@ const ExperienceSection = () => {
   )
 }
 
-const EducationSection = () => {
+function Education() {
   const section = useResumeStore((state) => state.resume.sections.education)
 
   return (
@@ -312,7 +318,7 @@ const EducationSection = () => {
   )
 }
 
-const AwardsSection = () => {
+function Awards() {
   const section = useResumeStore((state) => state.resume.sections.awards)
 
   return (
@@ -337,7 +343,7 @@ const AwardsSection = () => {
   )
 }
 
-const CertificationsSection = () => {
+function Certifications() {
   const section = useResumeStore((state) => state.resume.sections.certifications)
 
   return (
@@ -358,7 +364,7 @@ const CertificationsSection = () => {
   )
 }
 
-const SkillsSection = () => {
+function Skills() {
   const section = useResumeStore((state) => state.resume.sections.skills)
 
   return (
@@ -373,7 +379,7 @@ const SkillsSection = () => {
   )
 }
 
-const InterestsSection = () => {
+function Interests() {
   const section = useResumeStore((state) => state.resume.sections.interests)
 
   return (
@@ -383,7 +389,7 @@ const InterestsSection = () => {
   )
 }
 
-const PublicationsSection = () => {
+function Publications() {
   const section = useResumeStore((state) => state.resume.sections.publications)
 
   return (
@@ -409,7 +415,7 @@ const PublicationsSection = () => {
   )
 }
 
-const VolunteerSection = () => {
+function Volunteer() {
   const section = useResumeStore((state) => state.resume.sections.volunteer)
 
   return (
@@ -436,7 +442,7 @@ const VolunteerSection = () => {
   )
 }
 
-const LanguagesSection = () => {
+function Languages() {
   const section = useResumeStore((state) => state.resume.sections.languages)
 
   return (
@@ -451,7 +457,7 @@ const LanguagesSection = () => {
   )
 }
 
-const ProjectsSection = () => {
+function Projects() {
   const section = useResumeStore((state) => state.resume.sections.projects)
 
   return (
@@ -477,7 +483,7 @@ const ProjectsSection = () => {
   )
 }
 
-const ReferencesSection = () => {
+function References() {
   const section = useResumeStore((state) => state.resume.sections.references)
 
   return (
@@ -497,7 +503,7 @@ const ReferencesSection = () => {
   )
 }
 
-const Custom = ({ id }: Readonly<{ id: string }>) => {
+function Custom({ id }: Readonly<{ id: string }>) {
   const section = useResumeStore((state) => state.resume.sections.custom[id])
 
   if (!section) return null
@@ -531,36 +537,36 @@ const Custom = ({ id }: Readonly<{ id: string }>) => {
   )
 }
 
-const mapSectionToComponent = (section: SectionKey) => {
+function mapSectionToComponent(section: SectionKey) {
   switch (section) {
     case 'basics':
       return null
     case 'profiles':
-      return <ProfilesSection />
+      return <Profiles />
     case 'summary':
       return <Summary />
     case 'experience':
-      return <ExperienceSection />
+      return <Experience />
     case 'education':
-      return <EducationSection />
+      return <Education />
     case 'awards':
-      return <AwardsSection />
+      return <Awards />
     case 'certifications':
-      return <CertificationsSection />
+      return <Certifications />
     case 'skills':
-      return <SkillsSection />
+      return <Skills />
     case 'interests':
-      return <InterestsSection />
+      return <Interests />
     case 'publications':
-      return <PublicationsSection />
+      return <Publications />
     case 'volunteer':
-      return <VolunteerSection />
+      return <Volunteer />
     case 'languages':
-      return <LanguagesSection />
+      return <Languages />
     case 'projects':
-      return <ProjectsSection />
+      return <Projects />
     case 'references':
-      return <ReferencesSection />
+      return <References />
     case 'custom':
       return null
     default: {
@@ -571,20 +577,32 @@ const mapSectionToComponent = (section: SectionKey) => {
   }
 }
 
-export const Rhyhorn = ({ columns, isFirstPage = false }: TemplateProps) => {
-  const [main, sidebar] = columns
+export function Static({ columns, isFirstPage = false }: Readonly<TemplateProps>) {
+  const [main = [], sidebar = []] = columns
 
   return (
-    <div className="p-custom space-y-4">
+    <div className="p-custom space-y-3">
       {isFirstPage && <Header />}
+      <div className="grid grid-cols-3 gap-x-4">
+        <div
+          className={cn('sidebar group space-y-4', sidebar.length === 0 && 'hidden')}
+        >
+          {sidebar.map((section) => (
+            <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
+          ))}
+        </div>
 
-      {main.map((section) => (
-        <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
-      ))}
-
-      {sidebar.map((section) => (
-        <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
-      ))}
+        <div
+          className={cn(
+            'main group space-y-4',
+            sidebar.length > 0 ? 'col-span-2' : 'col-span-3',
+          )}
+        >
+          {main.map((section) => (
+            <Fragment key={section}>{mapSectionToComponent(section)}</Fragment>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

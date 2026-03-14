@@ -17,8 +17,8 @@ import type {
 } from '@repo/core/schemas'
 
 import { cn, hexToRgb, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -33,13 +33,15 @@ const Header = () => {
   const basics = useResumeStore((state) => state.resume.basics)
   const section = useResumeStore((state) => state.resume.sections.summary)
   const profiles = useResumeStore((state) => state.resume.sections.profiles)
-  const primaryColor = useResumeStore((state) => state.resume.metadata.theme.primary)
+  const highlightColor = useResumeStore(
+    (state) => state.resume.metadata.theme.highlight ?? state.resume.metadata.theme.primary,
+  )
 
   return (
     <div>
       <div
         className="p-custom flex items-center space-x-8"
-        style={{ backgroundColor: hexToRgb(primaryColor, 0.2) }}
+        style={{ backgroundColor: hexToRgb(highlightColor, 0.2) }}
       >
         <div className="space-y-3">
           <div>
@@ -57,7 +59,7 @@ const Header = () => {
         <Picture />
       </div>
 
-      <div className="p-custom space-y-3" style={{ backgroundColor: hexToRgb(primaryColor, 0.4) }}>
+      <div className="p-custom space-y-3" style={{ backgroundColor: hexToRgb(highlightColor, 0.4) }}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-sm">
           {basics.location && (
             <div className="flex items-center gap-x-1.5">
@@ -124,7 +126,7 @@ const Rating = ({ level }: Readonly<RatingProps>) => (
     {Array.from({ length: 5 }).map((_, index) => (
       <div
         key={index}
-        className={cn('h-3 w-6 border-2 border-primary', level > index && 'bg-primary')}
+        className={cn('h-3 w-6 border-2 border-highlight', level > index && 'bg-highlight')}
       />
     ))}
   </div>

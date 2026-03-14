@@ -18,8 +18,8 @@ import type {
 } from '@repo/core/schemas'
 
 import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -106,8 +106,8 @@ const Summary = () => {
 
       <div className="col-span-3">
         <div className="relative">
-          <hr className="mt-3 border-primary pb-3" />
-          <div className="absolute bottom-3 right-0 size-3 bg-primary" />
+          <hr className="mt-3 border-highlight pb-3" />
+          <div className="absolute bottom-3 right-0 size-3 bg-highlight" />
         </div>
 
         <div
@@ -206,8 +206,8 @@ const Section = <T,>({
 
         <div className="col-span-3">
           <div className="relative">
-            <hr className="mt-3 border-primary" />
-            <div className="absolute bottom-0 right-0 size-3 bg-primary" />
+            <hr className="mt-3 border-highlight" />
+            <div className="absolute bottom-0 right-0 size-3 bg-highlight" />
           </div>
         </div>
       </div>

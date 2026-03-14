@@ -17,8 +17,8 @@ import type {
 } from '@repo/core/schemas'
 
 import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -129,7 +129,7 @@ const Rating = ({ level }: Readonly<RatingProps>) => (
     {Array.from({ length: 5 }).map((_, index) => (
       <div
         key={index}
-        className={cn('h-3 w-5 rounded border-2 border-primary', level > index && 'bg-primary')}
+        className={cn('h-3 w-5 rounded border-2 border-highlight', level > index && 'bg-highlight')}
       />
     ))}
   </div>

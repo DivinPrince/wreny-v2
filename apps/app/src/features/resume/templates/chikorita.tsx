@@ -19,8 +19,8 @@ import type {
 } from '@repo/core/schemas'
 import { Fragment, type ReactNode } from 'react'
 import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -145,8 +145,8 @@ function Rating({ level }: Readonly<RatingProps>) {
         <div
           key={index}
           className={cn(
-            'size-2 rounded-full border border-primary group-[.sidebar]:border-background',
-            level > index && 'bg-primary group-[.sidebar]:bg-background',
+            'size-2 rounded-full border border-highlight group-[.sidebar]:border-background',
+            level > index && 'bg-highlight group-[.sidebar]:bg-background',
           )}
         />
       ))}
@@ -578,7 +578,7 @@ export function Chikorita({ columns, isFirstPage = false }: Readonly<TemplatePro
 
       <div
         className={cn(
-          'sidebar p-custom group h-full space-y-4 bg-primary text-background',
+          'sidebar p-custom group h-full space-y-4 bg-highlight text-background',
           sidebar.length === 0 && 'hidden',
         )}
       >

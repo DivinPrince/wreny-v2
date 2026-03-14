@@ -19,8 +19,8 @@ import type {
 } from '@repo/core/schemas'
 import { Fragment, type ReactNode } from 'react'
 import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
-import { BrandIcon } from '../rendering/BrandIcon'
-import { Picture } from '../rendering/Picture'
+import { BrandIcon } from '../rendering/brand-icon'
+import { Picture } from '../rendering/picture'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -162,7 +162,7 @@ function Rating({ level }: Readonly<RatingProps>) {
   return (
     <div className="flex items-center gap-x-1.5">
       {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} className={cn('h-2 w-4 border border-primary', level > index && 'bg-primary')} />
+        <div key={index} className={cn('h-2 w-4 border border-highlight', level > index && 'bg-highlight')} />
       ))}
     </div>
   )
@@ -239,7 +239,7 @@ function Section<T>({
                     {url !== undefined && section.separateLinks && <Link url={url} />}
                   </div>
 
-                  <div className="absolute inset-y-0 -left-px border-l-4 border-primary group-[.sidebar]:hidden" />
+                  <div className="absolute inset-y-0 -left-px border-l-4 border-highlight group-[.sidebar]:hidden" />
                 </div>
 
                 {summary !== undefined && !isEmptyString(summary) && (
@@ -250,7 +250,7 @@ function Section<T>({
 
                 {keywords !== undefined && keywords.length > 0 && <p className="text-sm">{keywords.join(', ')}</p>}
 
-                <div className="absolute inset-y-0 left-0 border-l border-primary group-[.sidebar]:hidden" />
+                <div className="absolute inset-y-0 left-0 border-l border-highlight group-[.sidebar]:hidden" />
               </div>
             )
           })}
@@ -591,7 +591,7 @@ export function Ditto({ columns, isFirstPage = false }: Readonly<TemplateProps>)
       {isFirstPage && (
         <div className="relative">
           <Header />
-          <div className="absolute inset-x-0 top-0 h-[85px] w-full bg-primary" />
+          <div className="absolute inset-x-0 top-0 h-[85px] w-full bg-highlight" />
         </div>
       )}
 
