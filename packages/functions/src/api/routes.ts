@@ -2,6 +2,7 @@ import { auth } from "@repo/core/auth";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { agentApi } from "./agent";
 import { coverLettersApi } from "./cover-letters";
 import { handleError, type AppEnv, sessionMiddleware } from "./common";
 import { jobsApi } from "./jobs";
@@ -21,6 +22,7 @@ const apiRoutes = new Hono<AppEnv>()
         "/api/jobs",
         "/api/users",
         "/api/cms/upload",
+        "/api/agent",
       ],
     }),
   )
@@ -36,6 +38,7 @@ const apiRoutes = new Hono<AppEnv>()
         jobs: "/api/jobs",
         users: "/api/users",
         upload: "/api/cms/upload",
+        agent: "/api/agent",
       },
     }),
   )
@@ -43,7 +46,8 @@ const apiRoutes = new Hono<AppEnv>()
   .route("/cover-letters", coverLettersApi)
   .route("/jobs", jobsApi)
   .route("/users", usersApi)
-  .route("/cms", uploadApi);
+  .route("/cms", uploadApi)
+  .route("/agent", agentApi);
 
 export const app = new Hono<AppEnv>();
 

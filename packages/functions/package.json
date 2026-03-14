@@ -23,6 +23,7 @@
     "@hono/zod-validator": "^0.7.6",
     "@repo/core": "workspace:*",
     "@sparticuz/chromium": "^143.0.4",
+    "ai": "^6.0.116",
     "chromium-bidi": "^15.0.0",
     "hono": "4.12.5",
     "playwright-core": "^1.58.2",

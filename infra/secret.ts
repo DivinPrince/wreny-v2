@@ -6,6 +6,7 @@ export const secret = {
   GoogleClientSecret: new sst.Secret("GoogleClientSecret"),
   LinkedinClientId: new sst.Secret("LinkedinClientId"),
   LinkedinClientSecret: new sst.Secret("LinkedinClientSecret"),
+  GoogleVertexApiKey: new sst.Secret("GoogleVertexApiKey"),
 };
 
 export const allSecrets = Object.values(secret);

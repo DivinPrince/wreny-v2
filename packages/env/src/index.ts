@@ -23,7 +23,7 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: z.string().optional(),
     STRIPE_WEBHOOK_SECRET: z.string().optional(),
     PAYMENT_PROVIDER: z.enum(["stripe", "paypal"]).default("stripe"),
-    GOOGLE_GENERATIVE_AI_API_KEY: z.string(),
+    GOOGLE_VERTEX_API_KEY: z.string(),
     AXIOM_API_TOKEN: z.string(),
     AXIOM_DATASET: z.string(),
     OTEL_SERVICE_NAME: z.string(),
