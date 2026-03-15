@@ -34,6 +34,19 @@
   box-shadow: 0 0 0 3px rgba(191, 219, 254, 0.3);
 }
 
+.cover-letter-diff-old {
+  background: rgba(254, 226, 226, 0.95);
+  color: #991b1b;
+  text-decoration: line-through;
+  text-decoration-color: currentColor;
+}
+
+.cover-letter-diff-new {
+  margin-left: 0.125rem;
+  background: rgba(220, 252, 231, 0.95);
+  color: #166534;
+}
+
 .cover-letter-paragraph-row {
   display: flex;
   align-items: flex-start;

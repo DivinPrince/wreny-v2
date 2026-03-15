@@ -33,7 +33,7 @@ import { AgentPanelContent } from '../agent-popover'
 import { cloneResumeDocument, resumeKeys } from '../../lib/queries'
 import { templates } from '../../lib/template-registry'
 import { pageSizeMap } from '../../lib/template-utils'
-import { MM_TO_PX } from '../../rendering/Page'
+import { MM_TO_PX } from '../../rendering/page'
 import { ResumeRenderer } from '../../rendering/resume-renderer'
 import { useResumeEditor } from '../resume-editor-context'
 
@@ -121,9 +121,52 @@ function applyApprovedChanges(
 ) {
   return updateDraft(current, (next) => {
     for (const change of changes) {
-      const { section, itemId, field, proposed } = change
+      const { operation, section, itemId, field, proposed } = change
+
+      if (operation === 'delete-item') {
+        if (section === 'basics' && itemId) {
+          next.basics.customFields = next.basics.customFields.filter(
+            (fieldEntry) => fieldEntry.id !== itemId,
+          )
+          continue
+        }
+
+        const sectionGroup = getSectionGroup(next, section)
+        if (sectionGroup && 'items' in sectionGroup && itemId) {
+          const items = sectionGroup.items as Array<{ id: string }>
+          sectionGroup.items = items.filter((entry) => entry.id !== itemId) as typeof sectionGroup.items
+        }
+        continue
+      }
+
+      if (operation === 'set-section-visible') {
+        if (proposed !== 'true' && proposed !== 'false') {
+          continue
+        }
+
+        const visible = proposed === 'true'
+
+        if (section === 'summary') {
+          next.sections.summary.visible = visible
+          continue
+        }
+
+        const sectionGroup = getSectionGroup(next, section)
+        if (sectionGroup && 'visible' in sectionGroup) {
+          sectionGroup.visible = visible
+        }
+        continue
+      }
 
       if (section === 'basics') {
+        if (itemId) {
+          const item = next.basics.customFields.find((entry) => entry.id === itemId)
+          if (item) {
+            setDocumentField(item as Record<string, unknown>, field, proposed)
+          }
+          continue
+        }
+
         setDocumentField(next.basics as Record<string, unknown>, field, proposed)
         continue
       }
@@ -138,7 +181,8 @@ function applyApprovedChanges(
         continue
       }
 
-      const item = sectionGroup.items.find((entry) => entry.id === itemId)
+      const items = sectionGroup.items as Array<{ id: string }>
+      const item = items.find((entry) => entry.id === itemId)
       if (!item) {
         continue
       }
@@ -500,20 +544,24 @@ function TemplatesDropdown({ draft, setDraft }: DraftProps) {
 
 export function PreviewStep() {
   const queryClient = useQueryClient()
-  const { resume, resumeId, saveResume, isSaving, title } = useResumeEditor()
+  const { resume, resumeId, saveResume, title } = useResumeEditor()
   const [draft, setDraft] = useState<ResumeDocument>(() =>
     cloneResumeDocument(resume),
   )
-  const [pendingChanges, setPendingChanges] = useState<Array<{ section: string; itemId?: string; field: string; original: string; proposed: string }>>([])
+  const [pendingChanges, setPendingChanges] = useState<DocumentChange[]>([])
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [openPanel, setOpenPanel] = useState<'more' | 'agent' | null>(null)
-  const [toolbarWidth, setToolbarWidth] = useState(0)
+  const [toolbarWidth, setToolbarWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
   const toolbarRef = useRef<HTMLDivElement>(null)
   const lastResumeIdRef = useRef(resumeId)
   const previewContainerRef = useRef<HTMLDivElement>(null)
   const [previewScale, setPreviewScale] = useState(1)
 
   const pageFormat = draft.metadata.page.format
+  const previewDraft =
+    pendingChanges.length > 0
+      ? applyApprovedChanges(draft, pendingChanges)
+      : draft
   const updateScale = useCallback(() => {
     const container = previewContainerRef.current
     if (!container) return
@@ -539,25 +587,14 @@ export function PreviewStep() {
   }, [resume, resumeId])
 
   useEffect(() => {
-    const toolbar = toolbarRef.current
-    if (!toolbar) return
-
-    const updateToolbarWidth = () => {
-      setToolbarWidth(Math.round(toolbar.getBoundingClientRect().width))
-    }
-
-    updateToolbarWidth()
-
-    const observer = new ResizeObserver(updateToolbarWidth)
-    observer.observe(toolbar)
-
-    return () => observer.disconnect()
+    const onResize = () => setToolbarWidth(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const showFontFamily = toolbarWidth >= 760
-  const showTextColor = toolbarWidth >= 520
-  const showHighlightColor = toolbarWidth >= 620
-  const showDownloadLabel = toolbarWidth >= 460
+  const showFontFamily = toolbarWidth >= 520
+  const showTextColor = toolbarWidth >= 360
+  const showHighlightColor = toolbarWidth >= 440
 
   useEffect(() => {
     const hasChanges =
@@ -603,8 +640,11 @@ export function PreviewStep() {
       <div ref={previewContainerRef} className="resume-print-root min-h-0 flex-1 overflow-auto rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4">
         <div className="resume-print-frame mx-auto max-w-[860px]" style={{ zoom: previewScale }}>
           <ResumeRenderer
-            resume={draft}
-            pendingChanges={pendingChanges.map((c) => ({ ...c, id: `${c.section}-${c.itemId ?? ''}-${c.field}` }))}
+            resume={previewDraft}
+            pendingChanges={pendingChanges.map((c) => ({
+              ...c,
+              id: `${c.operation}-${c.section}-${c.itemId ?? ''}-${c.field}`,
+            }))}
           />
         </div>
       </div>
@@ -616,7 +656,7 @@ export function PreviewStep() {
           "fixed bottom-6 left-1/2 z-50 w-auto max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
           openPanel ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
         )}>
-          <div ref={toolbarRef} className="flex min-w-0 items-center gap-1 px-1.5 py-1.5 sm:gap-1.5 sm:px-2.5 sm:py-2">
+          <div ref={toolbarRef} className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -681,14 +721,12 @@ export function PreviewStep() {
                   type="button"
                   variant="outline"
                   size="default"
-                  className="h-8 shrink-0"
+                  className="h-8 w-8 shrink-0 px-0"
                   onClick={handleDownloadPdf}
                   disabled={isDownloadingPdf}
+                  aria-label={isDownloadingPdf ? 'Preparing PDF' : 'Download PDF'}
                 >
                   <Download className="size-4" />
-                  <span className={cn(showDownloadLabel ? 'inline' : 'hidden')}>
-                    {isDownloadingPdf ? 'Preparing…' : 'Download PDF'}
-                  </span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">

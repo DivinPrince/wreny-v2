@@ -15,22 +15,22 @@ const API_BASE = import.meta.env.VITE_API_URL || ''
 const AGENT_API = API_BASE ? `${API_BASE}/api/agent` : '/api/agent'
 
 type AgentPanelContentProps = {
-  resumeId: string
+  coverLetterId: string
   onPendingChanges: (changes: DocumentChange[]) => void
   onChangesApplied: () => void
   onChangesRejected: () => void
 }
 
 export function AgentPanelContent({
-  resumeId,
+  coverLetterId,
   onPendingChanges,
   onChangesApplied,
   onChangesRejected,
 }: AgentPanelContentProps) {
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const resumeIdRef = useRef(resumeId)
-  resumeIdRef.current = resumeId
+  const coverLetterIdRef = useRef(coverLetterId)
+  coverLetterIdRef.current = coverLetterId
 
   const transport = useRef(
     new DefaultChatTransport({
@@ -49,7 +49,8 @@ export function AgentPanelContent({
           messages,
           trigger,
           messageId,
-          resumeId: resumeIdRef.current,
+          documentType: 'coverLetter',
+          coverLetterId: coverLetterIdRef.current,
         },
       }),
     }),
@@ -95,7 +96,7 @@ export function AgentPanelContent({
   return (
     <div className="flex w-full min-w-[280px] flex-col">
       {messages.length > 0 && (
-        <div className="flex max-h-[152px] flex-col overflow-y-auto px-3 py-3">
+        <div className="flex max-h-[240px] flex-col overflow-y-auto px-3 py-3">
           <div className="flex flex-col gap-2">
             {messages.map((msg) => (
               <div
@@ -152,8 +153,8 @@ export function AgentPanelContent({
             onKeyDown={handleKeyDown}
             placeholder={
               hasPendingApproval
-                ? 'Approve or reject the proposed changes to continue…'
-                : 'Ask AI to improve your resume…'
+                ? 'Approve or reject the proposed changes to continue...'
+                : 'Ask AI to improve your cover letter...'
             }
             minHeight={56}
             maxHeight={160}
@@ -295,10 +296,10 @@ function MessageParts({
         if (part.type?.toString().startsWith('tool-') && 'state' in part) {
           const toolPart = part
           if (toolPart.state === 'input-streaming') {
-            return <span key={i} className="text-muted-foreground">Thinking…</span>
+            return <span key={i} className="text-muted-foreground">Thinking...</span>
           }
           if (toolPart.state === 'input-available') {
-            return <span key={i} className="text-muted-foreground">Running tool…</span>
+            return <span key={i} className="text-muted-foreground">Running tool...</span>
           }
         }
 

@@ -3,12 +3,18 @@ import type { TemplateProps } from './types'
 import { cn } from '#/lib/utils'
 
 import { InlineEditable } from '../components/inline-editable'
+import { DiffText, usePendingValue } from '../rendering/pending-changes'
 import { LetterScaffold } from './shared'
 
 const toneOptions = ['professional', 'confident', 'friendly'] as const
 
 export function Classic({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
   const isEditor = mode === 'editor' && Boolean(editor)
+  const jobUrl = usePendingValue({
+    section: 'context',
+    field: 'jobUrl',
+    fallback: coverLetter.context.jobUrl,
+  })
 
   return (
     <LetterScaffold
@@ -35,7 +41,9 @@ export function Classic({ coverLetter, mode, editor }: Readonly<TemplateProps>) 
                   onDeactivate={editor.onDeactivateField}
                 />
               ) : (
-                coverLetter.context.jobTitle || 'Role Title'
+                <DiffText section="context" field="jobTitle">
+                  {coverLetter.context.jobTitle || 'Role Title'}
+                </DiffText>
               )}
             </h2>
           </div>
@@ -54,7 +62,9 @@ export function Classic({ coverLetter, mode, editor }: Readonly<TemplateProps>) 
                 onDeactivate={editor.onDeactivateField}
               />
             ) : (
-              coverLetter.context.companyName || 'Company'
+              <DiffText section="context" field="companyName">
+                {coverLetter.context.companyName || 'Company'}
+              </DiffText>
             )}
           </div>
         </header>
@@ -100,10 +110,12 @@ export function Classic({ coverLetter, mode, editor }: Readonly<TemplateProps>) 
                 displayClassName="truncate"
               />
             </div>
-          ) : coverLetter.context.jobUrl.trim().length > 0 ? (
+          ) : jobUrl.trim().length > 0 ? (
             <div>
               <span className="cover-letter-meta-label">Job URL</span>
-              <span className="truncate">{coverLetter.context.jobUrl}</span>
+              <DiffText section="context" field="jobUrl" className="truncate">
+                {coverLetter.context.jobUrl}
+              </DiffText>
             </div>
           ) : null}
         </div>

@@ -7,6 +7,11 @@ import { Button } from '#/components/ui/button'
 import { cn } from '#/lib/utils'
 
 import { InlineEditable } from '../components/inline-editable'
+import {
+  DiffText,
+  usePendingChanges,
+  usePendingValue,
+} from '../rendering/pending-changes'
 import type { CoverLetterEditorBindings, TemplateMode } from './types'
 
 export function formatToday() {
@@ -74,12 +79,96 @@ export function LetterScaffold({
   signatureClassName?: string
 }>) {
   const isEditor = isEditorMode(mode, editor)
-  const recipientLines = getRecipientLines(coverLetter)
+  const pendingChanges = usePendingChanges()
   const senderLinks = getSenderLinks(coverLetter)
-  const bodyParagraphs = getBodyParagraphs(coverLetter)
-  const signatureLines = splitSignature(coverLetter.content.signature)
   const editableBodyParagraphs =
     coverLetter.content.body.length > 0 ? coverLetter.content.body : ['']
+  const recipientName = usePendingValue({
+    section: 'recipient',
+    field: 'name',
+    fallback: coverLetter.recipient.name,
+  })
+  const recipientTitle = usePendingValue({
+    section: 'recipient',
+    field: 'title',
+    fallback: coverLetter.recipient.title,
+  })
+  const recipientCompanyName = usePendingValue({
+    section: 'recipient',
+    field: 'companyName',
+    fallback: coverLetter.recipient.companyName,
+  })
+  const recipientLocation = usePendingValue({
+    section: 'recipient',
+    field: 'location',
+    fallback: coverLetter.recipient.location,
+  })
+  const recipientEmail = usePendingValue({
+    section: 'recipient',
+    field: 'email',
+    fallback: coverLetter.recipient.email,
+  })
+  const opening = usePendingValue({
+    section: 'content',
+    field: 'opening',
+    fallback: coverLetter.content.opening,
+  })
+  const closing = usePendingValue({
+    section: 'content',
+    field: 'closing',
+    fallback: coverLetter.content.closing,
+  })
+  const signature = usePendingValue({
+    section: 'content',
+    field: 'signature',
+    fallback: coverLetter.content.signature,
+  })
+  const senderEmail = usePendingValue({
+    section: 'sender',
+    field: 'email',
+    fallback: coverLetter.sender.email,
+  })
+  const senderPhone = usePendingValue({
+    section: 'sender',
+    field: 'phone',
+    fallback: coverLetter.sender.phone,
+  })
+  const senderLocation = usePendingValue({
+    section: 'sender',
+    field: 'location',
+    fallback: coverLetter.sender.location,
+  })
+  const maxPendingBodyIndex = pendingChanges.reduce((max, change) => {
+    if (change.section !== 'content' || change.field !== 'body') {
+      return max
+    }
+
+    const index = Number(change.itemId)
+    return Number.isInteger(index) ? Math.max(max, index) : max
+  }, -1)
+  const previewBodyIndices = Array.from({
+    length: Math.max(editableBodyParagraphs.length, maxPendingBodyIndex + 1),
+  })
+    .map((_, index) => index)
+    .filter((index) => {
+      const paragraph = editableBodyParagraphs[index] ?? ''
+      return (
+        paragraph.trim().length > 0 ||
+        pendingChanges.some(
+          (change) =>
+            change.section === 'content' &&
+            change.field === 'body' &&
+            change.itemId === String(index),
+        )
+      )
+    })
+  const hasRecipient = [
+    recipientName,
+    recipientTitle,
+    recipientCompanyName,
+    recipientLocation,
+    recipientEmail,
+  ].some((value) => value.trim().length > 0)
 
   return (
     <article className={cn('cover-letter-page', className)}>
@@ -142,11 +231,33 @@ export function LetterScaffold({
             onDeactivate={editor.onDeactivateField}
           />
         </div>
-      ) : recipientLines.length > 0 ? (
+      ) : hasRecipient ? (
         <div className="cover-letter-recipient">
-          {recipientLines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
+          {recipientName.trim().length > 0 ? (
+            <DiffText section="recipient" field="name">
+              {coverLetter.recipient.name}
+            </DiffText>
+          ) : null}
+          {recipientTitle.trim().length > 0 ? (
+            <DiffText section="recipient" field="title">
+              {coverLetter.recipient.title}
+            </DiffText>
+          ) : null}
+          {recipientCompanyName.trim().length > 0 ? (
+            <DiffText section="recipient" field="companyName">
+              {coverLetter.recipient.companyName}
+            </DiffText>
+          ) : null}
+          {recipientLocation.trim().length > 0 ? (
+            <DiffText section="recipient" field="location">
+              {coverLetter.recipient.location}
+            </DiffText>
+          ) : null}
+          {recipientEmail.trim().length > 0 ? (
+            <DiffText section="recipient" field="email">
+              {coverLetter.recipient.email}
+            </DiffText>
+          ) : null}
         </div>
       ) : null}
 
@@ -162,7 +273,9 @@ export function LetterScaffold({
             onDeactivate={editor.onDeactivateField}
           />
         ) : (
-          coverLetter.content.greeting || 'Dear Hiring Team,'
+          <DiffText section="content" field="greeting">
+            {coverLetter.content.greeting || 'Dear Hiring Team,'}
+          </DiffText>
         )}
       </div>
 
@@ -232,14 +345,30 @@ export function LetterScaffold({
           </>
         ) : (
           <>
-            {coverLetter.content.opening.trim().length > 0 ? (
-              <p>{coverLetter.content.opening}</p>
+            {opening.trim().length > 0 ? (
+              <p>
+                <DiffText section="content" field="opening">
+                  {coverLetter.content.opening}
+                </DiffText>
+              </p>
             ) : null}
-            {bodyParagraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+            {previewBodyIndices.map((index) => (
+              <p key={`body-preview-${index}`}>
+                <DiffText
+                  section="content"
+                  field="body"
+                  itemId={String(index)}
+                >
+                  {editableBodyParagraphs[index] ?? ''}
+                </DiffText>
+              </p>
             ))}
-            {coverLetter.content.closing.trim().length > 0 ? (
-              <p>{coverLetter.content.closing}</p>
+            {closing.trim().length > 0 ? (
+              <p>
+                <DiffText section="content" field="closing">
+                  {coverLetter.content.closing}
+                </DiffText>
+              </p>
             ) : null}
           </>
         )}
@@ -259,11 +388,11 @@ export function LetterScaffold({
             onDeactivate={editor.onDeactivateField}
           />
         </div>
-      ) : signatureLines.length > 0 ? (
+      ) : signature.trim().length > 0 ? (
         <div className={cn('cover-letter-signature', signatureClassName)}>
-          {signatureLines.map((line) => (
-            <p key={line}>{line}</p>
-          ))}
+          <DiffText section="content" field="signature">
+            {coverLetter.content.signature}
+          </DiffText>
         </div>
       ) : null}
 
@@ -284,7 +413,9 @@ export function LetterScaffold({
                 onDeactivate={editor.onDeactivateField}
               />
             ) : (
-              coverLetter.sender.name || 'Your Name'
+              <DiffText section="sender" field="name">
+                {coverLetter.sender.name || 'Your Name'}
+              </DiffText>
             )}
           </h1>
           {isEditor ? (
@@ -299,7 +430,11 @@ export function LetterScaffold({
               onDeactivate={editor.onDeactivateField}
             />
           ) : (
-            <p>{coverLetter.sender.title || 'Your Title'}</p>
+            <p>
+              <DiffText section="sender" field="title">
+                {coverLetter.sender.title || 'Your Title'}
+              </DiffText>
+            </p>
           )}
         </div>
         {isEditor ? (
@@ -349,9 +484,26 @@ export function LetterScaffold({
           </div>
         ) : senderLinks.length > 0 ? (
           <div className="cover-letter-footer-lines">
-            {senderLinks.map((line) => (
-              <span key={line}>{line}</span>
-            ))}
+            {senderEmail.trim().length > 0 ? (
+              <DiffText section="sender" field="email">
+                {coverLetter.sender.email}
+              </DiffText>
+            ) : null}
+            {senderPhone.trim().length > 0 ? (
+              <DiffText section="sender" field="phone">
+                {coverLetter.sender.phone}
+              </DiffText>
+            ) : null}
+            {senderLocation.trim().length > 0 ? (
+              <DiffText section="sender" field="location">
+                {coverLetter.sender.location}
+              </DiffText>
+            ) : null}
+            {coverLetter.sender.url.href.trim().length > 0 ? (
+              <span>
+                {coverLetter.sender.url.label || coverLetter.sender.url.href}
+              </span>
+            ) : null}
           </div>
         ) : null}
       </footer>

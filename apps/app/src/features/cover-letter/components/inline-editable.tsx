@@ -32,22 +32,23 @@ export function InlineEditable({
   onChange,
   onDeactivate,
 }: InlineEditableProps) {
-  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const Tag = element
   const hasValue = value.trim().length > 0
 
   useEffect(() => {
-    if (!active || !inputRef.current) {
+    const activeElement = multiline ? textareaRef.current : inputRef.current
+
+    if (!active || !activeElement) {
       return
     }
 
-    inputRef.current.focus()
+    activeElement.focus()
 
-    if ('setSelectionRange' in inputRef.current) {
-      const cursorPosition = inputRef.current.value.length
-      inputRef.current.setSelectionRange(cursorPosition, cursorPosition)
-    }
-  }, [active])
+    const cursorPosition = activeElement.value.length
+    activeElement.setSelectionRange(cursorPosition, cursorPosition)
+  }, [active, multiline])
 
   if (active) {
     if (multiline) {
@@ -55,7 +56,7 @@ export function InlineEditable({
 
       return (
         <Textarea
-          ref={inputRef}
+          ref={textareaRef}
           value={value}
           rows={rows}
           aria-label={ariaLabel}

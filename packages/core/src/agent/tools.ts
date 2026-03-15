@@ -103,6 +103,11 @@ For COVER LETTERS, valid sections and their fields:
 - "context": fields are "jobTitle", "companyName", "jobUrl"
 - "content": fields are "greeting", "opening", "closing", "signature", "body" (use paragraph index as itemId, e.g. "0", "1")
 
+Operations:
+- "replace": normal field edit. Include section, field, original, proposed, and itemId when needed.
+- "delete-item": remove one resume list item entirely. Use the section, the target itemId, field "__item__", original as a short label for the item being removed, and proposed as an empty string.
+- "set-section-visible": hide or show a whole resume section. Use the section, field "visible", original "true" or "false", and proposed "false" to hide or "true" to show.
+
 Always include both the original and proposed text so the user can see the diff.`,
   inputSchema: changeProposalSchema,
   needsApproval: true,
@@ -116,6 +121,35 @@ Always include both the original and proposed text so the user can see the diff.
 
 type Change = z.infer<typeof changeProposalSchema>["changes"][number];
 
+function getResumeSection(
+  data: ResumeDocument,
+  section: string,
+) {
+  if (section.startsWith("custom.")) {
+    return data.sections.custom[section.slice("custom.".length)];
+  }
+
+  if (section === "custom") {
+    return undefined;
+  }
+
+  return section in data.sections
+    ? data.sections[section as keyof typeof data.sections]
+    : undefined;
+}
+
+function parseBooleanString(value: string) {
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+
+  return undefined;
+}
+
 async function applyResumeChanges(documentId: string, changes: Change[]) {
   const resume = await ResumeService.byId(documentId);
   if (!resume) return { error: "Resume not found" };
@@ -123,7 +157,41 @@ async function applyResumeChanges(documentId: string, changes: Change[]) {
   const data: ResumeDocument = structuredClone(resume.data);
 
   for (const change of changes) {
-    const { section, itemId, field, proposed } = change;
+    const { operation, section, itemId, field, proposed } = change;
+
+    if (operation === "delete-item") {
+      if (section === "basics" && itemId) {
+        data.basics.customFields = data.basics.customFields.filter(
+          (customField) => customField.id !== itemId,
+        );
+        continue;
+      }
+
+      const sectionGroup = getResumeSection(data, section);
+      if (sectionGroup && "items" in sectionGroup && itemId) {
+        const items = sectionGroup.items as Array<{ id: string }>;
+        sectionGroup.items = items.filter((item) => item.id !== itemId) as typeof sectionGroup.items;
+      }
+      continue;
+    }
+
+    if (operation === "set-section-visible") {
+      const visible = parseBooleanString(proposed);
+      if (visible === undefined) {
+        continue;
+      }
+
+      if (section === "summary") {
+        data.sections.summary.visible = visible;
+        continue;
+      }
+
+      const sectionGroup = getResumeSection(data, section);
+      if (sectionGroup && "visible" in sectionGroup) {
+        sectionGroup.visible = visible;
+      }
+      continue;
+    }
 
     if (section === "basics") {
       if (itemId) {
@@ -136,9 +204,9 @@ async function applyResumeChanges(documentId: string, changes: Change[]) {
       }
     } else if (section === "summary") {
       data.sections.summary.content = proposed;
-    } else if (section in data.sections) {
-      const sec = data.sections[section as keyof typeof data.sections];
-      if (itemId && "items" in sec) {
+    } else {
+      const sec = getResumeSection(data, section);
+      if (sec && itemId && "items" in sec) {
         const item = (sec.items as Array<{ id: string }>).find(
           (i) => i.id === itemId,
         );

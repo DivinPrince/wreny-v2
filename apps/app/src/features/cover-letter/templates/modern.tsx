@@ -1,6 +1,7 @@
 import type { TemplateProps } from './types'
 
 import { InlineEditable } from '../components/inline-editable'
+import { DiffText } from '../rendering/pending-changes'
 import { LetterScaffold } from './shared'
 
 export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
@@ -32,7 +33,9 @@ export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
                   onDeactivate={editor.onDeactivateField}
                 />
               ) : (
-                coverLetter.context.companyName || 'Company Name'
+                <DiffText section="context" field="companyName">
+                  {coverLetter.context.companyName || 'Company Name'}
+                </DiffText>
               )}
             </h2>
             <p>
@@ -50,7 +53,9 @@ export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
                   onDeactivate={editor.onDeactivateField}
                 />
               ) : (
-                coverLetter.context.jobTitle || 'Job Title'
+                <DiffText section="context" field="jobTitle">
+                  {coverLetter.context.jobTitle || 'Job Title'}
+                </DiffText>
               )}
             </p>
           </div>

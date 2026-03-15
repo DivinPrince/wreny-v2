@@ -1,4 +1,5 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment, type ReactNode, useMemo } from 'react'
+import type { DocumentChange } from '@repo/core/agent'
 import type {
   Award,
   Certification,
@@ -18,11 +19,12 @@ import type {
   Volunteer,
 } from '@repo/core/schemas'
 
-import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
+import { cn, isEmptyString, isUrl } from '../lib/template-utils'
 import { BrandIcon } from '../rendering/brand-icon'
 import {
   DiffHTML,
   DiffText,
+  usePendingChanges,
   usePendingChange,
   usePendingValue,
 } from '../rendering/pending-changes'
@@ -37,9 +39,70 @@ const assertNever = (value: never): never => {
 const getCustomSectionId = (section: SectionKey) =>
   section.startsWith('custom.') ? section.slice('custom.'.length) : null
 
+function useSectionDiff(section: string) {
+  const changes = usePendingChanges()
+
+  return useMemo(() => {
+    const hiddenChange = changes.find(
+      (change) =>
+        change.operation === 'set-section-visible' &&
+        change.section === section &&
+        change.field === 'visible',
+    )
+    const deletedItems = changes.filter(
+      (change) =>
+        change.operation === 'delete-item' &&
+        change.section === section,
+    )
+
+    return {
+      isHidden: hiddenChange?.proposed === 'false',
+      deletedItems,
+    }
+  }, [changes, section])
+}
+
+const DiffView = ({
+  original,
+  proposed = 'Removed',
+  className,
+}: Readonly<{
+  original: string
+  proposed?: string
+  className?: string
+}>) => (
+  <div className={cn('rounded-md border border-dashed border-red-300/80 bg-red-50/70 px-2.5 py-1.5 dark:border-red-900 dark:bg-red-950/20', className)}>
+    <span
+      className="bg-red-100/90 text-red-800 line-through dark:bg-red-950/60 dark:text-red-300"
+      style={{ textDecorationColor: 'currentColor' }}
+    >
+      {original}
+    </span>
+    <span className="ml-1 rounded-sm bg-green-100/90 px-1 text-green-800 dark:bg-green-950/60 dark:text-green-300">
+      {proposed}
+    </span>
+  </div>
+)
+
+const DeletedItemDiff = ({
+  change,
+  className,
+}: Readonly<{
+  change: DocumentChange
+  className?: string
+}>) => (
+  <DiffView
+    original={change.original || 'Item'}
+    proposed="Removed"
+    className={className}
+  />
+)
+
 const Header = () => {
   const basics = useResumeStore((state) => state.resume.basics)
   const profiles = useResumeStore((state) => state.resume.sections.profiles)
+  const { isHidden: profilesHidden, deletedItems: deletedProfiles } = useSectionDiff('profiles')
+  const { deletedItems: deletedBasicsFields } = useSectionDiff('basics')
 
   return (
     <div className="flex items-center justify-between space-x-4 border-b border-highlight pb-5">
@@ -82,19 +145,31 @@ const Header = () => {
           {basics.customFields.map((item) => (
             <BasicsCustomFieldRow key={item.id} item={item} />
           ))}
+          {deletedBasicsFields.map((change) => (
+            <DeletedItemDiff key={change.id} change={change} className="text-sm" />
+          ))}
         </div>
       </div>
 
-      {profiles.visible && profiles.items.length > 0 && (
+      {(profilesHidden || (profiles.visible && (profiles.items.length > 0 || deletedProfiles.length > 0))) && (
         <div
           className="grid gap-x-4 gap-y-1 text-right"
           style={{ gridTemplateColumns: `repeat(${profiles.columns}, auto)` }}
         >
-          {profiles.items
-            .filter((item) => item.visible)
-            .map((item) => (
-              <ProfileRow key={item.id} item={item} />
-            ))}
+          {profilesHidden ? (
+            <DiffView original="Profiles section" proposed="Hidden" className="text-sm" />
+          ) : (
+            <>
+              {profiles.items
+                .filter((item) => item.visible)
+                .map((item) => (
+                  <ProfileRow key={item.id} item={item} />
+                ))}
+              {deletedProfiles.map((change) => (
+                <DeletedItemDiff key={change.id} change={change} className="text-sm" />
+              ))}
+            </>
+          )}
         </div>
       )}
     </div>
@@ -103,20 +178,25 @@ const Header = () => {
 
 const Summary = () => {
   const section = useResumeStore((state) => state.resume.sections.summary)
+  const { isHidden } = useSectionDiff('summary')
 
-  if (!section.visible || isEmptyString(section.content)) return null
+  if ((!section.visible && !isHidden) || (!isHidden && isEmptyString(section.content))) return null
 
   return (
     <section id={section.id}>
       <h4 className="font-bold text-primary">{section.name}</h4>
 
-      <DiffHTML
-        section="summary"
-        field="content"
-        html={section.content}
-        style={{ columns: section.columns }}
-        className="wysiwyg"
-      />
+      {isHidden ? (
+        <DiffView original={`${section.name} section`} proposed="Hidden" />
+      ) : (
+        <DiffHTML
+          section="summary"
+          field="content"
+          html={section.content}
+          style={{ columns: section.columns }}
+          className="wysiwyg"
+        />
+      )}
     </section>
   )
 }
@@ -293,54 +373,63 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: Readonly<SectionProps<T>>) => {
-  if (!section.visible || section.items.length === 0) return null
+  const { isHidden, deletedItems } = useSectionDiff(section.id)
+
+  if ((!section.visible && !isHidden) || (section.items.length === 0 && deletedItems.length === 0)) return null
 
   return (
     <section id={section.id} className="grid">
       <h4 className="font-bold text-primary">{section.name}</h4>
 
-      <div
-        className="grid gap-x-6 gap-y-3"
-        style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
-      >
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const url = (urlKey ? item[urlKey] : undefined) as URL | undefined
-            const level = (levelKey ? item[levelKey] : undefined) as number | undefined
-            const summary = (summaryKey ? item[summaryKey] : undefined) as string | undefined
-            const keywords = (keywordsKey ? item[keywordsKey] : undefined) as string[] | undefined
+      {isHidden ? (
+        <DiffView original={`${section.name} section`} proposed="Hidden" />
+      ) : (
+        <div
+          className="grid gap-x-6 gap-y-3"
+          style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
+        >
+          {section.items
+            .filter((item) => item.visible)
+            .map((item) => {
+              const url = (urlKey ? item[urlKey] : undefined) as URL | undefined
+              const level = (levelKey ? item[levelKey] : undefined) as number | undefined
+              const summary = (summaryKey ? item[summaryKey] : undefined) as string | undefined
+              const keywords = (keywordsKey ? item[keywordsKey] : undefined) as string[] | undefined
 
-            return (
-              <div key={item.id} className={cn('space-y-2', className)}>
-                <div>
-                  {children?.(item as T)}
-                  {url !== undefined && section.separateLinks && <Link url={url} />}
+              return (
+                <div key={item.id} className={cn('space-y-2', className)}>
+                  <div>
+                    {children?.(item as T)}
+                    {url !== undefined && section.separateLinks && <Link url={url} />}
+                  </div>
+
+                  {summary !== undefined && !isEmptyString(summary) && (
+                    <DiffHTML
+                      section={section.id}
+                      field={summaryKey as string}
+                      itemId={item.id}
+                      html={summary}
+                      className="wysiwyg"
+                    />
+                  )}
+
+                  {level !== undefined && level > 0 && <Rating level={level} />}
+
+                  {keywords !== undefined && keywords.length > 0 && (
+                    <p className="text-sm">
+                      <DiffText section={section.id} field="keywords" itemId={item.id}>
+                        {keywords.join(', ')}
+                      </DiffText>
+                    </p>
+                  )}
                 </div>
-
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <DiffHTML
-                    section={section.id}
-                    field={summaryKey as string}
-                    itemId={item.id}
-                    html={summary}
-                    className="wysiwyg"
-                  />
-                )}
-
-                {level !== undefined && level > 0 && <Rating level={level} />}
-
-                {keywords !== undefined && keywords.length > 0 && (
-                  <p className="text-sm">
-                    <DiffText section={section.id} field="keywords" itemId={item.id}>
-                      {keywords.join(', ')}
-                    </DiffText>
-                  </p>
-                )}
-              </div>
-            )
-          })}
-      </div>
+              )
+            })}
+          {deletedItems.map((change) => (
+            <DeletedItemDiff key={change.id} change={change} className={className} />
+          ))}
+        </div>
+      )}
     </section>
   )
 }

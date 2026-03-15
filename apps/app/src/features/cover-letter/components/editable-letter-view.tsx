@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Download, Ellipsis, Plus } from 'lucide-react'
 
+import type { DocumentChange } from '@repo/core/agent'
 import type {
   CoverLetterContext,
   CoverLetterDocument,
@@ -29,10 +31,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '#/components/ui/tooltip'
+import { Icons } from '#/components/ui/icons'
 import { api } from '#/lib/api'
 import { cn } from '#/lib/utils'
 
-import { cloneCoverLetterDocument } from '../lib/queries'
+import { AgentPanelContent } from './agent-popover'
+import { cloneCoverLetterDocument, coverLetterKeys } from '../lib/queries'
 import { templates } from '../lib/template-registry'
 import {
   COVER_LETTER_PAGE_WIDTH_PX,
@@ -215,6 +219,112 @@ function applyFieldChange(
   })
 }
 
+function applyApprovedChanges(
+  current: CoverLetterDocument,
+  changes: DocumentChange[],
+) {
+  return updateDraft(current, (next) => {
+    for (const change of changes) {
+      const { section, itemId, field, proposed } = change
+
+      if (section === 'sender') {
+        switch (field) {
+          case 'name':
+            next.sender.name = proposed
+            break
+          case 'email':
+            next.sender.email = proposed
+            break
+          case 'phone':
+            next.sender.phone = proposed
+            break
+          case 'location':
+            next.sender.location = proposed
+            break
+          case 'title':
+            next.sender.title = proposed
+            break
+          default:
+            break
+        }
+        continue
+      }
+
+      if (section === 'recipient') {
+        switch (field) {
+          case 'name':
+            next.recipient.name = proposed
+            break
+          case 'title':
+            next.recipient.title = proposed
+            break
+          case 'companyName':
+            next.recipient.companyName = proposed
+            next.context.companyName = proposed
+            break
+          case 'location':
+            next.recipient.location = proposed
+            break
+          case 'email':
+            next.recipient.email = proposed
+            break
+          default:
+            break
+        }
+        continue
+      }
+
+      if (section === 'context') {
+        switch (field) {
+          case 'jobTitle':
+            next.context.jobTitle = proposed
+            break
+          case 'companyName':
+            next.context.companyName = proposed
+            next.recipient.companyName = proposed
+            break
+          case 'jobUrl':
+            next.context.jobUrl = proposed
+            break
+          default:
+            break
+        }
+        continue
+      }
+
+      if (section === 'content') {
+        if (field === 'body' && itemId != null) {
+          const index = Number(itemId)
+          if (Number.isInteger(index) && index >= 0) {
+            while (next.content.body.length <= index) {
+              next.content.body.push('')
+            }
+            next.content.body[index] = proposed
+          }
+          continue
+        }
+
+        switch (field) {
+          case 'greeting':
+            next.content.greeting = proposed
+            break
+          case 'opening':
+            next.content.opening = proposed
+            break
+          case 'closing':
+            next.content.closing = proposed
+            break
+          case 'signature':
+            next.content.signature = proposed
+            break
+          default:
+            break
+        }
+      }
+    }
+  })
+}
+
 function DetailsPopover({
   draft,
   onChangeField,
@@ -309,15 +419,17 @@ function DetailsPopover({
 }
 
 export function EditableLetterView() {
-  const { coverLetter, coverLetterId, saveCoverLetter, isSaving, title } =
+  const queryClient = useQueryClient()
+  const { coverLetter, coverLetterId, saveCoverLetter, title } =
     useCoverLetterEditor()
   const [draft, setDraft] = useState<CoverLetterDocument>(() =>
     cloneCoverLetterDocument(coverLetter),
   )
   const [draftTitle, setDraftTitle] = useState(title)
   const [activeField, setActiveField] = useState<string | null>(null)
+  const [pendingChanges, setPendingChanges] = useState<DocumentChange[]>([])
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
+  const [openPanel, setOpenPanel] = useState<'more' | 'agent' | null>(null)
   const [toolbarWidth, setToolbarWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
   const lastCoverLetterIdRef = useRef(coverLetterId)
   const draftRef = useRef(draft)
@@ -489,9 +601,9 @@ export function EditableLetterView() {
             editorClassName="h-11 max-w-xl text-base font-semibold"
           />
         </h1>
-        {validationMessage && (
+        {validationMessage && pendingChanges.length === 0 ? (
           <p className="shrink-0 text-sm text-amber-600">{validationMessage}</p>
-        )}
+        ) : null}
       </div>
 
       <div
@@ -505,21 +617,46 @@ export function EditableLetterView() {
           <div className="cover-letter-stage">
             <CoverLetterRenderer
               coverLetter={draft}
-              mode="editor"
-              editor={editorBindings}
+              mode={pendingChanges.length > 0 ? 'preview' : 'editor'}
+              editor={pendingChanges.length > 0 ? undefined : editorBindings}
+              pendingChanges={pendingChanges}
             />
           </div>
         </div>
       </div>
 
       <TooltipProvider delayDuration={300}>
-        <Popover open={moreOpen} onOpenChange={setMoreOpen}>
+        <Popover
+          open={openPanel !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setOpenPanel(null)
+            }
+          }}
+        >
           <PopoverAnchor asChild>
             <div className={cn(
               "fixed bottom-6 left-1/2 z-50 w-auto max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
-              moreOpen ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
+              openPanel ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
             )}>
               <div className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="default"
+                      className="h-8 w-8 shrink-0 px-0"
+                      onClick={() =>
+                        setOpenPanel((prev) => prev === 'agent' ? null : 'agent')
+                      }
+                    >
+                      <Icons.Logo className="size-4 rounded-[3px]" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top"><p>AI Agent</p></TooltipContent>
+                </Tooltip>
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -595,49 +732,77 @@ export function EditableLetterView() {
                       type="button"
                       variant="outline"
                       size="default"
-                      className="h-8 shrink-0"
+                      className="h-8 w-8 shrink-0 px-0"
                       onClick={handleDownloadPdf}
                       disabled={isDownloadingPdf}
+                      aria-label={isDownloadingPdf ? 'Preparing PDF' : 'Download PDF'}
                     >
                       <Download className="size-4" />
-                      <span className="hidden sm:inline">
-                        {isDownloadingPdf ? 'Preparing…' : 'Download PDF'}
-                      </span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="top"><p>Print or save as PDF</p></TooltipContent>
                 </Tooltip>
 
                 {!showDetails && (
-                  <>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <PopoverTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="default"
-                            className="h-8 w-8 shrink-0 px-0"
-                          >
-                            <Ellipsis className="size-4" />
-                          </Button>
-                        </PopoverTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent side="top"><p>More options</p></TooltipContent>
-                    </Tooltip>
-                    <PopoverContent side="top" align="center" sideOffset={0} className="w-(--radix-popper-anchor-width) rounded-b-none rounded-t-xl border border-foreground/10 ring-0 bg-background/95 p-2.5 shadow-none backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {!showDetails && (
-                          <DetailsPopover
-                            draft={draft}
-                            onChangeField={handleChangeField}
-                            onChangeTone={handleChangeTone}
-                          />
-                        )}
-                      </div>
-                    </PopoverContent>
-                  </>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant={openPanel === 'more' ? 'default' : 'outline'}
+                          size="default"
+                          className="h-8 w-8 shrink-0 px-0"
+                          onClick={() =>
+                            setOpenPanel((prev) => prev === 'more' ? null : 'more')
+                          }
+                        >
+                          <Ellipsis className="size-4" />
+                        </Button>
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="top"><p>More options</p></TooltipContent>
+                  </Tooltip>
                 )}
+                <PopoverContent
+                  side="top"
+                  align="center"
+                  sideOffset={0}
+                  className={cn(
+                    'w-(--radix-popper-anchor-width) rounded-b-none rounded-t-xl border border-foreground/10 ring-0 p-0 shadow-none **:data-[variant=outline]:border-foreground/15',
+                    openPanel === 'agent'
+                      ? 'bg-background'
+                      : 'bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80',
+                  )}
+                >
+                  {openPanel === 'more' && (
+                    <div className="flex flex-wrap items-center gap-1.5 p-2.5">
+                      {!showDetails && (
+                        <DetailsPopover
+                          draft={draft}
+                          onChangeField={handleChangeField}
+                          onChangeTone={handleChangeTone}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {openPanel === 'agent' && (
+                    <AgentPanelContent
+                      coverLetterId={coverLetterId}
+                      onPendingChanges={setPendingChanges}
+                      onChangesApplied={() => {
+                        const approvedChanges = pendingChanges
+                        setDraft((current) =>
+                          applyApprovedChanges(current, approvedChanges),
+                        )
+                        setPendingChanges([])
+                        queryClient.invalidateQueries({
+                          queryKey: coverLetterKeys.detail(coverLetterId),
+                        })
+                      }}
+                      onChangesRejected={() => setPendingChanges([])}
+                    />
+                  )}
+                </PopoverContent>
               </div>
             </div>
           </PopoverAnchor>

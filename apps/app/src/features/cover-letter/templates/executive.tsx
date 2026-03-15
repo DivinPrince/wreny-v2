@@ -1,6 +1,7 @@
 import type { TemplateProps } from './types'
 
 import { InlineEditable } from '../components/inline-editable'
+import { DiffText, usePendingValue } from '../rendering/pending-changes'
 import { LetterScaffold } from './shared'
 
 export function Executive({
@@ -9,6 +10,11 @@ export function Executive({
   editor,
 }: Readonly<TemplateProps>) {
   const isEditor = mode === 'editor' && Boolean(editor)
+  const senderName = usePendingValue({
+    section: 'sender',
+    field: 'name',
+    fallback: coverLetter.sender.name,
+  })
 
   return (
     <LetterScaffold
@@ -33,7 +39,9 @@ export function Executive({
                   onDeactivate={editor.onDeactivateField}
                 />
               ) : (
-                coverLetter.sender.name || 'Your Name'
+                <DiffText section="sender" field="name">
+                  {coverLetter.sender.name || 'Your Name'}
+                </DiffText>
               )}
             </h2>
             <p>
@@ -49,12 +57,14 @@ export function Executive({
                   onDeactivate={editor.onDeactivateField}
                 />
               ) : (
-                coverLetter.sender.title || 'Professional Title'
+                <DiffText section="sender" field="title">
+                  {coverLetter.sender.title || 'Professional Title'}
+                </DiffText>
               )}
             </p>
           </div>
           <div className="cover-letter-executive-mark">
-            <span>{(coverLetter.sender.name || 'YN').slice(0, 2).toUpperCase()}</span>
+            <span>{(senderName || 'YN').slice(0, 2).toUpperCase()}</span>
           </div>
         </header>
       }
@@ -77,7 +87,11 @@ export function Executive({
                 displayClassName="font-semibold"
               />
             ) : (
-              <strong>{coverLetter.context.companyName || 'Target Company'}</strong>
+              <strong>
+                <DiffText section="context" field="companyName">
+                  {coverLetter.context.companyName || 'Target Company'}
+                </DiffText>
+              </strong>
             )}
           </div>
           <div>
@@ -97,7 +111,11 @@ export function Executive({
                 displayClassName="font-semibold"
               />
             ) : (
-              <strong>{coverLetter.context.jobTitle || 'Target Role'}</strong>
+              <strong>
+                <DiffText section="context" field="jobTitle">
+                  {coverLetter.context.jobTitle || 'Target Role'}
+                </DiffText>
+              </strong>
             )}
           </div>
         </div>

@@ -1,7 +1,18 @@
 import { z } from "zod";
 
+export const documentChangeOperationSchema = z.enum([
+  "replace",
+  "delete-item",
+  "set-section-visible",
+]);
+
 export const documentChangeSchema = z.object({
   id: z.string().describe("Unique change identifier"),
+  operation: documentChangeOperationSchema
+    .default("replace")
+    .describe(
+      'Type of change. Use "replace" for normal text edits, "delete-item" to remove a list item from a resume section, and "set-section-visible" to show or hide a whole resume section.',
+    ),
   section: z
     .string()
     .describe(
@@ -16,10 +27,18 @@ export const documentChangeSchema = z.object({
   field: z
     .string()
     .describe(
-      'Field within the section or item to change (e.g. "summary", "headline", "position", "content", "opening", "keywords", "url.href"). Nested fields can use dot notation.',
+      'Field within the section or item to change (e.g. "summary", "headline", "position", "content", "opening", "keywords", "url.href"). Nested fields can use dot notation. For "delete-item", use "__item__". For "set-section-visible", use "visible".',
     ),
-  original: z.string().describe("Current text value of the field"),
-  proposed: z.string().describe("Proposed replacement text"),
+  original: z
+    .string()
+    .describe(
+      'Current value being changed. For "delete-item", use a short human-readable label for the item being removed. For "set-section-visible", use "true" or "false".',
+    ),
+  proposed: z
+    .string()
+    .describe(
+      'Proposed replacement value. For "delete-item", use an empty string. For "set-section-visible", use "true" or "false".',
+    ),
   reason: z
     .string()
     .describe("Brief explanation of why this change improves the document"),
