@@ -17,7 +17,7 @@ export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
         <header className="cover-letter-modern-header">
           <div className="cover-letter-modern-band" />
           <div className="cover-letter-modern-title">
-            <p className="cover-letter-eyebrow">Tailored For</p>
+            <p className="cover-letter-eyebrow">Re:</p>
             <h2>
               {isEditor && editor ? (
                 <InlineEditable
@@ -63,14 +63,14 @@ export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
       }
       meta={
         <div className="cover-letter-callout">
-          <span className="cover-letter-meta-label">Positioning note</span>
+          <span className="cover-letter-meta-label">Focus</span>
           {isEditor && editor ? (
             <InlineEditable
               multiline
               element="div"
               value={coverLetter.metadata.notes}
-              placeholder="Add a concise note about why this role matters to you."
-              ariaLabel="Positioning note"
+              placeholder="Why this role matters to you."
+              ariaLabel="Focus"
               active={editor.activeField === 'metadata.notes'}
               onActivate={() => editor.onActivateField('metadata.notes')}
               onChange={(value) => editor.onChangeField('metadata.notes', value)}
@@ -79,7 +79,7 @@ export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
           ) : (
             <p>
               {coverLetter.metadata.notes.trim() ||
-                'Add a concise note about why this role matters to you.'}
+                'Why this role matters to you.'}
             </p>
           )}
         </div>

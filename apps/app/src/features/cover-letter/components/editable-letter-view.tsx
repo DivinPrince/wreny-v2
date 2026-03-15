@@ -345,7 +345,7 @@ function DetailsPopover({
       </PopoverTrigger>
       <PopoverContent align="center" side="top" sideOffset={12} className="w-[380px] space-y-4 border-foreground/10 bg-background/95 p-4 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80">
         <div className="space-y-2">
-          <Label htmlFor="cover-letter-notes">Positioning note</Label>
+          <Label htmlFor="cover-letter-notes">Focus</Label>
           <Textarea
             id="cover-letter-notes"
             value={draft.metadata.notes}
@@ -353,7 +353,7 @@ function DetailsPopover({
               onChangeField('metadata.notes', event.target.value)
             }
             className="min-h-24"
-            placeholder="Capture the angle for this version..."
+            placeholder="Why this role matters to you."
           />
         </div>
 
@@ -633,7 +633,7 @@ export function EditableLetterView() {
         >
           <PopoverAnchor asChild>
             <div className={cn(
-              "fixed bottom-6 left-1/2 z-50 w-auto max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
+              "fixed bottom-6 left-1/2 z-50 w-auto min-w-[min(520px,calc(100vw-2rem))] max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
               openPanel ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
             )}>
               <div className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3">

@@ -240,7 +240,7 @@ function JobDragPreview({ job }: JobDragPreviewProps) {
     <div
       className={cn(
         "mb-2 cursor-pointer bg-card border-l-4 w-[280px] rounded-lg border transition-shadow",
-        statusInfo.borderClassName,
+        statusInfo.cardBorderClassName,
       )}
     >
       <div className="p-3">
@@ -273,7 +273,7 @@ function JobDragPreview({ job }: JobDragPreviewProps) {
         <div className="flex justify-between items-center mt-2">
           <div />
           <statusInfo.icon
-            className={cn("w-4 h-4", statusInfo.iconClassName)}
+            className={cn("w-4 h-4", statusInfo.cardIconClassName)}
           />
         </div>
       </div>

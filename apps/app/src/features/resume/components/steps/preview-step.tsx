@@ -888,7 +888,7 @@ export function PreviewStep() {
         <Popover open={openPanel !== null} onOpenChange={(open) => { if (!open) setOpenPanel(null) }}>
         <PopoverAnchor asChild>
         <div className={cn(
-          "fixed bottom-6 left-1/2 z-50 w-auto max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
+          "fixed bottom-6 left-1/2 z-50 w-auto min-w-[min(520px,calc(100vw-2rem))] max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
           openPanel ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
         )}>
           <div ref={toolbarRef} className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3">

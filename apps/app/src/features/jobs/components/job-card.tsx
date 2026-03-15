@@ -55,7 +55,7 @@ export function JobCard({ job }: JobCardProps) {
         <div
           className={cn(
             "mb-2 cursor-pointer bg-card border-l-4 rounded-lg border transition-shadow hover:shadow-md",
-            statusInfo.borderClassName,
+            statusInfo.cardBorderClassName,
             isDragging && "shadow-lg",
           )}
           onClick={handleCardClick}
@@ -104,7 +104,7 @@ export function JobCard({ job }: JobCardProps) {
             </div>
 
             {job.jobTitle ? (
-              <div className="text-sm text-muted-foreground line-clamp-1 mt-1">
+              <div className="text-sm text-muted-foreground dark:text-foreground/70 line-clamp-1 mt-1">
                 {job.jobTitle}
               </div>
             ) : null}
@@ -112,7 +112,7 @@ export function JobCard({ job }: JobCardProps) {
             <div className="flex justify-between items-center mt-2">
               <div />
               <statusInfo.icon
-                className={cn("w-4 h-4", statusInfo.iconClassName)}
+                className={cn("w-4 h-4", statusInfo.cardIconClassName)}
               />
             </div>
           </div>

@@ -35,9 +35,9 @@ export function ResumePreviewCard({ resume }: Readonly<{ resume: ResumeInfo }>) 
       <Link
         to="/dashboard/resumes/$id/$step"
         params={{ id: resume.id, step: 'contact' }}
-        className="flex flex-1 flex-col overflow-hidden"
+        className="flex min-h-0 flex-1 flex-col overflow-hidden hit-area-4"
       >
-        <div className="flex flex-1 items-center justify-center overflow-hidden p-3">
+        <div className="flex shrink-0 items-center justify-center overflow-hidden p-3">
           <div
             className="overflow-hidden"
             style={{
@@ -64,7 +64,7 @@ export function ResumePreviewCard({ resume }: Readonly<{ resume: ResumeInfo }>) 
             <Button
               variant="ghost"
               size="icon-xs"
-              className="h-7 w-7 rounded-full bg-white/90 shadow-sm hover:bg-white"
+              className="h-7 w-7 rounded-full bg-slate-200/95 shadow-sm hover:bg-slate-300/95 hover:text-foreground dark:bg-slate-700/95 dark:hover:bg-slate-600/95 dark:text-slate-200"
               onClick={(e) => e.preventDefault()}
             >
               <EllipsisVertical className="size-4" />

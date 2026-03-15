@@ -25,13 +25,13 @@ export function Classic({ coverLetter, mode, editor }: Readonly<TemplateProps>) 
       header={
         <header className="cover-letter-topbar">
           <div>
-            <p className="cover-letter-eyebrow">Cover Letter</p>
+            <p className="cover-letter-eyebrow">Re:</p>
             <h2>
               {isEditor && editor ? (
                 <InlineEditable
                   element="span"
                   value={coverLetter.context.jobTitle}
-                  placeholder="Role Title"
+                  placeholder="Position"
                   ariaLabel="Job title"
                   active={editor.activeField === 'context.jobTitle'}
                   onActivate={() => editor.onActivateField('context.jobTitle')}
@@ -42,7 +42,7 @@ export function Classic({ coverLetter, mode, editor }: Readonly<TemplateProps>) 
                 />
               ) : (
                 <DiffText section="context" field="jobTitle">
-                  {coverLetter.context.jobTitle || 'Role Title'}
+                  {coverLetter.context.jobTitle || 'Position'}
                 </DiffText>
               )}
             </h2>

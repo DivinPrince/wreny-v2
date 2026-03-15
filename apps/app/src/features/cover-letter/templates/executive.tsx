@@ -25,7 +25,7 @@ export function Executive({
       header={
         <header className="cover-letter-executive-header">
           <div>
-            <p className="cover-letter-eyebrow">Executive Correspondence</p>
+            <p className="cover-letter-eyebrow">Re:</p>
             <h2>
               {isEditor && editor ? (
                 <InlineEditable
@@ -76,7 +76,7 @@ export function Executive({
               <InlineEditable
                 element="div"
                 value={coverLetter.context.companyName}
-                placeholder="Target Company"
+                placeholder="Company"
                 ariaLabel="Company name"
                 active={editor.activeField === 'context.companyName'}
                 onActivate={() => editor.onActivateField('context.companyName')}
@@ -89,7 +89,7 @@ export function Executive({
             ) : (
               <strong>
                 <DiffText section="context" field="companyName">
-                  {coverLetter.context.companyName || 'Target Company'}
+                  {coverLetter.context.companyName || 'Company'}
                 </DiffText>
               </strong>
             )}
@@ -100,7 +100,7 @@ export function Executive({
               <InlineEditable
                 element="div"
                 value={coverLetter.context.jobTitle}
-                placeholder="Target Role"
+                placeholder="Role"
                 ariaLabel="Job title"
                 active={editor.activeField === 'context.jobTitle'}
                 onActivate={() => editor.onActivateField('context.jobTitle')}
@@ -113,7 +113,7 @@ export function Executive({
             ) : (
               <strong>
                 <DiffText section="context" field="jobTitle">
-                  {coverLetter.context.jobTitle || 'Target Role'}
+                  {coverLetter.context.jobTitle || 'Role'}
                 </DiffText>
               </strong>
             )}
