@@ -28,6 +28,7 @@ const apiFn = new sst.aws.Function("ApiFn", {
     FRONTEND_URL: secret.FrontendUrl.value,
     DATABASE_URL: secret.DatabaseUrl.value,
     BETTER_AUTH_SECRET: secret.BetterAuthSecret.value,
+    GOOGLE_GENERATIVE_AI_API_KEY: secret.GoogleVertexApiKey.value,
     GOOGLE_CLIENT_ID: secret.GoogleClientId.value,
     GOOGLE_CLIENT_SECRET: secret.GoogleClientSecret.value,
     LINKEDIN_CLIENT_ID: secret.LinkedinClientId.value,

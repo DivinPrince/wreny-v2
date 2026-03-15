@@ -3,9 +3,11 @@ import '../styles.css'
 
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useMemo } from 'react'
+import type { DocumentChange } from '@repo/core/agent'
 import type { ResumeDocument } from '@repo/core/schemas'
 
 import { getTemplateComponent } from '../templates'
+import { PendingChangesProvider } from './pending-changes'
 import { ResumeStoreProvider, useResumeStore } from './store'
 import { Page } from './page'
 
@@ -88,13 +90,17 @@ function ResumePages({ mode = 'preview' }: Readonly<{ mode?: 'preview' | 'thumbn
 export function ResumeRenderer({
   resume,
   mode = 'preview',
+  pendingChanges = [],
 }: Readonly<{
   resume: ResumeDocument
   mode?: 'preview' | 'thumbnail'
+  pendingChanges?: DocumentChange[]
 }>) {
   return (
     <ResumeStoreProvider resume={resume}>
-      <ResumePages mode={mode} />
+      <PendingChangesProvider changes={pendingChanges}>
+        <ResumePages mode={mode} />
+      </PendingChangesProvider>
     </ResumeStoreProvider>
   )
 }

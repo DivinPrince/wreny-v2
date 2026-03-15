@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import type { DocumentChange } from '@repo/core/agent'
 import type { ResumeDocument } from '@repo/core/schemas'
 import {
   ChevronDown,
@@ -21,17 +23,14 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-  PopoverTrigger,
-} from '#/components/ui/popover'
+import { Icons } from '#/components/ui/icons'
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '#/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '#/components/ui/tooltip'
 import { api } from '#/lib/api'
 import { cn } from '#/lib/utils'
 
-import { cloneResumeDocument } from '../../lib/queries'
+import { AgentPanelContent } from '../agent-popover'
+import { cloneResumeDocument, resumeKeys } from '../../lib/queries'
 import { templates } from '../../lib/template-registry'
 import { pageSizeMap } from '../../lib/template-utils'
 import { MM_TO_PX } from '../../rendering/Page'
@@ -90,6 +89,75 @@ function updateDraft(
   const next = cloneResumeDocument(current)
   updater(next)
   return next
+}
+
+function setDocumentField(
+  target: Record<string, unknown>,
+  field: string,
+  value: unknown,
+) {
+  if (field in target) {
+    target[field] = value
+  }
+}
+
+function getSectionGroup(resume: ResumeDocument, section: string) {
+  if (section.startsWith('custom.')) {
+    return resume.sections.custom[section.slice('custom.'.length)]
+  }
+
+  if (section === 'custom') {
+    return undefined
+  }
+
+  return section in resume.sections
+    ? resume.sections[section as keyof typeof resume.sections]
+    : undefined
+}
+
+function applyApprovedChanges(
+  current: ResumeDocument,
+  changes: DocumentChange[],
+) {
+  return updateDraft(current, (next) => {
+    for (const change of changes) {
+      const { section, itemId, field, proposed } = change
+
+      if (section === 'basics') {
+        setDocumentField(next.basics as Record<string, unknown>, field, proposed)
+        continue
+      }
+
+      if (section === 'summary') {
+        next.sections.summary.content = proposed
+        continue
+      }
+
+      const sectionGroup = getSectionGroup(next, section)
+      if (!sectionGroup || !('items' in sectionGroup) || !itemId) {
+        continue
+      }
+
+      const item = sectionGroup.items.find((entry) => entry.id === itemId)
+      if (!item) {
+        continue
+      }
+
+      if (field === 'keywords') {
+        setDocumentField(
+          item as Record<string, unknown>,
+          field,
+          proposed
+            .split(',')
+            .map((keyword) => keyword.trim())
+            .filter(Boolean),
+        )
+        continue
+      }
+
+      setDocumentField(item as Record<string, unknown>, field, proposed)
+    }
+  })
 }
 
 function ColorPickerPopover({
@@ -431,13 +499,15 @@ function TemplatesDropdown({ draft, setDraft }: DraftProps) {
 }
 
 export function PreviewStep() {
+  const queryClient = useQueryClient()
   const { resume, resumeId, saveResume, isSaving, title } = useResumeEditor()
   const [draft, setDraft] = useState<ResumeDocument>(() =>
     cloneResumeDocument(resume),
   )
+  const [pendingChanges, setPendingChanges] = useState<Array<{ section: string; itemId?: string; field: string; original: string; proposed: string }>>([])
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
-  const [toolbarWidth, setToolbarWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
+  const [openPanel, setOpenPanel] = useState<'more' | 'agent' | null>(null)
+  const [toolbarWidth, setToolbarWidth] = useState(0)
   const toolbarRef = useRef<HTMLDivElement>(null)
   const lastResumeIdRef = useRef(resumeId)
   const previewContainerRef = useRef<HTMLDivElement>(null)
@@ -469,14 +539,25 @@ export function PreviewStep() {
   }, [resume, resumeId])
 
   useEffect(() => {
-    const onResize = () => setToolbarWidth(window.innerWidth)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
+    const toolbar = toolbarRef.current
+    if (!toolbar) return
+
+    const updateToolbarWidth = () => {
+      setToolbarWidth(Math.round(toolbar.getBoundingClientRect().width))
+    }
+
+    updateToolbarWidth()
+
+    const observer = new ResizeObserver(updateToolbarWidth)
+    observer.observe(toolbar)
+
+    return () => observer.disconnect()
   }, [])
 
-  const showFontFamily = toolbarWidth >= 520
-  const showTextColor = toolbarWidth >= 360
-  const showHighlightColor = toolbarWidth >= 440
+  const showFontFamily = toolbarWidth >= 760
+  const showTextColor = toolbarWidth >= 520
+  const showHighlightColor = toolbarWidth >= 620
+  const showDownloadLabel = toolbarWidth >= 460
 
   useEffect(() => {
     const hasChanges =
@@ -521,18 +602,38 @@ export function PreviewStep() {
     <div className="flex min-h-0 flex-1 flex-col pb-16">
       <div ref={previewContainerRef} className="resume-print-root min-h-0 flex-1 overflow-auto rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4">
         <div className="resume-print-frame mx-auto max-w-[860px]" style={{ zoom: previewScale }}>
-          <ResumeRenderer resume={draft} />
+          <ResumeRenderer
+            resume={draft}
+            pendingChanges={pendingChanges.map((c) => ({ ...c, id: `${c.section}-${c.itemId ?? ''}-${c.field}` }))}
+          />
         </div>
       </div>
 
       <TooltipProvider delayDuration={300}>
-        <Popover open={moreOpen} onOpenChange={setMoreOpen}>
+        <Popover open={openPanel !== null} onOpenChange={(open) => { if (!open) setOpenPanel(null) }}>
         <PopoverAnchor asChild>
         <div className={cn(
           "fixed bottom-6 left-1/2 z-50 w-auto max-w-[calc(100%-2rem)] -translate-x-1/2 border border-foreground/10 bg-background/95 shadow-lg backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15",
-          moreOpen ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
+          openPanel ? "rounded-b-xl rounded-t-none border-t-0" : "rounded-xl",
         )}>
-          <div ref={toolbarRef} className="flex items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3">
+          <div ref={toolbarRef} className="flex min-w-0 items-center gap-1 px-1.5 py-1.5 sm:gap-1.5 sm:px-2.5 sm:py-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  className="h-8 w-8 shrink-0 px-0"
+                  onClick={() => setOpenPanel((prev) => prev === 'agent' ? null : 'agent')}
+                >
+                  <Icons.Logo className="size-4 rounded-[3px]" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>AI Agent</p>
+              </TooltipContent>
+            </Tooltip>
+
             {showFontFamily && (
               <FontFamilyDropdown draft={draft} setDraft={setDraft} />
             )}
@@ -585,7 +686,7 @@ export function PreviewStep() {
                   disabled={isDownloadingPdf}
                 >
                   <Download className="size-4" />
-                  <span className="hidden sm:inline">
+                  <span className={cn(showDownloadLabel ? 'inline' : 'hidden')}>
                     {isDownloadingPdf ? 'Preparing…' : 'Download PDF'}
                   </span>
                 </Button>
@@ -597,67 +698,92 @@ export function PreviewStep() {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="default"
-                    className="h-8 w-8 shrink-0 px-0"
-                  >
-                    <Ellipsis className="size-4" />
-                  </Button>
-                </PopoverTrigger>
+                <Button
+                  type="button"
+                  variant={openPanel === 'more' ? 'default' : 'outline'}
+                  size="default"
+                  className="h-8 w-8 shrink-0 px-0"
+                  onClick={() => setOpenPanel((prev) => prev === 'more' ? null : 'more')}
+                >
+                  <Ellipsis className="size-4" />
+                </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
                 <p>More options</p>
               </TooltipContent>
             </Tooltip>
-            <PopoverContent side="top" align="center" sideOffset={0} className="w-(--radix-popper-anchor-width) rounded-b-none rounded-t-xl border border-foreground/10 ring-0 bg-background/95 p-2.5 shadow-none backdrop-blur supports-backdrop-filter:bg-background/80 **:data-[variant=outline]:border-foreground/15">
-              <div className="flex flex-wrap items-center gap-1.5">
-                {!showFontFamily && (
-                  <FontFamilyDropdown draft={draft} setDraft={setDraft} />
-                )}
 
-                {!showTextColor && (
-                  <ColorPickerPopover
-                    value={textColor}
-                    onChange={(color) =>
-                      setDraft((current) =>
-                        updateDraft(current, (next) => {
-                          next.metadata.theme.text = color
-                          next.metadata.theme.primary = color
-                        }),
-                      )
-                    }
-                    label="Text color"
-                    presets={presetTextColors}
-                    icon={Type}
-                  />
-                )}
+            <PopoverContent
+              side="top"
+              align="center"
+              sideOffset={0}
+              className={cn(
+                'w-(--radix-popper-anchor-width) rounded-b-none rounded-t-xl border border-foreground/10 ring-0 p-0 shadow-none **:data-[variant=outline]:border-foreground/15',
+                openPanel === 'agent'
+                  ? 'bg-background'
+                  : 'bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80',
+              )}
+            >
+              {openPanel === 'more' && (
+                <div className="flex flex-wrap items-center gap-1.5 p-2.5">
+                  {!showFontFamily && (
+                    <FontFamilyDropdown draft={draft} setDraft={setDraft} />
+                  )}
 
-                {!showHighlightColor && (
-                  <ColorPickerPopover
-                    value={highlightColor}
-                    onChange={(color) =>
-                      setDraft((current) =>
-                        updateDraft(current, (next) => {
-                          next.metadata.theme.highlight = color
-                        }),
-                      )
-                    }
-                    label="Highlight (backgrounds, borders)"
-                    presets={presetHighlightColors}
-                    icon={Highlighter}
-                  />
-                )}
+                  {!showTextColor && (
+                    <ColorPickerPopover
+                      value={textColor}
+                      onChange={(color) =>
+                        setDraft((current) =>
+                          updateDraft(current, (next) => {
+                            next.metadata.theme.text = color
+                            next.metadata.theme.primary = color
+                          }),
+                        )
+                      }
+                      label="Text color"
+                      presets={presetTextColors}
+                      icon={Type}
+                    />
+                  )}
 
-                <LineHeightDropdown draft={draft} setDraft={setDraft} />
-                <UnderlineLinksToggle draft={draft} setDraft={setDraft} />
-                <HideIconsToggle draft={draft} setDraft={setDraft} />
-                <PageFormatDropdown draft={draft} setDraft={setDraft} />
-                <PageMarginDropdown draft={draft} setDraft={setDraft} />
-                <TemplatesDropdown draft={draft} setDraft={setDraft} />
-              </div>
+                  {!showHighlightColor && (
+                    <ColorPickerPopover
+                      value={highlightColor}
+                      onChange={(color) =>
+                        setDraft((current) =>
+                          updateDraft(current, (next) => {
+                            next.metadata.theme.highlight = color
+                          }),
+                        )
+                      }
+                      label="Highlight (backgrounds, borders)"
+                      presets={presetHighlightColors}
+                      icon={Highlighter}
+                    />
+                  )}
+
+                  <LineHeightDropdown draft={draft} setDraft={setDraft} />
+                  <UnderlineLinksToggle draft={draft} setDraft={setDraft} />
+                  <HideIconsToggle draft={draft} setDraft={setDraft} />
+                  <PageFormatDropdown draft={draft} setDraft={setDraft} />
+                  <PageMarginDropdown draft={draft} setDraft={setDraft} />
+                  <TemplatesDropdown draft={draft} setDraft={setDraft} />
+                </div>
+              )}
+              {openPanel === 'agent' && (
+                <AgentPanelContent
+                  resumeId={resumeId}
+                  onPendingChanges={setPendingChanges}
+                  onChangesApplied={() => {
+                    const approvedChanges = pendingChanges
+                    setDraft((current) => applyApprovedChanges(current, approvedChanges))
+                    setPendingChanges([])
+                    queryClient.invalidateQueries({ queryKey: resumeKeys.detail(resumeId) })
+                  }}
+                  onChangesRejected={() => setPendingChanges([])}
+                />
+              )}
             </PopoverContent>
           </div>
         </div>

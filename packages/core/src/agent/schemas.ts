@@ -16,7 +16,7 @@ export const documentChangeSchema = z.object({
   field: z
     .string()
     .describe(
-      'Field within the section or item to change (e.g. "summary", "headline", "position", "content", "opening", "keywords").',
+      'Field within the section or item to change (e.g. "summary", "headline", "position", "content", "opening", "keywords", "url.href"). Nested fields can use dot notation.',
     ),
   original: z.string().describe("Current text value of the field"),
   proposed: z.string().describe("Proposed replacement text"),

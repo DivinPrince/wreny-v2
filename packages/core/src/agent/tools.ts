@@ -87,12 +87,14 @@ export const proposeDocumentChanges = tool({
   description: `Propose specific text changes to a resume or cover letter. Each change targets a section/field path.
 
 For RESUMES, valid sections and their fields:
-- "basics": fields are "name", "headline", "email", "phone", "location"
+- "basics": fields are "name", "headline", "email", "phone", "location", "url.label", "url.href"
+- "basics" with itemId: targets a basics custom field; fields are "name", "value", "icon"
 - "summary": field is "content" (the summary text, no itemId needed)
 - "experience": requires itemId; fields are "company", "position", "location", "date", "summary"
 - "education": requires itemId; fields are "institution", "studyType", "area", "score", "date", "summary"
 - "skills": requires itemId; fields are "name", "description", "keywords" (comma-separated)
 - "projects": requires itemId; fields are "name", "description", "date", "summary", "keywords" (comma-separated)
+- "profiles": requires itemId; fields are "network", "username", "icon", "url.label", "url.href"
 - "awards", "certifications", "volunteer", "publications", "references": require itemId with their respective fields
 
 For COVER LETTERS, valid sections and their fields:
@@ -124,7 +126,14 @@ async function applyResumeChanges(documentId: string, changes: Change[]) {
     const { section, itemId, field, proposed } = change;
 
     if (section === "basics") {
-      setField(data.basics, field, proposed);
+      if (itemId) {
+        const item = data.basics.customFields.find((customField) => customField.id === itemId);
+        if (item) {
+          setField(item as Record<string, unknown>, field, proposed);
+        }
+      } else {
+        setField(data.basics as Record<string, unknown>, field, proposed);
+      }
     } else if (section === "summary") {
       data.sections.summary.content = proposed;
     } else if (section in data.sections) {
@@ -136,12 +145,12 @@ async function applyResumeChanges(documentId: string, changes: Change[]) {
         if (item) {
           if (field === "keywords") {
             setField(
-              item,
+              item as Record<string, unknown>,
               field,
               proposed.split(",").map((k: string) => k.trim()),
             );
           } else {
-            setField(item, field, proposed);
+            setField(item as Record<string, unknown>, field, proposed);
           }
         }
       }
@@ -187,7 +196,20 @@ async function applyCoverLetterChanges(
 }
 
 function setField(obj: Record<string, unknown>, field: string, value: unknown) {
-  if (field in obj) {
-    obj[field] = value;
+  const segments = field.split(".");
+  let current: Record<string, unknown> | null = obj;
+
+  for (const segment of segments.slice(0, -1)) {
+    const next = current?.[segment];
+    if (!next || typeof next !== "object") {
+      return;
+    }
+
+    current = next as Record<string, unknown>;
+  }
+
+  const lastSegment = segments.at(-1);
+  if (current && lastSegment && lastSegment in current) {
+    current[lastSegment] = value;
   }
 }
