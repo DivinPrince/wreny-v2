@@ -1,6 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { DocumentChange } from '@repo/core/agent'
+import {
+  defaultAward,
+  defaultCertification,
+  defaultCustomSection,
+  defaultEducation,
+  defaultExperience,
+  defaultInterest,
+  defaultLanguage,
+  defaultLayout,
+  defaultProfile,
+  defaultProject,
+  defaultPublication,
+  defaultReference,
+  defaultSkill,
+  defaultUrl,
+  defaultVolunteer,
+} from '@repo/core/schemas'
 import type { ResumeDocument } from '@repo/core/schemas'
 import {
   ChevronDown,
@@ -115,6 +132,160 @@ function getSectionGroup(resume: ResumeDocument, section: string) {
     : undefined
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function parseJsonRecord(value: string) {
+  try {
+    const parsed = JSON.parse(value) as unknown
+    return isRecord(parsed) ? parsed : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function normalizeStringArray(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry).trim()).filter(Boolean)
+  }
+
+  if (typeof value === 'string') {
+    return value.split(',').map((entry) => entry.trim()).filter(Boolean)
+  }
+
+  return []
+}
+
+function formatSectionName(section: string) {
+  const raw = section.startsWith('custom.') ? section.slice('custom.'.length) : section
+  return raw
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function ensureResumeSectionInLayout(resume: ResumeDocument, section: string) {
+  if (section === 'basics') {
+    return
+  }
+
+  const exists = resume.metadata.layout.some((page) =>
+    page.some((column) => column.includes(section)),
+  )
+  if (exists) {
+    return
+  }
+
+  if (resume.metadata.layout.length === 0) {
+    resume.metadata.layout = structuredClone(defaultLayout)
+  }
+
+  const firstPage = resume.metadata.layout[0] ?? []
+  if (resume.metadata.layout[0] == null) {
+    resume.metadata.layout[0] = firstPage
+  }
+
+  let preferredColumnIndex = defaultLayout[0]?.findIndex((column) => column.includes(section)) ?? -1
+  if (preferredColumnIndex < 0) {
+    preferredColumnIndex = firstPage.length > 1 ? 1 : 0
+  }
+
+  while (firstPage.length <= preferredColumnIndex) {
+    firstPage.push([])
+  }
+
+  const targetColumn = firstPage[preferredColumnIndex]
+  if (targetColumn) {
+    targetColumn.push(section)
+  }
+}
+
+function ensureCustomResumeSection(resume: ResumeDocument, section: string) {
+  if (!section.startsWith('custom.')) {
+    return
+  }
+
+  const customId = section.slice('custom.'.length)
+  if (!customId || resume.sections.custom[customId]) {
+    return
+  }
+
+  resume.sections.custom[customId] = {
+    name: formatSectionName(section),
+    columns: 1,
+    separateLinks: true,
+    visible: true,
+    id: customId,
+    items: [],
+  }
+}
+
+function createPreviewResumeItem(section: string, payload: Record<string, unknown>) {
+  if (section === 'basics') {
+    return {
+      id: crypto.randomUUID(),
+      icon: typeof payload.icon === 'string' ? payload.icon : 'link',
+      name: typeof payload.name === 'string' ? payload.name : '',
+      value: typeof payload.value === 'string' ? payload.value : '',
+    }
+  }
+
+  const base =
+    section === 'awards'
+      ? structuredClone(defaultAward)
+      : section === 'certifications'
+        ? structuredClone(defaultCertification)
+        : section === 'education'
+          ? structuredClone(defaultEducation)
+          : section === 'experience'
+            ? structuredClone(defaultExperience)
+            : section === 'interests'
+              ? structuredClone(defaultInterest)
+              : section === 'languages'
+                ? structuredClone(defaultLanguage)
+                : section === 'profiles'
+                  ? structuredClone(defaultProfile)
+                  : section === 'projects'
+                    ? structuredClone(defaultProject)
+                    : section === 'publications'
+                      ? structuredClone(defaultPublication)
+                      : section === 'references'
+                        ? structuredClone(defaultReference)
+                        : section === 'skills'
+                          ? structuredClone(defaultSkill)
+                          : section === 'volunteer'
+                            ? structuredClone(defaultVolunteer)
+                            : section.startsWith('custom.')
+                              ? structuredClone(defaultCustomSection)
+                              : undefined
+
+  if (!base) {
+    return undefined
+  }
+
+  const item = {
+    ...base,
+    ...payload,
+    id: typeof payload.id === 'string' && payload.id ? payload.id : crypto.randomUUID(),
+    visible: typeof payload.visible === 'boolean' ? payload.visible : true,
+  } as Record<string, unknown>
+
+  if ('url' in item) {
+    item.url = {
+      ...defaultUrl,
+      ...(isRecord(payload.url) ? payload.url : {}),
+    }
+  }
+
+  if ('keywords' in item) {
+    item.keywords = normalizeStringArray(payload.keywords ?? item.keywords)
+  }
+
+  return item
+}
+
 function applyApprovedChanges(
   current: ResumeDocument,
   changes: DocumentChange[],
@@ -122,6 +293,45 @@ function applyApprovedChanges(
   return updateDraft(current, (next) => {
     for (const change of changes) {
       const { operation, section, itemId, field, proposed } = change
+
+      if (operation === 'add-item') {
+        if (section === 'summary') {
+          next.sections.summary.content = proposed
+          next.sections.summary.visible = true
+          ensureResumeSectionInLayout(next, section)
+          continue
+        }
+
+        if (section === 'basics') {
+          const payload = parseJsonRecord(proposed)
+          if (!payload) {
+            continue
+          }
+
+          const item = createPreviewResumeItem(section, payload)
+          if (item) {
+            next.basics.customFields.push(item as typeof next.basics.customFields[number])
+          }
+          continue
+        }
+
+        ensureCustomResumeSection(next, section)
+        const sectionGroup = getSectionGroup(next, section)
+        const payload = field === '__item__' ? parseJsonRecord(proposed) : undefined
+        if (!sectionGroup || !('items' in sectionGroup) || !payload) {
+          continue
+        }
+
+        const item = createPreviewResumeItem(section, payload)
+        if (!item) {
+          continue
+        }
+
+        ;(sectionGroup.items as Array<Record<string, unknown>>).push(item)
+        sectionGroup.visible = true
+        ensureResumeSectionInLayout(next, section)
+        continue
+      }
 
       if (operation === 'delete-item') {
         if (section === 'basics' && itemId) {
@@ -154,6 +364,9 @@ function applyApprovedChanges(
         const sectionGroup = getSectionGroup(next, section)
         if (sectionGroup && 'visible' in sectionGroup) {
           sectionGroup.visible = visible
+          if (visible) {
+            ensureResumeSectionInLayout(next, section)
+          }
         }
         continue
       }

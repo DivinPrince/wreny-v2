@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const documentChangeOperationSchema = z.enum([
   "replace",
+  "add-item",
   "delete-item",
   "set-section-visible",
 ]);
@@ -11,7 +12,7 @@ export const documentChangeSchema = z.object({
   operation: documentChangeOperationSchema
     .default("replace")
     .describe(
-      'Type of change. Use "replace" for normal text edits, "delete-item" to remove a list item from a resume section, and "set-section-visible" to show or hide a whole resume section.',
+      'Type of change. Use "replace" for normal text edits, "add-item" to add a new resume item or cover letter body paragraph, "delete-item" to remove a list item, and "set-section-visible" to show or hide a whole resume section.',
     ),
   section: z
     .string()
@@ -27,17 +28,17 @@ export const documentChangeSchema = z.object({
   field: z
     .string()
     .describe(
-      'Field within the section or item to change (e.g. "summary", "headline", "position", "content", "opening", "keywords", "url.href"). Nested fields can use dot notation. For "delete-item", use "__item__". For "set-section-visible", use "visible".',
+      'Field within the section or item to change (e.g. "summary", "headline", "position", "content", "opening", "keywords", "url.href"). Nested fields can use dot notation. For "add-item" on resume sections, use "__item__". For "add-item" on cover letters, use "body". For "delete-item", use "__item__" or "body". For "set-section-visible", use "visible".',
     ),
   original: z
     .string()
     .describe(
-      'Current value being changed. For "delete-item", use a short human-readable label for the item being removed. For "set-section-visible", use "true" or "false".',
+      'Current value being changed. For "add-item", use an empty string or a short note like "section currently empty". For "delete-item", use a short human-readable label for the item being removed. For "set-section-visible", use "true" or "false".',
     ),
   proposed: z
     .string()
     .describe(
-      'Proposed replacement value. For "delete-item", use an empty string. For "set-section-visible", use "true" or "false".',
+      'Proposed replacement value. For "add-item" on resume sections, use a JSON string matching the target item schema. For "add-item" on cover letter body, use the paragraph text. For "delete-item", use an empty string. For "set-section-visible", use "true" or "false".',
     ),
   reason: z
     .string()

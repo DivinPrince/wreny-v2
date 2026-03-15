@@ -18,9 +18,19 @@ import type {
   Volunteer,
 } from '@repo/core/schemas'
 import { Fragment, type ReactNode } from 'react'
-import { cn, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
+import { cn, isEmptyString, isUrl } from '../lib/template-utils'
 import { BrandIcon } from '../rendering/brand-icon'
+import {
+  DiffView,
+  DeletedItemDiff,
+  useSectionDiff,
+} from '../rendering/diff-helpers'
 import { Picture } from '../rendering/picture'
+import {
+  DiffHTML,
+  DiffText,
+  usePendingValue,
+} from '../rendering/pending-changes'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -39,12 +49,12 @@ type LinkProps = {
   url: URL
   icon?: ReactNode
   iconOnRight?: boolean
-  label?: string
+  label?: ReactNode
   className?: string
 }
 
 type LinkedEntityProps = {
-  name: string
+  name: ReactNode
   url: URL
   separateLinks: boolean
   className?: string
@@ -67,6 +77,11 @@ function getItemValue(item: Record<string, unknown>, key: string | undefined) {
 
 function Header() {
   const basics = useResumeStore((state) => state.resume.basics)
+  const pendingUrlHref = usePendingValue({
+    section: 'basics',
+    field: 'url.href',
+    fallback: basics.url.href,
+  })
 
   return (
     <div className="flex items-center space-x-4">
@@ -74,22 +89,26 @@ function Header() {
 
       <div className="space-y-2">
         <div>
-          <div className="text-2xl font-bold">{basics.name}</div>
-          <div className="text-base">{basics.headline}</div>
+          <div className="text-2xl font-bold">
+            <DiffText section="basics" field="name">{basics.name}</DiffText>
+          </div>
+          <div className="text-base">
+            <DiffText section="basics" field="headline">{basics.headline}</DiffText>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
           {basics.location && (
             <div className="flex items-center gap-x-1.5">
               <i className="ph ph-bold ph-map-pin text-primary" />
-              <div>{basics.location}</div>
+              <div><DiffText section="basics" field="location">{basics.location}</DiffText></div>
             </div>
           )}
           {basics.phone && (
             <div className="flex items-center gap-x-1.5">
               <i className="ph ph-bold ph-phone text-primary" />
               <a href={`tel:${basics.phone}`} target="_blank" rel="noreferrer">
-                {basics.phone}
+                <DiffText section="basics" field="phone">{basics.phone}</DiffText>
               </a>
             </div>
           )}
@@ -97,22 +116,39 @@ function Header() {
             <div className="flex items-center gap-x-1.5">
               <i className="ph ph-bold ph-at text-primary" />
               <a href={`mailto:${basics.email}`} target="_blank" rel="noreferrer">
-                {basics.email}
+                <DiffText section="basics" field="email">{basics.email}</DiffText>
               </a>
             </div>
           )}
-          <Link url={basics.url} />
+          {isUrl(pendingUrlHref) && (
+            <Link
+              url={{ ...basics.url, href: pendingUrlHref }}
+              label={
+                <DiffText section="basics" field={['url.label', 'url.href']}>
+                  {basics.url.label || basics.url.href}
+                </DiffText>
+              }
+            />
+          )}
           {basics.customFields.map((item) => (
-            <div key={item.id} className="flex items-center gap-x-1.5">
-              <i className={cn(`ph ph-bold ph-${item.icon}`, 'text-primary')} />
-              {isUrl(item.value) ? (
-                <a href={item.value} target="_blank" rel="noreferrer noopener nofollow">
-                  {item.name || item.value}
-                </a>
-              ) : (
-                <span>{[item.name, item.value].filter(Boolean).join(': ')}</span>
-              )}
-            </div>
+            <Fragment key={item.id}>
+              <div className="flex items-center gap-x-1.5">
+                <i className={cn(`ph ph-bold ph-${item.icon}`, 'text-primary')} />
+                {isUrl(item.value) ? (
+                  <a href={item.value} target="_blank" rel="noreferrer noopener nofollow">
+                    <DiffText section="basics" field="value" itemId={item.id}>
+                      {item.name || item.value}
+                    </DiffText>
+                  </a>
+                ) : (
+                  <span>
+                    <DiffText section="basics" field="name" itemId={item.id}>{item.name}</DiffText>
+                    {item.name && item.value ? ': ' : null}
+                    <DiffText section="basics" field="value" itemId={item.id}>{item.value}</DiffText>
+                  </span>
+                )}
+              </div>
+            </Fragment>
           ))}
         </div>
       </div>
@@ -122,18 +158,25 @@ function Header() {
 
 function Summary() {
   const section = useResumeStore((state) => state.resume.sections.summary)
+  const { isHidden } = useSectionDiff('summary')
 
-  if (!section.visible || isEmptyString(section.content)) return null
+  if ((!section.visible && !isHidden) || (!isHidden && isEmptyString(section.content))) return null
 
   return (
     <section id={section.id}>
       <h4 className="mb-2 border-b pb-0.5 text-sm font-bold">{section.name}</h4>
 
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
-        style={{ columns: section.columns }}
-        className="wysiwyg"
-      />
+      {isHidden ? (
+        <DiffView original={`${section.name} section`} proposed="Hidden" />
+      ) : (
+        <DiffHTML
+          section="summary"
+          field="content"
+          html={section.content}
+          style={{ columns: section.columns }}
+          className="wysiwyg"
+        />
+      )}
     </section>
   )
 }
@@ -196,47 +239,67 @@ function Section<T>({
   summaryKey,
   keywordsKey,
 }: Readonly<SectionProps<T>>) {
-  if (!section.visible || section.items.length === 0) return null
+  const { isHidden, deletedItems } = useSectionDiff(section.id)
+
+  if ((!section.visible && !isHidden) || (section.items.length === 0 && deletedItems.length === 0)) return null
 
   return (
     <section id={section.id} className="grid">
       <h4 className="mb-2 border-b pb-0.5 text-sm font-bold">{section.name}</h4>
 
       <div className="grid gap-x-6 gap-y-3" style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}>
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const itemRecord = item as Record<string, unknown>
-            const urlValue = getItemValue(itemRecord, urlKey as string | undefined)
-            const levelValue = getItemValue(itemRecord, levelKey as string | undefined)
-            const summaryValue = getItemValue(itemRecord, summaryKey as string | undefined)
-            const keywordsValue = getItemValue(itemRecord, keywordsKey as string | undefined)
+        {isHidden ? (
+          <DiffView original={`${section.name} section`} proposed="Hidden" />
+        ) : (
+          <>
+            {section.items
+              .filter((item) => item.visible)
+              .map((item) => {
+                const itemRecord = item as Record<string, unknown>
+                const urlValue = getItemValue(itemRecord, urlKey as string | undefined)
+                const levelValue = getItemValue(itemRecord, levelKey as string | undefined)
+                const summaryValue = getItemValue(itemRecord, summaryKey as string | undefined)
+                const keywordsValue = getItemValue(itemRecord, keywordsKey as string | undefined)
 
-            const url = urlValue as URL | undefined
-            const level = typeof levelValue === 'number' ? levelValue : undefined
-            const summary = typeof summaryValue === 'string' ? summaryValue : undefined
-            const keywords = Array.isArray(keywordsValue) ? keywordsValue : undefined
+                const url = urlValue as URL | undefined
+                const level = typeof levelValue === 'number' ? levelValue : undefined
+                const summary = typeof summaryValue === 'string' ? summaryValue : undefined
+                const keywords = Array.isArray(keywordsValue) ? keywordsValue : undefined
 
-            return (
-              <div key={item.id} className={cn('space-y-2', className)}>
-                <div>
-                  {children?.(item as T)}
-                  {url !== undefined && section.separateLinks && <Link url={url} />}
-                </div>
+                return (
+                  <div key={item.id} className={cn('space-y-2', className)}>
+                    <div>
+                      {children?.(item as T)}
+                      {url !== undefined && section.separateLinks && <Link url={url} />}
+                    </div>
 
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg group-[.sidebar]:prose-invert"
-                  />
-                )}
+                    {summary !== undefined && !isEmptyString(summary) && (
+                      <DiffHTML
+                        section={section.id}
+                        field={summaryKey as string}
+                        itemId={item.id}
+                        html={summary}
+                        className="wysiwyg group-[.sidebar]:prose-invert"
+                      />
+                    )}
 
-                {level !== undefined && level > 0 && <Rating level={level} />}
+                    {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && <p className="text-sm">{keywords.join(', ')}</p>}
-              </div>
-            )
-          })}
+                    {keywords !== undefined && keywords.length > 0 && (
+                      <p className="text-sm">
+                        <DiffText section={section.id} field="keywords" itemId={item.id}>
+                          {keywords.join(', ')}
+                        </DiffText>
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+            {deletedItems.map((change) => (
+              <DeletedItemDiff key={change.id} change={change} className={className} />
+            ))}
+          </>
+        )}
       </div>
     </section>
   )
@@ -251,17 +314,17 @@ function Experience() {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.company}
+              name={<DiffText section="experience" field="company" itemId={item.id}>{item.company}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.position}</div>
+            <div><DiffText section="experience" field="position" itemId={item.id}>{item.position}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
-            <div>{item.location}</div>
+            <div className="font-bold"><DiffText section="experience" field="date" itemId={item.id}>{item.date}</DiffText></div>
+            <div><DiffText section="experience" field="location" itemId={item.id}>{item.location}</DiffText></div>
           </div>
         </div>
       )}
@@ -278,22 +341,56 @@ function Education() {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.institution}
+              name={<DiffText section="education" field="institution" itemId={item.id}>{item.institution}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.area}</div>
-            <div>{item.score}</div>
+            <div><DiffText section="education" field="area" itemId={item.id}>{item.area}</DiffText></div>
+            <div><DiffText section="education" field="score" itemId={item.id}>{item.score}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
-            <div>{item.studyType}</div>
+            <div className="font-bold"><DiffText section="education" field="date" itemId={item.id}>{item.date}</DiffText></div>
+            <div><DiffText section="education" field="studyType" itemId={item.id}>{item.studyType}</DiffText></div>
           </div>
         </div>
       )}
     </Section>
+  )
+}
+
+function ProfileRow({ item }: Readonly<{ item: Profile }>) {
+  const pendingHref = usePendingValue({
+    section: 'profiles',
+    field: 'url.href',
+    itemId: item.id,
+    fallback: item.url.href,
+  })
+
+  return (
+    <div>
+      {isUrl(pendingHref) ? (
+        <Link
+          url={{ ...item.url, href: pendingHref }}
+          label={
+            <DiffText section="profiles" field={['username', 'url.href']} itemId={item.id}>
+              {item.username || item.url.label || item.url.href}
+            </DiffText>
+          }
+          icon={<BrandIcon slug={item.icon} />}
+        />
+      ) : (
+        <p>
+          <DiffText section="profiles" field="username" itemId={item.id}>{item.username}</DiffText>
+        </p>
+      )}
+      {!item.icon && (
+        <p className="text-sm">
+          <DiffText section="profiles" field="network" itemId={item.id}>{item.network}</DiffText>
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -302,16 +399,7 @@ function Profiles() {
 
   return (
     <Section<Profile> section={section}>
-      {(item) => (
-        <div>
-          {isUrl(item.url.href) ? (
-            <Link url={item.url} label={item.username} icon={<BrandIcon slug={item.icon} />} />
-          ) : (
-            <p>{item.username}</p>
-          )}
-          {!item.icon && <p className="text-sm">{item.network}</p>}
-        </div>
-      )}
+      {(item) => <ProfileRow item={item} />}
     </Section>
   )
 }
@@ -324,12 +412,16 @@ function Awards() {
       {(item) => (
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
-            <div className="font-bold">{item.title}</div>
-            <LinkedEntity name={item.awarder} url={item.url} separateLinks={section.separateLinks} />
+            <div className="font-bold"><DiffText section="awards" field="title" itemId={item.id}>{item.title}</DiffText></div>
+            <LinkedEntity
+              name={<DiffText section="awards" field="awarder" itemId={item.id}>{item.awarder}</DiffText>}
+              url={item.url}
+              separateLinks={section.separateLinks}
+            />
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
+            <div className="font-bold"><DiffText section="awards" field="date" itemId={item.id}>{item.date}</DiffText></div>
           </div>
         </div>
       )}
@@ -345,9 +437,13 @@ function Certifications() {
       {(item) => (
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
-            <div className="font-bold">{item.name}</div>
-            <LinkedEntity name={item.issuer} url={item.url} separateLinks={section.separateLinks} />
-            <div className="font-bold">{item.date}</div>
+            <div className="font-bold"><DiffText section="certifications" field="name" itemId={item.id}>{item.name}</DiffText></div>
+            <LinkedEntity
+              name={<DiffText section="certifications" field="issuer" itemId={item.id}>{item.issuer}</DiffText>}
+              url={item.url}
+              separateLinks={section.separateLinks}
+            />
+            <div className="font-bold"><DiffText section="certifications" field="date" itemId={item.id}>{item.date}</DiffText></div>
           </div>
         </div>
       )}
@@ -362,8 +458,8 @@ function Skills() {
     <Section<Skill> section={section} levelKey="level" keywordsKey="keywords">
       {(item) => (
         <div>
-          <div className="font-bold">{item.name}</div>
-          <div>{item.description}</div>
+          <div className="font-bold"><DiffText section="skills" field="name" itemId={item.id}>{item.name}</DiffText></div>
+          <div><DiffText section="skills" field="description" itemId={item.id}>{item.description}</DiffText></div>
         </div>
       )}
     </Section>
@@ -375,7 +471,11 @@ function Interests() {
 
   return (
     <Section<Interest> section={section} keywordsKey="keywords" className="space-y-0.5">
-      {(item) => <div className="font-bold">{item.name}</div>}
+      {(item) => (
+        <div className="font-bold">
+          <DiffText section="interests" field="name" itemId={item.id}>{item.name}</DiffText>
+        </div>
+      )}
     </Section>
   )
 }
@@ -389,16 +489,16 @@ function Publications() {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.name}
+              name={<DiffText section="publications" field="name" itemId={item.id}>{item.name}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.publisher}</div>
+            <div><DiffText section="publications" field="publisher" itemId={item.id}>{item.publisher}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
+            <div className="font-bold"><DiffText section="publications" field="date" itemId={item.id}>{item.date}</DiffText></div>
           </div>
         </div>
       )}
@@ -415,17 +515,17 @@ function Volunteer() {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.organization}
+              name={<DiffText section="volunteer" field="organization" itemId={item.id}>{item.organization}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.position}</div>
+            <div><DiffText section="volunteer" field="position" itemId={item.id}>{item.position}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
-            <div>{item.location}</div>
+            <div className="font-bold"><DiffText section="volunteer" field="date" itemId={item.id}>{item.date}</DiffText></div>
+            <div><DiffText section="volunteer" field="location" itemId={item.id}>{item.location}</DiffText></div>
           </div>
         </div>
       )}
@@ -440,8 +540,8 @@ function Languages() {
     <Section<Language> section={section} levelKey="level">
       {(item) => (
         <div className="space-y-0.5">
-          <div className="font-bold">{item.name}</div>
-          <div>{item.description}</div>
+          <div className="font-bold"><DiffText section="languages" field="name" itemId={item.id}>{item.name}</DiffText></div>
+          <div><DiffText section="languages" field="description" itemId={item.id}>{item.description}</DiffText></div>
         </div>
       )}
     </Section>
@@ -457,16 +557,16 @@ function Projects() {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.name}
+              name={<DiffText section="projects" field="name" itemId={item.id}>{item.name}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.description}</div>
+            <div><DiffText section="projects" field="description" itemId={item.id}>{item.description}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
+            <div className="font-bold"><DiffText section="projects" field="date" itemId={item.id}>{item.date}</DiffText></div>
           </div>
         </div>
       )}
@@ -482,12 +582,12 @@ function References() {
       {(item) => (
         <div>
           <LinkedEntity
-            name={item.name}
+            name={<DiffText section="references" field="name" itemId={item.id}>{item.name}</DiffText>}
             url={item.url}
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div>{item.description}</div>
+          <div><DiffText section="references" field="description" itemId={item.id}>{item.description}</DiffText></div>
         </div>
       )}
     </Section>
@@ -505,17 +605,17 @@ function Custom({ id }: Readonly<{ id: string }>) {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.name}
+              name={<DiffText section={section.id} field="name" itemId={item.id}>{item.name}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.description}</div>
+            <div><DiffText section={section.id} field="description" itemId={item.id}>{item.description}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
-            <div>{item.location}</div>
+            <div className="font-bold"><DiffText section={section.id} field="date" itemId={item.id}>{item.date}</DiffText></div>
+            <div><DiffText section={section.id} field="location" itemId={item.id}>{item.location}</DiffText></div>
           </div>
         </div>
       )}

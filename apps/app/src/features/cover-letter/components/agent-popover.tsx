@@ -256,15 +256,15 @@ function MessageParts({
             const approvalId = toolPart.approval.id
             const { changes, summary } = toolPart.input
             return (
-              <div key={i} className="mt-2 space-y-2 rounded-lg border border-amber-200 bg-amber-50/80 p-2 dark:border-amber-800 dark:bg-amber-950/30">
-                <p className="text-xs font-medium text-amber-800 dark:text-amber-200">
+              <div key={i} className="mt-2 space-y-2 rounded-lg border border-border bg-muted/50 p-2.5">
+                <p className="text-xs font-medium text-foreground">
                   {summary ?? `${changes.length} change(s) proposed`}
                 </p>
                 <div className="flex gap-1.5">
                   <Button
                     type="button"
                     size="sm"
-                    className="h-7 gap-1 bg-green-600 text-white hover:bg-green-700"
+                    className="h-7 gap-1"
                     onClick={() => {
                       addToolApprovalResponse({ id: approvalId, approved: true })
                       onChangesApplied()

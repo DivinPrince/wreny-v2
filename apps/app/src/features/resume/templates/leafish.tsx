@@ -7,6 +7,7 @@ import type {
   Experience,
   Interest,
   Language,
+  Profile,
   Project,
   Publication,
   Reference,
@@ -16,9 +17,19 @@ import type {
   Volunteer,
 } from '@repo/core/schemas'
 
-import { cn, hexToRgb, isEmptyString, isUrl, sanitize } from '../lib/template-utils'
+import { cn, hexToRgb, isEmptyString, isUrl } from '../lib/template-utils'
 import { BrandIcon } from '../rendering/brand-icon'
+import {
+  DiffView,
+  DeletedItemDiff,
+  useSectionDiff,
+} from '../rendering/diff-helpers'
 import { Picture } from '../rendering/picture'
+import {
+  DiffHTML,
+  DiffText,
+  usePendingValue,
+} from '../rendering/pending-changes'
 import { useResumeStore } from '../rendering/store'
 import type { TemplateProps } from './types'
 
@@ -29,6 +40,34 @@ const assertNever = (value: never): never => {
 const getCustomSectionId = (section: SectionKey) =>
   section.startsWith('custom.') ? section.slice('custom.'.length) : null
 
+const ProfileRow = ({ item }: Readonly<{ item: Profile }>) => {
+  const pendingHref = usePendingValue({
+    section: 'profiles',
+    field: 'url.href',
+    itemId: item.id,
+    fallback: item.url.href,
+  })
+
+  return (
+    <div className="flex items-center gap-x-2">
+      {isUrl(pendingHref) ? (
+        <Link
+          url={{ ...item.url, href: pendingHref }}
+          label={
+            <DiffText section="profiles" field={['username', 'url.href']} itemId={item.id}>
+              {item.username || item.url.label || item.url.href}
+            </DiffText>
+          }
+          className="text-sm"
+          icon={<BrandIcon slug={item.icon} />}
+        />
+      ) : (
+        <DiffText section="profiles" field="username" itemId={item.id}>{item.username}</DiffText>
+      )}
+    </div>
+  )
+}
+
 const Header = () => {
   const basics = useResumeStore((state) => state.resume.basics)
   const section = useResumeStore((state) => state.resume.sections.summary)
@@ -36,6 +75,13 @@ const Header = () => {
   const highlightColor = useResumeStore(
     (state) => state.resume.metadata.theme.highlight ?? state.resume.metadata.theme.primary,
   )
+  const { isHidden: summaryHidden } = useSectionDiff('summary')
+  const { isHidden: profilesHidden, deletedItems: deletedProfiles } = useSectionDiff('profiles')
+  const pendingUrlHref = usePendingValue({
+    section: 'basics',
+    field: 'url.href',
+    fallback: basics.url.href,
+  })
 
   return (
     <div>
@@ -45,15 +91,25 @@ const Header = () => {
       >
         <div className="space-y-3">
           <div>
-            <div className="text-3xl font-bold">{basics.name}</div>
-            <div className="text-base font-medium text-primary">{basics.headline}</div>
+            <div className="text-3xl font-bold">
+              <DiffText section="basics" field="name">{basics.name}</DiffText>
+            </div>
+            <div className="text-base font-medium text-primary">
+              <DiffText section="basics" field="headline">{basics.headline}</DiffText>
+            </div>
           </div>
 
-          <div
-            dangerouslySetInnerHTML={{ __html: sanitize(section.content) }}
-            style={{ columns: section.columns }}
-            className="wysiwyg"
-          />
+          {summaryHidden ? (
+            <DiffView original="Summary section" proposed="Hidden" />
+          ) : (
+            <DiffHTML
+              section="summary"
+              field="content"
+              html={section.content}
+              style={{ columns: section.columns }}
+              className="wysiwyg"
+            />
+          )}
         </div>
 
         <Picture />
@@ -64,14 +120,14 @@ const Header = () => {
           {basics.location && (
             <div className="flex items-center gap-x-1.5">
               <i className="ph ph-bold ph-map-pin text-primary" />
-              <div>{basics.location}</div>
+              <div><DiffText section="basics" field="location">{basics.location}</DiffText></div>
             </div>
           )}
           {basics.phone && (
             <div className="flex items-center gap-x-1.5">
               <i className="ph ph-bold ph-phone text-primary" />
               <a href={`tel:${basics.phone}`} target="_blank" rel="noreferrer">
-                {basics.phone}
+                <DiffText section="basics" field="phone">{basics.phone}</DiffText>
               </a>
             </div>
           )}
@@ -79,39 +135,58 @@ const Header = () => {
             <div className="flex items-center gap-x-1.5">
               <i className="ph ph-bold ph-at text-primary" />
               <a href={`mailto:${basics.email}`} target="_blank" rel="noreferrer">
-                {basics.email}
+                <DiffText section="basics" field="email">{basics.email}</DiffText>
               </a>
             </div>
           )}
-          <Link url={basics.url} />
+          {isUrl(pendingUrlHref) && (
+            <Link
+              url={{ ...basics.url, href: pendingUrlHref }}
+              label={
+                <DiffText section="basics" field={['url.label', 'url.href']}>
+                  {basics.url.label || basics.url.href}
+                </DiffText>
+              }
+            />
+          )}
           {basics.customFields.map((item) => (
-            <div key={item.id} className="flex items-center gap-x-1.5">
-              <i className={cn(`ph ph-bold ph-${item.icon}`, 'text-primary')} />
-              {isUrl(item.value) ? (
-                <a href={item.value} target="_blank" rel="noreferrer noopener nofollow">
-                  {item.name || item.value}
-                </a>
-              ) : (
-                <span>{[item.name, item.value].filter(Boolean).join(': ')}</span>
-              )}
-            </div>
+            <Fragment key={item.id}>
+              <div className="flex items-center gap-x-1.5">
+                <i className={cn(`ph ph-bold ph-${item.icon}`, 'text-primary')} />
+                {isUrl(item.value) ? (
+                  <a href={item.value} target="_blank" rel="noreferrer noopener nofollow">
+                    <DiffText section="basics" field="value" itemId={item.id}>
+                      {item.name || item.value}
+                    </DiffText>
+                  </a>
+                ) : (
+                  <span>
+                    <DiffText section="basics" field="name" itemId={item.id}>{item.name}</DiffText>
+                    {item.name && item.value ? ': ' : null}
+                    <DiffText section="basics" field="value" itemId={item.id}>{item.value}</DiffText>
+                  </span>
+                )}
+              </div>
+            </Fragment>
           ))}
         </div>
 
-        {profiles.visible && profiles.items.length > 0 && (
+        {(profilesHidden || (profiles.visible && (profiles.items.length > 0 || deletedProfiles.length > 0))) && (
           <div className="flex items-center gap-x-3 gap-y-0.5">
-            {profiles.items
-              .filter((item) => item.visible)
-              .map((item) => (
-                <div key={item.id} className="flex items-center gap-x-2">
-                  <Link
-                    url={item.url}
-                    label={item.username}
-                    className="text-sm"
-                    icon={<BrandIcon slug={item.icon} />}
-                  />
-                </div>
-              ))}
+            {profilesHidden ? (
+              <DiffView original="Profiles section" proposed="Hidden" className="text-sm" />
+            ) : (
+              <>
+                {profiles.items
+                  .filter((item) => item.visible)
+                  .map((item) => (
+                    <ProfileRow key={item.id} item={item} />
+                  ))}
+                {deletedProfiles.map((change) => (
+                  <DeletedItemDiff key={change.id} change={change} className="text-sm" />
+                ))}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -136,7 +211,7 @@ type LinkProps = {
   url: URL
   icon?: ReactNode
   iconOnRight?: boolean
-  label?: string
+  label?: ReactNode
   className?: string
 }
 
@@ -160,7 +235,7 @@ const Link = ({ url, icon, iconOnRight, label, className }: Readonly<LinkProps>)
 }
 
 type LinkedEntityProps = {
-  name: string
+  name: ReactNode
   url: URL
   separateLinks: boolean
   className?: string
@@ -208,7 +283,9 @@ const Section = <T,>({
   summaryKey,
   keywordsKey,
 }: Readonly<SectionProps<T>>) => {
-  if (!section.visible || section.items.length === 0) return null
+  const { isHidden, deletedItems } = useSectionDiff(section.id)
+
+  if ((!section.visible && !isHidden) || (section.items.length === 0 && deletedItems.length === 0)) return null
 
   return (
     <section id={section.id} className="grid">
@@ -216,40 +293,54 @@ const Section = <T,>({
         {section.name}
       </h4>
 
-      <div
-        className="grid gap-x-6 gap-y-3"
-        style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
-      >
-        {section.items
-          .filter((item) => item.visible)
-          .map((item) => {
-            const url = (urlKey ? item[urlKey] : undefined) as URL | undefined
-            const level = (levelKey ? item[levelKey] : undefined) as number | undefined
-            const summary = (summaryKey ? item[summaryKey] : undefined) as string | undefined
-            const keywords = (keywordsKey ? item[keywordsKey] : undefined) as string[] | undefined
+      {isHidden ? (
+        <DiffView original={`${section.name} section`} proposed="Hidden" />
+      ) : (
+        <div
+          className="grid gap-x-6 gap-y-3"
+          style={{ gridTemplateColumns: `repeat(${section.columns}, 1fr)` }}
+        >
+          {section.items
+            .filter((item) => item.visible)
+            .map((item) => {
+              const url = (urlKey ? item[urlKey] : undefined) as URL | undefined
+              const level = (levelKey ? item[levelKey] : undefined) as number | undefined
+              const summary = (summaryKey ? item[summaryKey] : undefined) as string | undefined
+              const keywords = (keywordsKey ? item[keywordsKey] : undefined) as string[] | undefined
 
-            return (
-              <div key={item.id} className={cn('space-y-2', className)}>
-                <div>{children?.(item as T)}</div>
+              return (
+                <div key={item.id} className={cn('space-y-2', className)}>
+                  <div>{children?.(item as T)}</div>
 
-                {summary !== undefined && !isEmptyString(summary) && (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: sanitize(summary) }}
-                    className="wysiwyg"
-                  />
-                )}
+                  {summary !== undefined && !isEmptyString(summary) && (
+                    <DiffHTML
+                      section={section.id}
+                      field={summaryKey as string}
+                      itemId={item.id}
+                      html={summary}
+                      className="wysiwyg"
+                    />
+                  )}
 
-                {level !== undefined && level > 0 && <Rating level={level} />}
+                  {level !== undefined && level > 0 && <Rating level={level} />}
 
-                {keywords !== undefined && keywords.length > 0 && (
-                  <p className="text-sm">{keywords.join(', ')}</p>
-                )}
+                  {keywords !== undefined && keywords.length > 0 && (
+                    <p className="text-sm">
+                      <DiffText section={section.id} field="keywords" itemId={item.id}>
+                        {keywords.join(', ')}
+                      </DiffText>
+                    </p>
+                  )}
 
-                {url !== undefined && section.separateLinks && <Link url={url} />}
-              </div>
-            )
-          })}
-      </div>
+                  {url !== undefined && section.separateLinks && <Link url={url} />}
+                </div>
+              )
+            })}
+          {deletedItems.map((change) => (
+            <DeletedItemDiff key={change.id} change={change} className={className} />
+          ))}
+        </div>
+      )}
     </section>
   )
 }
@@ -262,14 +353,14 @@ const ExperienceSection = () => {
       {(item) => (
         <div>
           <LinkedEntity
-            name={item.company}
+            name={<DiffText section="experience" field="company" itemId={item.id}>{item.company}</DiffText>}
             url={item.url}
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div>{item.position}</div>
-          <div>{item.location}</div>
-          <div className="font-bold">{item.date}</div>
+          <div><DiffText section="experience" field="position" itemId={item.id}>{item.position}</DiffText></div>
+          <div><DiffText section="experience" field="location" itemId={item.id}>{item.location}</DiffText></div>
+          <div className="font-bold"><DiffText section="experience" field="date" itemId={item.id}>{item.date}</DiffText></div>
         </div>
       )}
     </Section>
@@ -284,15 +375,15 @@ const EducationSection = () => {
       {(item) => (
         <div>
           <LinkedEntity
-            name={item.institution}
+            name={<DiffText section="education" field="institution" itemId={item.id}>{item.institution}</DiffText>}
             url={item.url}
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div>{item.area}</div>
-          <div>{item.score}</div>
-          <div>{item.studyType}</div>
-          <div className="font-bold">{item.date}</div>
+          <div><DiffText section="education" field="area" itemId={item.id}>{item.area}</DiffText></div>
+          <div><DiffText section="education" field="score" itemId={item.id}>{item.score}</DiffText></div>
+          <div><DiffText section="education" field="studyType" itemId={item.id}>{item.studyType}</DiffText></div>
+          <div className="font-bold"><DiffText section="education" field="date" itemId={item.id}>{item.date}</DiffText></div>
         </div>
       )}
     </Section>
@@ -306,9 +397,13 @@ const AwardsSection = () => {
     <Section<Award> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
         <div>
-          <div className="font-bold">{item.title}</div>
-          <LinkedEntity name={item.awarder} url={item.url} separateLinks={section.separateLinks} />
-          <div className="font-bold">{item.date}</div>
+          <div className="font-bold"><DiffText section="awards" field="title" itemId={item.id}>{item.title}</DiffText></div>
+          <LinkedEntity
+            name={<DiffText section="awards" field="awarder" itemId={item.id}>{item.awarder}</DiffText>}
+            url={item.url}
+            separateLinks={section.separateLinks}
+          />
+          <div className="font-bold"><DiffText section="awards" field="date" itemId={item.id}>{item.date}</DiffText></div>
         </div>
       )}
     </Section>
@@ -322,9 +417,13 @@ const CertificationsSection = () => {
     <Section<Certification> section={section} urlKey="url" summaryKey="summary">
       {(item) => (
         <div>
-          <div className="font-bold">{item.name}</div>
-          <LinkedEntity name={item.issuer} url={item.url} separateLinks={section.separateLinks} />
-          <div className="font-bold">{item.date}</div>
+          <div className="font-bold"><DiffText section="certifications" field="name" itemId={item.id}>{item.name}</DiffText></div>
+          <LinkedEntity
+            name={<DiffText section="certifications" field="issuer" itemId={item.id}>{item.issuer}</DiffText>}
+            url={item.url}
+            separateLinks={section.separateLinks}
+          />
+          <div className="font-bold"><DiffText section="certifications" field="date" itemId={item.id}>{item.date}</DiffText></div>
         </div>
       )}
     </Section>
@@ -338,8 +437,8 @@ const SkillsSection = () => {
     <Section<Skill> section={section} levelKey="level" keywordsKey="keywords">
       {(item) => (
         <div>
-          <div className="font-bold">{item.name}</div>
-          <div>{item.description}</div>
+          <div className="font-bold"><DiffText section="skills" field="name" itemId={item.id}>{item.name}</DiffText></div>
+          <div><DiffText section="skills" field="description" itemId={item.id}>{item.description}</DiffText></div>
         </div>
       )}
     </Section>
@@ -351,7 +450,11 @@ const InterestsSection = () => {
 
   return (
     <Section<Interest> section={section} keywordsKey="keywords" className="space-y-0.5">
-      {(item) => <div className="font-bold">{item.name}</div>}
+      {(item) => (
+        <div className="font-bold">
+          <DiffText section="interests" field="name" itemId={item.id}>{item.name}</DiffText>
+        </div>
+      )}
     </Section>
   )
 }
@@ -364,13 +467,13 @@ const PublicationsSection = () => {
       {(item) => (
         <div>
           <LinkedEntity
-            name={item.name}
+            name={<DiffText section="publications" field="name" itemId={item.id}>{item.name}</DiffText>}
             url={item.url}
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div>{item.publisher}</div>
-          <div className="font-bold">{item.date}</div>
+          <div><DiffText section="publications" field="publisher" itemId={item.id}>{item.publisher}</DiffText></div>
+          <div className="font-bold"><DiffText section="publications" field="date" itemId={item.id}>{item.date}</DiffText></div>
         </div>
       )}
     </Section>
@@ -385,14 +488,14 @@ const VolunteerSection = () => {
       {(item) => (
         <div>
           <LinkedEntity
-            name={item.organization}
+            name={<DiffText section="volunteer" field="organization" itemId={item.id}>{item.organization}</DiffText>}
             url={item.url}
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div>{item.position}</div>
-          <div>{item.location}</div>
-          <div className="font-bold">{item.date}</div>
+          <div><DiffText section="volunteer" field="position" itemId={item.id}>{item.position}</DiffText></div>
+          <div><DiffText section="volunteer" field="location" itemId={item.id}>{item.location}</DiffText></div>
+          <div className="font-bold"><DiffText section="volunteer" field="date" itemId={item.id}>{item.date}</DiffText></div>
         </div>
       )}
     </Section>
@@ -406,8 +509,8 @@ const LanguagesSection = () => {
     <Section<Language> section={section} levelKey="level">
       {(item) => (
         <div>
-          <div className="font-bold">{item.name}</div>
-          <div>{item.description}</div>
+          <div className="font-bold"><DiffText section="languages" field="name" itemId={item.id}>{item.name}</DiffText></div>
+          <div><DiffText section="languages" field="description" itemId={item.id}>{item.description}</DiffText></div>
         </div>
       )}
     </Section>
@@ -423,13 +526,13 @@ const ProjectsSection = () => {
         <div>
           <div>
             <LinkedEntity
-              name={item.name}
+              name={<DiffText section="projects" field="name" itemId={item.id}>{item.name}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.description}</div>
-            <div className="font-bold">{item.date}</div>
+            <div><DiffText section="projects" field="description" itemId={item.id}>{item.description}</DiffText></div>
+            <div className="font-bold"><DiffText section="projects" field="date" itemId={item.id}>{item.date}</DiffText></div>
           </div>
         </div>
       )}
@@ -445,12 +548,12 @@ const ReferencesSection = () => {
       {(item) => (
         <div>
           <LinkedEntity
-            name={item.name}
+            name={<DiffText section="references" field="name" itemId={item.id}>{item.name}</DiffText>}
             url={item.url}
             separateLinks={section.separateLinks}
             className="font-bold"
           />
-          <div>{item.description}</div>
+          <div><DiffText section="references" field="description" itemId={item.id}>{item.description}</DiffText></div>
         </div>
       )}
     </Section>
@@ -473,14 +576,14 @@ const Custom = ({ id }: Readonly<{ id: string }>) => {
         <div>
           <div>
             <LinkedEntity
-              name={item.name}
+              name={<DiffText section={section.id} field="name" itemId={item.id}>{item.name}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.description}</div>
-            <div>{item.location}</div>
-            <div className="font-bold">{item.date}</div>
+            <div><DiffText section={section.id} field="description" itemId={item.id}>{item.description}</DiffText></div>
+            <div><DiffText section={section.id} field="location" itemId={item.id}>{item.location}</DiffText></div>
+            <div className="font-bold"><DiffText section={section.id} field="date" itemId={item.id}>{item.date}</DiffText></div>
           </div>
         </div>
       )}

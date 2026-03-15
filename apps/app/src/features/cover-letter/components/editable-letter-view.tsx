@@ -225,70 +225,45 @@ function applyApprovedChanges(
 ) {
   return updateDraft(current, (next) => {
     for (const change of changes) {
-      const { section, itemId, field, proposed } = change
+      const { operation, section, itemId, field, proposed } = change
 
-      if (section === 'sender') {
-        switch (field) {
-          case 'name':
-            next.sender.name = proposed
-            break
-          case 'email':
-            next.sender.email = proposed
-            break
-          case 'phone':
-            next.sender.phone = proposed
-            break
-          case 'location':
-            next.sender.location = proposed
-            break
-          case 'title':
-            next.sender.title = proposed
-            break
-          default:
-            break
+      if (operation === 'add-item') {
+        if (section === 'content' && field === 'body') {
+          const index =
+            itemId == null ? next.content.body.length : Number(itemId)
+
+          if (Number.isInteger(index) && index >= 0) {
+            next.content.body.splice(index, 0, proposed)
+          } else {
+            next.content.body.push(proposed)
+          }
         }
         continue
       }
 
+      if (section === 'sender') {
+        setDocumentField(next.sender as Record<string, unknown>, field, proposed)
+        continue
+      }
+
       if (section === 'recipient') {
-        switch (field) {
-          case 'name':
-            next.recipient.name = proposed
-            break
-          case 'title':
-            next.recipient.title = proposed
-            break
-          case 'companyName':
-            next.recipient.companyName = proposed
-            next.context.companyName = proposed
-            break
-          case 'location':
-            next.recipient.location = proposed
-            break
-          case 'email':
-            next.recipient.email = proposed
-            break
-          default:
-            break
+        setDocumentField(next.recipient as Record<string, unknown>, field, proposed)
+        if (field === 'companyName') {
+          next.context.companyName = proposed
         }
         continue
       }
 
       if (section === 'context') {
-        switch (field) {
-          case 'jobTitle':
-            next.context.jobTitle = proposed
-            break
-          case 'companyName':
-            next.context.companyName = proposed
-            next.recipient.companyName = proposed
-            break
-          case 'jobUrl':
-            next.context.jobUrl = proposed
-            break
-          default:
-            break
+        setDocumentField(next.context as Record<string, unknown>, field, proposed)
+        if (field === 'companyName') {
+          next.recipient.companyName = proposed
         }
+        continue
+      }
+
+      if (section === 'metadata') {
+        setDocumentField(next.metadata as Record<string, unknown>, field, proposed)
         continue
       }
 
@@ -323,6 +298,29 @@ function applyApprovedChanges(
       }
     }
   })
+}
+
+function setDocumentField(
+  target: Record<string, unknown>,
+  field: string,
+  value: unknown,
+) {
+  const segments = field.split('.')
+  let current: Record<string, unknown> | null = target
+
+  for (const segment of segments.slice(0, -1)) {
+    const next = current?.[segment]
+    if (!next || typeof next !== 'object') {
+      return
+    }
+
+    current = next as Record<string, unknown>
+  }
+
+  const lastSegment = segments.at(-1)
+  if (current && lastSegment && lastSegment in current) {
+    current[lastSegment] = value
+  }
 }
 
 function DetailsPopover({
@@ -438,6 +436,10 @@ export function EditableLetterView() {
 
   const previewContainerRef = useRef<HTMLDivElement>(null)
   const [previewScale, setPreviewScale] = useState(1)
+  const previewDraft =
+    pendingChanges.length > 0
+      ? applyApprovedChanges(draft, pendingChanges)
+      : draft
 
   const updateScale = useCallback(() => {
     const container = previewContainerRef.current
@@ -616,7 +618,7 @@ export function EditableLetterView() {
         >
           <div className="cover-letter-stage">
             <CoverLetterRenderer
-              coverLetter={draft}
+              coverLetter={previewDraft}
               mode={pendingChanges.length > 0 ? 'preview' : 'editor'}
               editor={pendingChanges.length > 0 ? undefined : editorBindings}
               pendingChanges={pendingChanges}
