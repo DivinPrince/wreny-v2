@@ -5,8 +5,11 @@ import {
   Scripts,
   createRootRoute,
 } from '@tanstack/react-router'
+import { NuqsAdapter } from 'nuqs/adapters/tanstack-router'
 
 import appCss from '../styles.css?url'
+import { ApiProvider } from '@repo/sdk/react'
+import { api } from '#/lib/api'
 
 export const Route = createRootRoute({
   head: () => ({
@@ -19,7 +22,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'Wreny Studio',
+        title: 'Wreny',
       },
     ],
     links: [
@@ -35,7 +38,11 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <Outlet />
+      <ApiProvider api={api}>
+        <NuqsAdapter>
+          <Outlet />
+        </NuqsAdapter>
+      </ApiProvider>
     </RootDocument>
   )
 }
@@ -45,8 +52,17 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          src="https://cdn.databuddy.cc/databuddy.js"
+          data-client-id="Md8dXYoZ2gNILeDN_mJa4"
+          data-track-attributes="true"
+          data-track-interactions="true"
+          data-track-errors="true"
+          crossOrigin="anonymous"
+          async
+        ></script>
       </head>
-      <body className="font-sans antialiased [overflow-wrap:anywhere]">
+      <body className="font-sans antialiased wrap-anywhere">
         {children}
         <Scripts />
       </body>

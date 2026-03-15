@@ -3,6 +3,8 @@ import { createContext, useContext, useMemo } from 'react'
 
 import type { DocumentChange } from '@repo/core/agent'
 
+import { InlineTextDiff } from '#/lib/inline-diff'
+
 type PendingChangesContextValue = {
   changes: DocumentChange[]
 }
@@ -100,13 +102,13 @@ export function DiffText({
   }
 
   return (
-    <span className={className} {...rest}>
-      <span className="cover-letter-diff-old">
-        {change.original || '\u00A0'}
-      </span>
-      <span className="cover-letter-diff-new">
-        {change.proposed || '\u00A0'}
-      </span>
-    </span>
+    <InlineTextDiff
+      original={change.original || ''}
+      proposed={change.proposed || ''}
+      removedClassName="cover-letter-diff-old"
+      addedClassName="cover-letter-diff-new"
+      className={className}
+      {...rest}
+    />
   )
 }

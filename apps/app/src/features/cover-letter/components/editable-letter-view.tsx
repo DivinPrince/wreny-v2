@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, Download, Ellipsis, Plus } from 'lucide-react'
+import { parseAsString, useQueryState } from 'nuqs'
 
 import type { DocumentChange } from '@repo/core/agent'
 import type {
@@ -418,6 +419,10 @@ function DetailsPopover({
 
 export function EditableLetterView() {
   const queryClient = useQueryClient()
+  const [sessionId, setSessionId] = useQueryState(
+    'sessionId',
+    parseAsString.withOptions({ history: 'replace' }),
+  )
   const { coverLetter, coverLetterId, saveCoverLetter, title } =
     useCoverLetterEditor()
   const [draft, setDraft] = useState<CoverLetterDocument>(() =>
@@ -428,6 +433,7 @@ export function EditableLetterView() {
   const [pendingChanges, setPendingChanges] = useState<DocumentChange[]>([])
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [openPanel, setOpenPanel] = useState<'more' | 'agent' | null>(null)
+  const [startNewChat, setStartNewChat] = useState(false)
   const [toolbarWidth, setToolbarWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
   const lastCoverLetterIdRef = useRef(coverLetterId)
   const draftRef = useRef(draft)
@@ -436,6 +442,35 @@ export function EditableLetterView() {
 
   const previewContainerRef = useRef<HTMLDivElement>(null)
   const [previewScale, setPreviewScale] = useState(1)
+  const setAgentSessionId = useCallback(
+    (nextSessionId: string) => {
+      setStartNewChat(false)
+      if (sessionId === nextSessionId) {
+        return
+      }
+      void setSessionId(nextSessionId)
+    },
+    [sessionId, setSessionId],
+  )
+  const handleNewChat = useCallback(() => {
+    setPendingChanges([])
+    setStartNewChat(true)
+    void setSessionId(null)
+  }, [setSessionId])
+
+  useEffect(() => {
+    if (sessionId) {
+      setStartNewChat(false)
+    }
+  }, [sessionId])
+
+  useEffect(() => {
+    setStartNewChat(false)
+  }, [coverLetterId])
+
+  useEffect(() => {
+    setPendingChanges([])
+  }, [sessionId, startNewChat])
   const previewDraft =
     pendingChanges.length > 0
       ? applyApprovedChanges(draft, pendingChanges)
@@ -785,6 +820,10 @@ export function EditableLetterView() {
                   {openPanel === 'agent' && (
                     <AgentPanelContent
                       coverLetterId={coverLetterId}
+                      sessionId={sessionId ?? null}
+                      startNewSession={startNewChat}
+                      onSessionIdChange={setAgentSessionId}
+                      onNewChat={handleNewChat}
                       onPendingChanges={setPendingChanges}
                       onChangesApplied={() => {
                         const approvedChanges = pendingChanges

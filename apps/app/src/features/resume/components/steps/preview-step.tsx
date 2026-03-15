@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { DocumentChange } from '@repo/core/agent'
+import { parseAsString, useQueryState } from 'nuqs'
 import {
   defaultAward,
   defaultCertification,
@@ -758,6 +759,10 @@ function TemplatesDropdown({ draft, setDraft }: DraftProps) {
 
 export function PreviewStep() {
   const queryClient = useQueryClient()
+  const [sessionId, setSessionId] = useQueryState(
+    'sessionId',
+    parseAsString.withOptions({ history: 'replace' }),
+  )
   const { resume, resumeId, saveResume, title } = useResumeEditor()
   const [draft, setDraft] = useState<ResumeDocument>(() =>
     cloneResumeDocument(resume),
@@ -767,11 +772,41 @@ export function PreviewStep() {
   const [pendingChanges, setPendingChanges] = useState<DocumentChange[]>([])
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [openPanel, setOpenPanel] = useState<'more' | 'agent' | null>(null)
+  const [startNewChat, setStartNewChat] = useState(false)
   const [toolbarWidth, setToolbarWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
   const toolbarRef = useRef<HTMLDivElement>(null)
   const lastResumeIdRef = useRef(resumeId)
   const previewContainerRef = useRef<HTMLDivElement>(null)
   const [previewScale, setPreviewScale] = useState(1)
+  const setAgentSessionId = useCallback(
+    (nextSessionId: string) => {
+      setStartNewChat(false)
+      if (sessionId === nextSessionId) {
+        return
+      }
+      void setSessionId(nextSessionId)
+    },
+    [sessionId, setSessionId],
+  )
+  const handleNewChat = useCallback(() => {
+    setPendingChanges([])
+    setStartNewChat(true)
+    void setSessionId(null)
+  }, [setSessionId])
+
+  useEffect(() => {
+    if (sessionId) {
+      setStartNewChat(false)
+    }
+  }, [sessionId])
+
+  useEffect(() => {
+    setStartNewChat(false)
+  }, [resumeId])
+
+  useEffect(() => {
+    setPendingChanges([])
+  }, [sessionId, startNewChat])
 
   const pageFormat = draft.metadata.page.format
   const previewDraft =
@@ -1047,6 +1082,10 @@ export function PreviewStep() {
               {openPanel === 'agent' && (
                 <AgentPanelContent
                   resumeId={resumeId}
+                  sessionId={sessionId ?? null}
+                  startNewSession={startNewChat}
+                  onSessionIdChange={setAgentSessionId}
+                  onNewChat={handleNewChat}
                   onPendingChanges={setPendingChanges}
                   onChangesApplied={() => {
                     const approvedChanges = pendingChanges

@@ -1,12 +1,14 @@
+import { APIClient } from "./core";
+import { AgentResource } from "./resources/agent";
 import { CoverLettersResource } from "./resources/cover-letters";
 import { JobsResource } from "./resources/jobs";
-import { APIClient } from "./core";
 import { ResumesResource } from "./resources/resumes";
-import { UsersResource } from "./resources/users";
 import { UploadResource } from "./resources/upload";
+import { UsersResource } from "./resources/users";
 
 export * from "./error";
 export * from "./types";
+export * from "./resources/agent";
 export * from "./resources/cover-letters";
 export * from "./resources/jobs";
 export * from "./resources/resumes";
@@ -24,6 +26,7 @@ export interface SdkOptions {
 }
 
 export class Sdk extends APIClient {
+  agent: AgentResource;
   coverLetters: CoverLettersResource;
   jobs: JobsResource;
   resumes: ResumesResource;
@@ -51,6 +54,7 @@ export class Sdk extends APIClient {
       headers,
     });
 
+    this.agent = new AgentResource(this);
     this.coverLetters = new CoverLettersResource(this);
     this.jobs = new JobsResource(this);
     this.resumes = new ResumesResource(this);
