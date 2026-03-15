@@ -46,6 +46,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '#/comp
 import { api } from '#/lib/api'
 import { cn } from '#/lib/utils'
 
+import { EditableDocumentTitle } from '#/components/editable-document-title'
 import { AgentPanelContent } from '../agent-popover'
 import { cloneResumeDocument, resumeKeys } from '../../lib/queries'
 import { templates } from '../../lib/template-registry'
@@ -761,6 +762,8 @@ export function PreviewStep() {
   const [draft, setDraft] = useState<ResumeDocument>(() =>
     cloneResumeDocument(resume),
   )
+  const [draftTitle, setDraftTitle] = useState(title)
+  const [isTitleEditing, setIsTitleEditing] = useState(false)
   const [pendingChanges, setPendingChanges] = useState<DocumentChange[]>([])
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false)
   const [openPanel, setOpenPanel] = useState<'more' | 'agent' | null>(null)
@@ -796,8 +799,13 @@ export function PreviewStep() {
     if (lastResumeIdRef.current !== resumeId) {
       lastResumeIdRef.current = resumeId
       setDraft(cloneResumeDocument(resume))
+      setDraftTitle(title)
     }
-  }, [resume, resumeId])
+  }, [resume, resumeId, title])
+
+  useEffect(() => {
+    setDraftTitle(title)
+  }, [title])
 
   useEffect(() => {
     const onResize = () => setToolbarWidth(window.innerWidth)
@@ -810,16 +818,20 @@ export function PreviewStep() {
   const showHighlightColor = toolbarWidth >= 440
 
   useEffect(() => {
-    const hasChanges =
+    const hasResumeChanges =
       JSON.stringify(draft) !== JSON.stringify(resume)
-    if (!hasChanges) return
+    const hasTitleChanges = draftTitle.trim() !== title.trim()
+    if (!hasResumeChanges && !hasTitleChanges) return
 
     const timer = setTimeout(async () => {
-      await saveResume({ resume: draft, title })
+      await saveResume({
+        resume: draft,
+        title: draftTitle.trim() || 'Untitled Resume',
+      })
     }, 800)
 
     return () => clearTimeout(timer)
-  }, [draft, resume, title, saveResume])
+  }, [draft, draftTitle, resume, title, saveResume])
 
   const textColor = draft.metadata.theme.text
   const highlightColor =
@@ -837,7 +849,7 @@ export function PreviewStep() {
         const downloadUrl = window.URL.createObjectURL(blob)
         const anchor = document.createElement('a')
         anchor.href = downloadUrl
-        anchor.download = `${title || 'resume'}.pdf`
+        anchor.download = `${draftTitle.trim() || 'resume'}.pdf`
         document.body.appendChild(anchor)
         anchor.click()
         anchor.remove()
@@ -849,7 +861,17 @@ export function PreviewStep() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col pb-16">
+    <div className="flex min-h-0 flex-1 flex-col gap-3 pb-16">
+      <EditableDocumentTitle
+        value={draftTitle}
+        placeholder="Untitled Resume"
+        ariaLabel="Resume title"
+        active={isTitleEditing}
+        onChange={setDraftTitle}
+        onActivate={() => setIsTitleEditing(true)}
+        onDeactivate={() => setIsTitleEditing(false)}
+      />
+
       <div ref={previewContainerRef} className="resume-print-root min-h-0 flex-1 overflow-auto rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4">
         <div className="resume-print-frame mx-auto max-w-[860px]" style={{ zoom: previewScale }}>
           <ResumeRenderer

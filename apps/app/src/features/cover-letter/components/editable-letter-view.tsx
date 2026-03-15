@@ -35,6 +35,7 @@ import { Icons } from '#/components/ui/icons'
 import { api } from '#/lib/api'
 import { cn } from '#/lib/utils'
 
+import { EditableDocumentTitle } from '#/components/editable-document-title'
 import { AgentPanelContent } from './agent-popover'
 import { cloneCoverLetterDocument, coverLetterKeys } from '../lib/queries'
 import { templates } from '../lib/template-registry'
@@ -44,7 +45,6 @@ import {
 } from '../rendering/cover-letter-renderer'
 import type { CoverLetterEditorBindings } from '../templates/types'
 import { useCoverLetterEditor } from './cover-letter-editor-context'
-import { InlineEditable } from './inline-editable'
 
 const toneOptions: ReadonlyArray<CoverLetterContext['tone']> = [
   'professional',
@@ -588,25 +588,20 @@ export function EditableLetterView() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 pb-16">
-      <div className="flex items-center gap-3">
-        <h1 className="min-w-0 flex-1 text-2xl font-semibold tracking-tight">
-          <InlineEditable
-            element="span"
-            value={draftTitle}
-            placeholder="Untitled Cover Letter"
-            ariaLabel="Cover letter title"
-            active={activeField === 'title'}
-            onActivate={() => setActiveField('title')}
-            onChange={setDraftTitle}
-            onDeactivate={() => setActiveField(null)}
-            displayClassName="inline rounded-md px-1.5 py-0.5"
-            editorClassName="h-11 max-w-xl text-base font-semibold"
-          />
-        </h1>
-        {validationMessage && pendingChanges.length === 0 ? (
-          <p className="shrink-0 text-sm text-amber-600">{validationMessage}</p>
-        ) : null}
-      </div>
+      <EditableDocumentTitle
+        value={draftTitle}
+        placeholder="Untitled Cover Letter"
+        ariaLabel="Cover letter title"
+        active={activeField === 'title'}
+        onChange={setDraftTitle}
+        onActivate={() => setActiveField('title')}
+        onDeactivate={() => setActiveField(null)}
+        validationMessage={
+          validationMessage && pendingChanges.length === 0 ? (
+            <p className="shrink-0 text-sm text-amber-600">{validationMessage}</p>
+          ) : undefined
+        }
+      />
 
       <div
         ref={previewContainerRef}

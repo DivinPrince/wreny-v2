@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
+import { ArrowLeft } from 'lucide-react'
 
 import { cn } from '#/lib/utils'
 
@@ -29,11 +30,9 @@ function getStepFromPathname(pathname: string) {
 
 export function ResumeEditorShell({
   resumeId,
-  title,
   children,
 }: Readonly<{
   resumeId: string
-  title: string
   children: ReactNode
 }>) {
   const pathname = useRouterState({
@@ -45,9 +44,13 @@ export function ResumeEditorShell({
     <div className="flex min-h-0 flex-1 flex-col bg-muted/20 p-4 sm:p-6">
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4">
         <div className="flex flex-col gap-3">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
-          </div>
+          <Link
+            to="/dashboard/resumes"
+            className="inline-flex w-fit items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+            Back to resumes
+          </Link>
 
           <nav className="flex flex-wrap items-center gap-2">
             {/* Connected edit steps */}

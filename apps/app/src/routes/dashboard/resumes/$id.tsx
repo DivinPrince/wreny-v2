@@ -37,7 +37,7 @@ function RouteComponent() {
 
   return (
     <ResumeEditorProvider resumeInfo={resumeInfo}>
-      <ResumeEditorShell resumeId={resumeInfo.id} title={resumeInfo.title}>
+      <ResumeEditorShell resumeId={resumeInfo.id}>
         <Outlet />
       </ResumeEditorShell>
     </ResumeEditorProvider>
