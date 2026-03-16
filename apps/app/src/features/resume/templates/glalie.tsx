@@ -27,7 +27,7 @@ import {
 } from '../rendering/diff-helpers'
 import { Picture } from '../rendering/picture'
 import {
-  DiffHTML,
+  DiffMarkdown,
   DiffText,
   usePendingValue,
 } from '../rendering/pending-changes'
@@ -169,10 +169,10 @@ function Summary() {
       {isHidden ? (
         <DiffView original={`${section.name} section`} proposed="Hidden" />
       ) : (
-        <DiffHTML
+        <DiffMarkdown
           section="summary"
           field="content"
-          html={section.content}
+          content={section.content}
           style={{ columns: section.columns }}
           className="wysiwyg"
         />
@@ -274,11 +274,11 @@ function Section<T>({
                     </div>
 
                     {summary !== undefined && !isEmptyString(summary) && (
-                      <DiffHTML
+                      <DiffMarkdown
                         section={section.id}
                         field={summaryKey as string}
                         itemId={item.id}
-                        html={summary}
+                        content={summary}
                         className="wysiwyg"
                       />
                     )}
@@ -560,16 +560,16 @@ function Projects() {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.name}
+              name={<DiffText section="projects" field="name" itemId={item.id}>{item.name}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.description}</div>
+            <div><DiffText section="projects" field="description" itemId={item.id}>{item.description}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
+            <div className="font-bold"><DiffText section="projects" field="date" itemId={item.id}>{item.date}</DiffText></div>
           </div>
         </div>
       )}

@@ -115,8 +115,21 @@ function setDocumentField(
   field: string,
   value: unknown,
 ) {
-  if (field in target) {
-    target[field] = value
+  const segments = field.split('.')
+  let current: Record<string, unknown> | null = target
+
+  for (const segment of segments.slice(0, -1)) {
+    const next = current?.[segment]
+    if (!next || typeof next !== 'object') {
+      return
+    }
+
+    current = next as Record<string, unknown>
+  }
+
+  const lastSegment = segments.at(-1)
+  if (current && lastSegment && lastSegment in current) {
+    current[lastSegment] = value
   }
 }
 

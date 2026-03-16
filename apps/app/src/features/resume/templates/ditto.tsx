@@ -27,7 +27,7 @@ import {
 } from '../rendering/diff-helpers'
 import { Picture } from '../rendering/picture'
 import {
-  DiffHTML,
+  DiffMarkdown,
   DiffText,
   usePendingValue,
 } from '../rendering/pending-changes'
@@ -183,10 +183,10 @@ function Summary() {
       {isHidden ? (
         <DiffView original={`${section.name} section`} proposed="Hidden" />
       ) : (
-        <DiffHTML
+        <DiffMarkdown
           section="summary"
           field="content"
-          html={section.content}
+          content={section.content}
           style={{ columns: section.columns }}
           className="wysiwyg"
         />
@@ -286,11 +286,11 @@ function Section<T>({
                     </div>
 
                     {summary !== undefined && !isEmptyString(summary) && (
-                      <DiffHTML
+                      <DiffMarkdown
                         section={section.id}
                         field={summaryKey as string}
                         itemId={item.id}
-                        html={summary}
+                        content={summary}
                         className="wysiwyg"
                       />
                     )}
@@ -532,17 +532,17 @@ function Volunteer() {
         <div className="flex items-start justify-between group-[.sidebar]:flex-col group-[.sidebar]:items-start">
           <div className="text-left">
             <LinkedEntity
-              name={item.organization}
+              name={<DiffText section="volunteer" field="organization" itemId={item.id}>{item.organization}</DiffText>}
               url={item.url}
               separateLinks={section.separateLinks}
               className="font-bold"
             />
-            <div>{item.position}</div>
+            <div><DiffText section="volunteer" field="position" itemId={item.id}>{item.position}</DiffText></div>
           </div>
 
           <div className="shrink-0 text-right">
-            <div className="font-bold">{item.date}</div>
-            <div>{item.location}</div>
+            <div className="font-bold"><DiffText section="volunteer" field="date" itemId={item.id}>{item.date}</DiffText></div>
+            <div><DiffText section="volunteer" field="location" itemId={item.id}>{item.location}</DiffText></div>
           </div>
         </div>
       )}

@@ -227,7 +227,11 @@ Operations:
 - "delete-item": remove one resume list item entirely. Use the section, the target itemId, field "__item__", original as a short label for the item being removed, and proposed as an empty string.
 - "set-section-visible": hide or show a whole resume section. Use the section, field "visible", original "true" or "false", and proposed "false" to hide or "true" to show.
 
-Always include both the original and proposed text so the user can see the diff.`,
+Always include both the original and proposed text so the user can see the diff.
+
+**Format for rich-text fields**: Use **markdown** only. Bullet lists: \`- item\`. Bold: \`**text**\`. Paragraphs: separate with blank lines. Never use HTML tags.
+- RESUMES: summary, experience.summary, education.summary, projects.summary, etc.
+- COVER LETTERS: greeting, opening, body paragraphs, closing, signature, metadata.notes`,
   inputSchema: changeProposalSchema,
   needsApproval: true,
   execute: async ({ documentType, documentId, changes }) => {

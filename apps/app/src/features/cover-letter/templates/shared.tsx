@@ -8,6 +8,7 @@ import { cn } from '#/lib/utils'
 
 import { InlineEditable } from '../components/inline-editable'
 import {
+  DiffMarkdown,
   DiffText,
   usePendingChanges,
   usePendingValue,
@@ -48,9 +49,7 @@ export function getSenderLinks(coverLetter: CoverLetterDocument) {
     coverLetter.sender.email,
     coverLetter.sender.phone,
     coverLetter.sender.location,
-    coverLetter.sender.url.href
-      ? coverLetter.sender.url.label || coverLetter.sender.url.href
-      : '',
+    coverLetter.sender.url.label || coverLetter.sender.url.href,
   ].filter((value) => value.trim().length > 0)
 }
 
@@ -273,9 +272,11 @@ export function LetterScaffold({
             onDeactivate={editor.onDeactivateField}
           />
         ) : (
-          <DiffText section="content" field="greeting">
-            {coverLetter.content.greeting || 'Dear Hiring Team,'}
-          </DiffText>
+          <DiffMarkdown
+            section="content"
+            field="greeting"
+            content={coverLetter.content.greeting || 'Dear Hiring Team,'}
+          />
         )}
       </div>
 
@@ -346,29 +347,32 @@ export function LetterScaffold({
         ) : (
           <>
             {opening.trim().length > 0 ? (
-              <p>
-                <DiffText section="content" field="opening">
-                  {coverLetter.content.opening}
-                </DiffText>
-              </p>
+              <div key="opening">
+                <DiffMarkdown
+                  section="content"
+                  field="opening"
+                  content={coverLetter.content.opening}
+                />
+              </div>
             ) : null}
             {previewBodyIndices.map((index) => (
-              <p key={`body-preview-${index}`}>
-                <DiffText
+              <div key={`body-preview-${index}`}>
+                <DiffMarkdown
                   section="content"
                   field="body"
                   itemId={String(index)}
-                >
-                  {editableBodyParagraphs[index] ?? ''}
-                </DiffText>
-              </p>
+                  content={editableBodyParagraphs[index] ?? ''}
+                />
+              </div>
             ))}
             {closing.trim().length > 0 ? (
-              <p>
-                <DiffText section="content" field="closing">
-                  {coverLetter.content.closing}
-                </DiffText>
-              </p>
+              <div key="closing">
+                <DiffMarkdown
+                  section="content"
+                  field="closing"
+                  content={coverLetter.content.closing}
+                />
+              </div>
             ) : null}
           </>
         )}
@@ -390,9 +394,11 @@ export function LetterScaffold({
         </div>
       ) : signature.trim().length > 0 ? (
         <div className={cn('cover-letter-signature', signatureClassName)}>
-          <DiffText section="content" field="signature">
-            {coverLetter.content.signature}
-          </DiffText>
+          <DiffMarkdown
+            section="content"
+            field="signature"
+            content={coverLetter.content.signature}
+          />
         </div>
       ) : null}
 
@@ -499,7 +505,7 @@ export function LetterScaffold({
                 {coverLetter.sender.location}
               </DiffText>
             ) : null}
-            {coverLetter.sender.url.href.trim().length > 0 ? (
+            {(coverLetter.sender.url.label || coverLetter.sender.url.href).trim().length > 0 ? (
               <span>
                 {coverLetter.sender.url.label || coverLetter.sender.url.href}
               </span>

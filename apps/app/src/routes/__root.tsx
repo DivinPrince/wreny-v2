@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import type { ReactNode } from 'react'
 import {
   HeadContent,
@@ -36,6 +37,13 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      void import("react-grab");
+      void import("@react-grab/mcp/client");
+    }
+  }, []);
+
   return (
     <RootDocument>
       <ApiProvider api={api}>

@@ -2,25 +2,6 @@ import { format, isValid, parse } from 'date-fns'
 
 const presentPattern = /^present$/i
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
-}
-
-function decodeHtml(value: string) {
-  return value
-    .replaceAll('&nbsp;', ' ')
-    .replaceAll('&amp;', '&')
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>')
-    .replaceAll('&quot;', '"')
-    .replaceAll('&#39;', "'")
-}
-
 export function generateEditorId() {
   return crypto.randomUUID()
 }
@@ -35,55 +16,47 @@ export function sanitizeOptionalUrl(value: string) {
   return /^https?:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`
 }
 
-export function htmlToPlainText(value: string) {
-  return decodeHtml(
-    value
-      .replace(/<\/(p|div|h\d|li|ul|ol)>/gi, '\n')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/\n{3,}/g, '\n\n'),
-  ).trim()
+/** Load value for form: markdown pass-through */
+export function toMarkdownForForm(value: string) {
+  return value?.trim() ?? ''
 }
 
-export function paragraphTextToHtml(value: string) {
-  const blocks = value
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean)
-
-  if (blocks.length === 0) {
-    return ''
-  }
-
-  return blocks
-    .map((block) => `<p>${escapeHtml(block).replace(/\n/g, '<br />')}</p>`)
-    .join('')
+/** Store value: already markdown from form, save as-is */
+export function toMarkdownForStorage(value: string) {
+  return value?.trim() ?? ''
 }
 
-export function bulletLinesToHtml(value: string) {
-  const lines = value
+/** Convert bullet lines (one per line) to markdown list */
+export function linesToMarkdown(lines: string) {
+  const items = lines
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
-
-  if (lines.length === 0) {
-    return ''
-  }
-
-  if (lines.length === 1) {
-    return `<p>${escapeHtml(lines[0])}</p>`
-  }
-
-  return `<ul>${lines.map((line) => `<li><p>${escapeHtml(line)}</p></li>`).join('')}</ul>`
+  if (items.length === 0) return ''
+  if (items.length === 1) return items[0]!
+  return items.map((item) => `- ${item}`).join('\n')
 }
 
-export function htmlToBulletLines(value: string) {
-  return htmlToPlainText(value)
+/** Extract bullet lines from markdown for form display */
+export function markdownToLines(value: string) {
+  return (value ?? '')
     .split('\n')
-    .map((line) => line.trim())
+    .map((line) => line.replace(/^\s*[-*+]\s+/, '').trim())
     .filter(Boolean)
     .join('\n')
 }
+
+/** @deprecated Use toMarkdownForForm */
+export const htmlToPlainText = toMarkdownForForm
+
+/** @deprecated Use toMarkdownForStorage */
+export const paragraphTextToHtml = toMarkdownForStorage
+
+/** @deprecated Use linesToMarkdown */
+export const bulletLinesToHtml = linesToMarkdown
+
+/** @deprecated Use markdownToLines */
+export const htmlToBulletLines = markdownToLines
 
 export function monthValueToLabel(value: string) {
   if (!value) {

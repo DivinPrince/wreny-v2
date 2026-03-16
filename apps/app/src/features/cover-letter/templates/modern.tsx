@@ -1,7 +1,7 @@
 import type { TemplateProps } from './types'
 
 import { InlineEditable } from '../components/inline-editable'
-import { DiffText } from '../rendering/pending-changes'
+import { DiffMarkdown, DiffText } from '../rendering/pending-changes'
 import { LetterScaffold } from './shared'
 
 export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
@@ -77,10 +77,14 @@ export function Modern({ coverLetter, mode, editor }: Readonly<TemplateProps>) {
               onDeactivate={editor.onDeactivateField}
             />
           ) : (
-            <p>
-              {coverLetter.metadata.notes.trim() ||
-                'Why this role matters to you.'}
-            </p>
+            <DiffMarkdown
+              section="metadata"
+              field="notes"
+              content={
+                coverLetter.metadata.notes.trim() ||
+                'Why this role matters to you.'
+              }
+            />
           )}
         </div>
       }

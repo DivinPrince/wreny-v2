@@ -27,7 +27,7 @@ import {
 } from '../rendering/diff-helpers'
 import { Picture } from '../rendering/picture'
 import {
-  DiffHTML,
+  DiffMarkdown,
   DiffText,
   usePendingValue,
 } from '../rendering/pending-changes'
@@ -168,10 +168,10 @@ function Summary() {
       {isHidden ? (
         <DiffView original={`${section.name} section`} proposed="Hidden" />
       ) : (
-        <DiffHTML
+        <DiffMarkdown
           section="summary"
           field="content"
-          html={section.content}
+          content={section.content}
           style={{ columns: section.columns }}
           className="wysiwyg"
         />
@@ -273,11 +273,11 @@ function Section<T>({
                     </div>
 
                     {summary !== undefined && !isEmptyString(summary) && (
-                      <DiffHTML
+                      <DiffMarkdown
                         section={section.id}
                         field={summaryKey as string}
                         itemId={item.id}
-                        html={summary}
+                        content={summary}
                         className="wysiwyg"
                       />
                     )}

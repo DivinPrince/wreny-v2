@@ -36,8 +36,8 @@ import { cloneResumeDocument } from '../../lib/queries'
 import {
   formatDateRange,
   generateEditorId,
-  htmlToPlainText,
-  paragraphTextToHtml,
+  toMarkdownForForm,
+  toMarkdownForStorage,
   parseDateRange,
   sanitizeOptionalUrl,
 } from '../editor-utils'
@@ -74,7 +74,7 @@ function buildFormState(item: Education): EducationFormState {
     startDate: range.start,
     endDate: range.end,
     isCurrent: range.isCurrent,
-    summary: htmlToPlainText(item.summary),
+    summary: toMarkdownForForm(item.summary),
     url: item.url.href,
   }
 }
@@ -267,7 +267,7 @@ export function EducationStep() {
               end: form.endDate,
               isCurrent: form.isCurrent,
             }),
-            summary: paragraphTextToHtml(form.summary),
+            summary: toMarkdownForStorage(form.summary),
             url: {
               ...item.url,
               href: sanitizeOptionalUrl(form.url),

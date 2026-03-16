@@ -3,9 +3,8 @@ import { createContext, useContext, useMemo } from 'react'
 
 import type { DocumentChange } from '@repo/core/agent'
 
-import { InlineTextDiff } from '#/lib/inline-diff'
-
-import { sanitize } from '../lib/template-utils'
+import { InlineTextDiff, splitInlineTextDiff } from '#/lib/inline-diff'
+import { MarkdownContent } from '#/components/ui/markdown-content'
 
 type PendingChangesContextValue = {
   changes: DocumentChange[]
@@ -112,119 +111,56 @@ export function DiffText({
   )
 }
 
-const BLOCK_TAG_PATTERN = /<\/?(article|aside|blockquote|caption|div|dl|dt|dd|figure|figcaption|footer|h[1-6]|header|hr|li|main|nav|ol|p|pre|section|table|tbody|td|tfoot|th|thead|tr|ul)\b/i
+const diffRemovedClassName =
+  'bg-red-100/90 text-red-800 line-through dark:bg-red-950/60 dark:text-red-300'
+const diffAddedClassName =
+  'bg-green-100/90 text-green-800 dark:bg-green-950/60 dark:text-green-300'
 
-function getSharedPrefixLength(original: string, proposed: string) {
-  const maxLength = Math.min(original.length, proposed.length)
-  let index = 0
-
-  while (index < maxLength && original[index] === proposed[index]) {
-    index += 1
-  }
-
-  return index
-}
-
-function getSharedSuffixLength(
-  original: string,
-  proposed: string,
-  sharedPrefixLength: number,
-) {
-  const maxLength = Math.min(
-    original.length - sharedPrefixLength,
-    proposed.length - sharedPrefixLength,
-  )
-  let index = 0
-
-  while (
-    index < maxLength &&
-    original[original.length - index - 1] === proposed[proposed.length - index - 1]
-  ) {
-    index += 1
-  }
-
-  return index
-}
-
-function isSafeHtmlBoundary(value: string, boundaryIndex: number) {
-  const prefix = value.slice(0, boundaryIndex)
-  return prefix.lastIndexOf('<') <= prefix.lastIndexOf('>')
-}
-
-function buildInlineDiffHtml(original: string, proposed: string) {
-  const sharedPrefixLength = getSharedPrefixLength(original, proposed)
-  const sharedSuffixLength = getSharedSuffixLength(
-    original,
-    proposed,
-    sharedPrefixLength,
-  )
-  const originalMiddleStart = sharedPrefixLength
-  const originalMiddleEnd = original.length - sharedSuffixLength
-  const proposedMiddleStart = sharedPrefixLength
-  const proposedMiddleEnd = proposed.length - sharedSuffixLength
-  const boundariesAreSafe =
-    isSafeHtmlBoundary(original, originalMiddleStart) &&
-    isSafeHtmlBoundary(original, originalMiddleEnd) &&
-    isSafeHtmlBoundary(proposed, proposedMiddleStart) &&
-    isSafeHtmlBoundary(proposed, proposedMiddleEnd)
-
-  if (!boundariesAreSafe) {
-    return null
-  }
-
-  const removed = original.slice(originalMiddleStart, originalMiddleEnd)
-  const added = proposed.slice(proposedMiddleStart, proposedMiddleEnd)
-
-  if (
-    BLOCK_TAG_PATTERN.test(removed) ||
-    BLOCK_TAG_PATTERN.test(added)
-  ) {
-    return null
-  }
-
-  return sanitize(
-    `${original.slice(0, originalMiddleStart)}${removed ? `<span class="resume-diff-old">${removed}</span>` : ''}${added ? `<span class="resume-diff-new">${added}</span>` : ''}${original.slice(originalMiddleEnd)}`,
-  )
-}
-
-/** Renders HTML content with inline diff for summary/wysiwyg fields */
-export function DiffHTML({
+/** Renders markdown content with inline diff: red strikethrough for removed, green for added. */
+export function DiffMarkdown({
   section,
   field,
   itemId,
-  html,
+  content,
   className,
   style,
 }: Readonly<{
   section: string
   field: ChangeField
   itemId?: string
-  html: string
+  content: string
   className?: string
   style?: React.CSSProperties
 }>) {
   const change = usePendingChange(section, field, itemId)
+  const markdown = content?.trim() ?? ''
 
   if (!change) {
     return (
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitize(html) }}
-        className={className}
-        style={style}
-      />
+      <MarkdownContent className={className} style={style}>
+        {markdown}
+      </MarkdownContent>
     )
   }
 
-  const original = change.original || ''
-  const proposed = change.proposed || ''
-  const diffHtml =
-    buildInlineDiffHtml(original, proposed) ??
-    `<span class="resume-diff-old">${sanitize(original)}</span> <span class="resume-diff-new">${sanitize(proposed)}</span>`
+  const originalMd = (change.original || '').trim()
+  const proposedMd = (change.proposed || '').trim()
+  const diff = splitInlineTextDiff(originalMd, proposedMd)
+
   return (
-    <div
-      dangerouslySetInnerHTML={{ __html: diffHtml }}
-      className={className}
-      style={style}
-    />
+    <div className={className} style={style}>
+      {diff.prefix ? <MarkdownContent inline>{diff.prefix}</MarkdownContent> : null}
+      {diff.removed ? (
+        <span className={diffRemovedClassName}>
+          <MarkdownContent inline>{diff.removed}</MarkdownContent>
+        </span>
+      ) : null}
+      {diff.added ? (
+        <span className={diffAddedClassName}>
+          <MarkdownContent inline>{diff.added}</MarkdownContent>
+        </span>
+      ) : null}
+      {diff.suffix ? <MarkdownContent inline>{diff.suffix}</MarkdownContent> : null}
+    </div>
   )
 }
