@@ -54,7 +54,7 @@ export function CoverLetterPreviewCard({
     previewDoc.context.companyName || previewDoc.context.jobTitle || 'Draft'
 
   return (
-    <div className="group relative isolate flex h-[340px] w-[250px] shrink-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="group relative isolate flex h-[340px] w-full shrink-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white sm:w-[230px]">
       <Link
         to="/dashboard/cover-letters/$id/$step"
         params={{ id: coverLetter.id, step: 'preview' }}

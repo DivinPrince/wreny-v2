@@ -1,6 +1,7 @@
-import { FileText, Sparkles } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { RiLinkedinBoxFill } from '@remixicon/react'
 
+import { Icons } from '#/components/ui/icons'
 import { cn } from '#/lib/utils'
 import { useSession } from '#/lib/auth-client'
 
@@ -11,7 +12,7 @@ const featureCards = [
     id: 'ai-agent',
     title: 'AI Cover Letter Agent',
     description: 'Craft tailored cover letters with AI assistance',
-    icon: Sparkles,
+    icon: Icons.Logo,
   },
   {
     id: 'import-pdf',
@@ -31,24 +32,44 @@ export function CoverLetterFeatureCards() {
   const { data: session } = useSession()
   const createMutation = useCreateCoverLetter()
 
+  const itemClass = 'h-full min-h-0 w-full min-w-0 text-left'
+
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div
+      className={cn(
+        'grid grid-cols-3',
+        'max-sm:gap-0 max-sm:divide-x max-sm:divide-border max-sm:overflow-hidden max-sm:rounded-lg max-sm:border max-sm:border-border',
+        'sm:gap-4 sm:divide-x-0 sm:overflow-visible sm:rounded-none sm:border-0'
+      )}
+      role="list"
+      aria-label="Cover letter shortcuts"
+    >
       {featureCards.map((card) => {
         const Icon = card.icon
+        const isWrenyLogo = card.id === 'ai-agent'
 
         const content = (
           <div
             className={cn(
-              'flex flex-col gap-3 rounded-lg border border-transparent bg-muted/50 p-4 transition-colors',
-              'cursor-pointer hover:border-muted-foreground/20'
+              'flex h-full min-h-0 flex-col gap-1.5 bg-muted/50 p-2.5 transition-colors',
+              'cursor-pointer max-sm:rounded-none max-sm:border-0 max-sm:hover:bg-muted/70',
+              'sm:gap-3 sm:rounded-lg sm:border sm:border-transparent sm:p-4 sm:hover:border-muted-foreground/20'
             )}
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Icon className="size-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="font-medium text-foreground">{card.title}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
+            {isWrenyLogo ? (
+              <div className="size-8 shrink-0 overflow-hidden rounded-md sm:size-9">
+                <Icon className="block h-full w-full" aria-hidden />
+              </div>
+            ) : (
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground sm:size-9 sm:rounded-lg">
+                <Icon className="size-4 sm:size-5" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-2 text-xs font-medium leading-snug text-foreground sm:line-clamp-none sm:text-base sm:leading-normal">
+                {card.title}
+              </p>
+              <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-muted-foreground sm:mt-0.5 sm:text-sm sm:leading-normal">
                 {card.description}
               </p>
             </div>
@@ -62,14 +83,22 @@ export function CoverLetterFeatureCards() {
               type="button"
               onClick={() => createMutation.mutate({ user: session?.user })}
               disabled={createMutation.isPending}
-              className="text-left"
+              className={cn(
+                itemClass,
+                'disabled:cursor-not-allowed disabled:opacity-50'
+              )}
+              role="listitem"
             >
               {content}
             </button>
           )
         }
 
-        return <div key={card.id}>{content}</div>
+        return (
+          <div key={card.id} className={itemClass} role="listitem">
+            {content}
+          </div>
+        )
       })}
     </div>
   )

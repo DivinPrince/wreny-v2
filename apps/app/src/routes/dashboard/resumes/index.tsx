@@ -32,47 +32,54 @@ function RouteComponent() {
   )
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
+    <div className="flex flex-1 flex-col gap-4 p-3 sm:gap-6 sm:p-6">
       <ResumeFeatureCards />
 
-      <div className="rounded-xl bg-muted/30 p-6">
+      <div className="rounded-xl bg-muted/30 p-3 sm:p-6">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm font-medium text-muted-foreground">Resumes</h2>
 
-          <div className="flex rounded-lg border">
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className={cn(
-                  'rounded-r-none border-0',
-                  viewMode === 'grid' && 'bg-muted'
-                )}
-                onClick={() => setViewMode('grid')}
-                aria-pressed={viewMode === 'grid'}
-                aria-label="Grid view"
-              >
-                <LayoutGrid className="size-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className={cn('rounded-l-none border-0', viewMode === 'list' && 'bg-muted')}
-                onClick={() => setViewMode('list')}
-                aria-pressed={viewMode === 'list'}
-                aria-label="List view"
-              >
-                <List className="size-4" />
-              </Button>
-            </div>
+          <div
+            className="inline-flex w-fit shrink-0 overflow-hidden rounded-lg border bg-background max-sm:self-center"
+            role="group"
+            aria-label="Resume view mode"
+          >
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className={cn(
+                'rounded-none border-0 first:rounded-s-lg last:rounded-e-lg',
+                viewMode === 'grid' && 'bg-muted'
+              )}
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+              aria-label="Grid view"
+            >
+              <LayoutGrid className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className={cn(
+                'rounded-none border-0 first:rounded-s-lg last:rounded-e-lg',
+                viewMode === 'list' && 'bg-muted'
+              )}
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+              aria-label="List view"
+            >
+              <List className="size-4" />
+            </Button>
+          </div>
           </div>
 
         {isLoading ? (
           viewMode === 'grid' ? (
-            <div className="flex flex-wrap gap-4">
+            <div className="grid max-w-full grid-cols-2 justify-items-stretch gap-2 sm:grid-cols-[repeat(auto-fill,minmax(230px,1fr))] sm:justify-items-center sm:gap-4">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-[320px] w-[230px] shrink-0 animate-pulse rounded-lg border bg-muted/50"
+                  className="h-[320px] w-full shrink-0 animate-pulse rounded-lg border bg-muted/50 sm:w-[230px]"
                 />
               ))}
             </div>
@@ -105,7 +112,7 @@ function RouteComponent() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-4">
+          <div className="grid max-w-full grid-cols-2 justify-items-stretch gap-2 sm:grid-cols-[repeat(auto-fill,minmax(230px,1fr))] sm:justify-items-center sm:gap-4">
             <CreateNewResumeCard />
             {sortedResumes.map((resume) => (
               <ResumePreviewCard key={resume.id} resume={resume} />

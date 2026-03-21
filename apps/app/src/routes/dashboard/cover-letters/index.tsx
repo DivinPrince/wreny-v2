@@ -37,21 +37,25 @@ function RouteComponent() {
   )
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
+    <div className="flex flex-1 flex-col gap-4 p-3 sm:gap-6 sm:p-6">
       <CoverLetterFeatureCards />
 
-      <div className="rounded-xl bg-muted/30 p-6">
+      <div className="rounded-xl bg-muted/30 p-3 sm:p-6">
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm font-medium text-muted-foreground">
             Cover Letters
           </h2>
 
-          <div className="flex rounded-lg border">
+          <div
+            className="inline-flex w-fit shrink-0 overflow-hidden rounded-lg border bg-background max-sm:self-center"
+            role="group"
+            aria-label="Cover letter view mode"
+          >
             <Button
               variant="ghost"
               size="icon-xs"
               className={cn(
-                'rounded-r-none border-0',
+                'rounded-none border-0 first:rounded-s-lg last:rounded-e-lg',
                 viewMode === 'grid' && 'bg-muted'
               )}
               onClick={() => setViewMode('grid')}
@@ -64,7 +68,7 @@ function RouteComponent() {
               variant="ghost"
               size="icon-xs"
               className={cn(
-                'rounded-l-none border-0',
+                'rounded-none border-0 first:rounded-s-lg last:rounded-e-lg',
                 viewMode === 'list' && 'bg-muted'
               )}
               onClick={() => setViewMode('list')}
@@ -78,11 +82,11 @@ function RouteComponent() {
 
         {isLoading ? (
           viewMode === 'grid' ? (
-            <div className="flex flex-wrap gap-4">
+            <div className="grid max-w-full grid-cols-2 justify-items-stretch gap-2 sm:grid-cols-[repeat(auto-fill,minmax(230px,1fr))] sm:justify-items-center sm:gap-4">
               {[1, 2, 3].map((item) => (
                 <div
                   key={item}
-                  className="h-[340px] w-[250px] shrink-0 animate-pulse rounded-lg border bg-muted/50"
+                  className="h-[340px] w-full shrink-0 animate-pulse rounded-lg border bg-muted/50 sm:w-[230px]"
                 />
               ))}
             </div>
@@ -118,7 +122,7 @@ function RouteComponent() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-wrap gap-4">
+          <div className="grid max-w-full grid-cols-2 justify-items-stretch gap-2 sm:grid-cols-[repeat(auto-fill,minmax(230px,1fr))] sm:justify-items-center sm:gap-4">
             <CreateNewCoverLetterCard />
             {sortedCoverLetters.map((coverLetter) => (
               <CoverLetterPreviewCard

@@ -31,7 +31,7 @@ export function ResumePreviewCard({ resume }: Readonly<{ resume: ResumeInfo }>) 
   const previewDoc = buildPreviewDocument(resume)
 
   return (
-    <div className="group relative isolate flex h-[320px] w-[230px] shrink-0 flex-col overflow-hidden rounded-lg border bg-white">
+    <div className="group relative isolate flex h-[320px] w-full shrink-0 flex-col overflow-hidden rounded-lg border bg-white sm:w-[230px]">
       <Link
         to="/dashboard/resumes/$id/$step"
         params={{ id: resume.id, step: 'contact' }}
