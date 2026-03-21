@@ -2,6 +2,27 @@ import { format, isValid, parse } from 'date-fns'
 
 const presentPattern = /^present$/i
 
+function decodeHtml(value: string) {
+  return value
+    .replaceAll('&nbsp;', ' ')
+    .replaceAll('&amp;', '&')
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&#39;', "'")
+}
+
+/** Normalize legacy HTML (or mixed) resume fields to plain text for forms and markdown pipelines */
+function stripStoredHtmlToPlainText(value: string) {
+  return decodeHtml(
+    value
+      .replace(/<\/(p|div|h\d|li|ul|ol)>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\n{3,}/g, '\n\n'),
+  ).trim()
+}
+
 export function generateEditorId() {
   return crypto.randomUUID()
 }
@@ -16,9 +37,9 @@ export function sanitizeOptionalUrl(value: string) {
   return /^https?:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`
 }
 
-/** Load value for form: markdown pass-through */
+/** Load value for form: strip legacy HTML, decode entities, otherwise markdown pass-through */
 export function toMarkdownForForm(value: string) {
-  return value?.trim() ?? ''
+  return stripStoredHtmlToPlainText(value ?? '')
 }
 
 /** Store value: already markdown from form, save as-is */
@@ -39,7 +60,7 @@ export function linesToMarkdown(lines: string) {
 
 /** Extract bullet lines from markdown for form display */
 export function markdownToLines(value: string) {
-  return (value ?? '')
+  return stripStoredHtmlToPlainText(value ?? '')
     .split('\n')
     .map((line) => line.replace(/^\s*[-*+]\s+/, '').trim())
     .filter(Boolean)
