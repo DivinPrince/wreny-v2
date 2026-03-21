@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, Check, Plus, X } from 'lucide-react'
-import type { DocumentChange, ResumeAgentUIMessage } from '@repo/core/agent'
+import type { DocumentAgentUIMessage, DocumentChange } from '@repo/core/agent'
 import { useAgentChat } from '@repo/sdk/react'
 
 import { AgentMarkdown } from '#/components/ui/agent-markdown'
@@ -98,7 +98,7 @@ function AgentPanelChat({
   onChangesRejected,
 }: {
   isNewSession: boolean
-  messages: ResumeAgentUIMessage[]
+  messages: DocumentAgentUIMessage[]
   sendMessage: (content: { text: string }) => void
   status: string
   addToolApprovalResponse: (args: { id: string; approved: boolean; reason?: string }) => void
