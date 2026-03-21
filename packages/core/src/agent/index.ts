@@ -44,4 +44,7 @@ export const resumeAgent = new ToolLoopAgent({
 
 export type ResumeAgentUIMessage = InferAgentUIMessage<typeof resumeAgent>;
 
+/** UI message shape for the shared document agent (resume + cover letter). */
+export type DocumentAgentUIMessage = ResumeAgentUIMessage;
+
 export * from "./sessions";
