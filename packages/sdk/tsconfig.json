@@ -5,8 +5,9 @@
     "rootDir": "./src",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "jsx": "react-jsx"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }

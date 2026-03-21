@@ -38,7 +38,7 @@ export const documentChangeSchema = z.object({
   proposed: z
     .string()
     .describe(
-      'Proposed replacement value. For "add-item" on resume sections, use a JSON string matching the target item schema. For "add-item" on cover letter body, use the paragraph text. For "delete-item", use an empty string. For "set-section-visible", use "true" or "false".',
+      'Proposed replacement value. For rich-text fields (summary, experience.summary, etc.) use markdown: - for bullets, ** for bold. For "add-item" on resume sections, use a JSON string (summary fields in the payload must be markdown). For "add-item" on cover letter body, use the paragraph text. For "delete-item", use an empty string. For "set-section-visible", use "true" or "false".',
     ),
   reason: z
     .string()

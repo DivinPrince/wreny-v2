@@ -1,5 +1,6 @@
 import type { TemplateProps } from './types'
 import {
+  DiffMarkdown,
   DiffText,
   usePendingChanges,
   usePendingValue,
@@ -67,12 +68,12 @@ export function Static({ coverLetter }: Readonly<TemplateProps>) {
         <div className="cover-letter-static-header-copy">
           <span className="cover-letter-static-kicker">
             <DiffText section="context" field="companyName">
-              {coverLetter.context.companyName || 'Cover Letter'}
+              {coverLetter.context.companyName || 'Application'}
             </DiffText>
           </span>
           <h2>
             <DiffText section="context" field="jobTitle">
-              {coverLetter.context.jobTitle || 'Target Role'}
+              {coverLetter.context.jobTitle || 'Role'}
             </DiffText>
           </h2>
           <p>
@@ -96,7 +97,7 @@ export function Static({ coverLetter }: Readonly<TemplateProps>) {
           </strong>
           <span>
             <DiffText section="recipient" field="title">
-              {coverLetter.recipient.title || 'Recipient Title'}
+              {coverLetter.recipient.title || 'Title'}
             </DiffText>
           </span>
         </div>
@@ -111,7 +112,7 @@ export function Static({ coverLetter }: Readonly<TemplateProps>) {
           </strong>
           <span>
             <DiffText section="context" field="jobTitle">
-              {coverLetter.context.jobTitle || 'Target Role'}
+              {coverLetter.context.jobTitle || 'Role'}
             </DiffText>
           </span>
         </div>
@@ -122,9 +123,11 @@ export function Static({ coverLetter }: Readonly<TemplateProps>) {
           <>
             {hasOpening ? (
               <div className="cover-letter-static-paragraph">
-                <DiffText section="content" field="opening">
-                  {truncate(coverLetter.content.opening, 280)}
-                </DiffText>
+                <DiffMarkdown
+                  section="content"
+                  field="opening"
+                  content={truncate(coverLetter.content.opening, 280)}
+                />
               </div>
             ) : null}
             {previewBodyIndices.map((index) => (
@@ -132,20 +135,21 @@ export function Static({ coverLetter }: Readonly<TemplateProps>) {
                 key={`body-${index}`}
                 className="cover-letter-static-paragraph"
               >
-                <DiffText
+                <DiffMarkdown
                   section="content"
                   field="body"
                   itemId={String(index)}
-                >
-                  {truncate(coverLetter.content.body[index] ?? '', 220)}
-                </DiffText>
+                  content={truncate(coverLetter.content.body[index] ?? '', 220)}
+                />
               </div>
             ))}
             {hasClosing ? (
               <div className="cover-letter-static-paragraph">
-                <DiffText section="content" field="closing">
-                  {truncate(coverLetter.content.closing, 220)}
-                </DiffText>
+                <DiffMarkdown
+                  section="content"
+                  field="closing"
+                  content={truncate(coverLetter.content.closing, 220)}
+                />
               </div>
             ) : null}
           </>

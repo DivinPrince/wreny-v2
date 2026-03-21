@@ -3,7 +3,8 @@ import { createContext, useContext, useMemo } from 'react'
 
 import type { DocumentChange } from '@repo/core/agent'
 
-import { sanitize } from '../lib/template-utils'
+import { InlineTextDiff, splitInlineTextDiff } from '#/lib/inline-diff'
+import { MarkdownContent } from '#/components/ui/markdown-content'
 
 type PendingChangesContextValue = {
   changes: DocumentChange[]
@@ -99,56 +100,67 @@ export function DiffText({
   }
 
   return (
-    <span className={className} {...rest}>
-      <span
-        className="bg-red-100/90 text-red-800 line-through dark:bg-red-950/60 dark:text-red-300"
-        style={{ textDecorationColor: 'currentColor' }}
-      >
-        {change.original || '\u00A0'}
-      </span>
-      <span className="ml-0.5 bg-green-100/90 text-green-800 dark:bg-green-950/60 dark:text-green-300">
-        {change.proposed || '\u00A0'}
-      </span>
-    </span>
+    <InlineTextDiff
+      original={change.original || ''}
+      proposed={change.proposed || ''}
+      removedClassName="bg-red-100/90 text-red-800 line-through dark:bg-red-950/60 dark:text-red-300"
+      addedClassName="bg-green-100/90 text-green-800 dark:bg-green-950/60 dark:text-green-300"
+      className={className}
+      {...rest}
+    />
   )
 }
 
-/** Renders HTML content with inline diff for summary/wysiwyg fields */
-export function DiffHTML({
+const diffRemovedClassName =
+  'bg-red-100/90 text-red-800 line-through dark:bg-red-950/60 dark:text-red-300'
+const diffAddedClassName =
+  'bg-green-100/90 text-green-800 dark:bg-green-950/60 dark:text-green-300'
+
+/** Renders markdown content with inline diff: red strikethrough for removed, green for added. */
+export function DiffMarkdown({
   section,
   field,
   itemId,
-  html,
+  content,
   className,
   style,
 }: Readonly<{
   section: string
   field: ChangeField
   itemId?: string
-  html: string
+  content: string
   className?: string
   style?: React.CSSProperties
 }>) {
   const change = usePendingChange(section, field, itemId)
+  const markdown = content?.trim() ?? ''
 
   if (!change) {
     return (
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitize(html) }}
-        className={className}
-        style={style}
-      />
+      <MarkdownContent className={className} style={style}>
+        {markdown}
+      </MarkdownContent>
     )
   }
 
-  const oldHtml = sanitize(change.original || '')
-  const newHtml = sanitize(change.proposed || '')
-  const diffHtml = `<span class="resume-diff-old">${oldHtml}</span> <span class="resume-diff-new">${newHtml}</span>`
+  const originalMd = (change.original || '').trim()
+  const proposedMd = (change.proposed || '').trim()
+  const diff = splitInlineTextDiff(originalMd, proposedMd)
+
   return (
-    <div
-      dangerouslySetInnerHTML={{ __html: diffHtml }}
-      className={className}
-      style={style}
-    />
+    <div className={className} style={style}>
+      {diff.prefix ? <MarkdownContent inline>{diff.prefix}</MarkdownContent> : null}
+      {diff.removed ? (
+        <span className={diffRemovedClassName}>
+          <MarkdownContent inline>{diff.removed}</MarkdownContent>
+        </span>
+      ) : null}
+      {diff.added ? (
+        <span className={diffAddedClassName}>
+          <MarkdownContent inline>{diff.added}</MarkdownContent>
+        </span>
+      ) : null}
+      {diff.suffix ? <MarkdownContent inline>{diff.suffix}</MarkdownContent> : null}
+    </div>
   )
 }

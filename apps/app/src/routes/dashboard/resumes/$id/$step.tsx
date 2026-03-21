@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createStandardSchemaV1, parseAsString } from 'nuqs'
 
 import { ContactStep } from '#/features/resume/components/steps/contact-step'
 import { EducationStep } from '#/features/resume/components/steps/education-step'
@@ -12,7 +13,12 @@ import {
 } from '#/features/resume/components/resume-editor-shell'
 
 export const Route = createFileRoute('/dashboard/resumes/$id/$step')({
-  beforeLoad: ({ params }) => {
+  validateSearch: createStandardSchemaV1({
+    sessionId: parseAsString,
+  }, {
+    partialOutput: true,
+  }),
+  beforeLoad: ({ params, search }) => {
     if (!isResumeEditorStep(params.step)) {
       throw redirect({
         to: '/dashboard/resumes/$id/$step',
@@ -20,6 +26,15 @@ export const Route = createFileRoute('/dashboard/resumes/$id/$step')({
           id: params.id,
           step: 'contact',
         },
+      })
+    }
+
+    if (params.step !== 'preview' && search.sessionId) {
+      throw redirect({
+        to: '/dashboard/resumes/$id/$step',
+        params,
+        search: () => ({}),
+        replace: true,
       })
     }
   },

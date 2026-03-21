@@ -57,7 +57,7 @@ export function JobColumn({
             variant="outline"
             size="icon"
             onClick={() => onToggleComposer(status)}
-            className="hover:bg-transparent border-none"
+            className="hover:bg-transparent border-none dark:bg-transparent dark:hover:bg-white/5"
           >
             <Plus className={cn("w-4 h-4 opacity-80", statusInfo.iconClassName)} />
           </Button>
@@ -92,7 +92,7 @@ export function JobColumn({
         type="button"
         variant="outline"
         className={cn(
-          "w-full justify-start items-center border hover:bg-transparent",
+          "w-full justify-start items-center border hover:bg-transparent dark:bg-transparent dark:hover:bg-white/5",
           statusInfo.borderClassName,
         )}
         onClick={() => onToggleComposer(status)}

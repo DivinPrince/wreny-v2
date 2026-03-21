@@ -17,7 +17,8 @@ export const urls = new sst.Linkable("Urls", {
 
 const apiFn = new sst.aws.Function("ApiFn", {
   handler: "./packages/functions/src/index.handler",
-  streaming: !$dev,
+  streaming: true,
+  timeout: "2 minutes",
   link: [bus, mediaBucket, urls, ...allSecrets],
   url: {
     cors: false,

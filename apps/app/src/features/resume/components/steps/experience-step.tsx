@@ -34,10 +34,10 @@ import { Textarea } from '#/components/ui/textarea'
 
 import { cloneResumeDocument } from '../../lib/queries'
 import {
-  bulletLinesToHtml,
   formatDateRange,
   generateEditorId,
-  htmlToBulletLines,
+  linesToMarkdown,
+  markdownToLines,
   parseDateRange,
   sanitizeOptionalUrl,
 } from '../editor-utils'
@@ -72,7 +72,7 @@ function buildFormState(item: Experience): ExperienceFormState {
     startDate: range.start,
     endDate: range.end,
     isCurrent: range.isCurrent,
-    summary: htmlToBulletLines(item.summary),
+    summary: markdownToLines(item.summary),
     url: item.url.href,
   }
 }
@@ -264,7 +264,7 @@ export function ExperienceStep() {
               end: form.endDate,
               isCurrent: form.isCurrent,
             }),
-            summary: bulletLinesToHtml(form.summary),
+            summary: linesToMarkdown(form.summary),
             url: {
               ...item.url,
               href: sanitizeOptionalUrl(form.url),

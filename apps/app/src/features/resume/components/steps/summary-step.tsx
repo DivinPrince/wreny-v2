@@ -5,23 +5,23 @@ import { Label } from '#/components/ui/label'
 import { Textarea } from '#/components/ui/textarea'
 
 import { cloneResumeDocument } from '../../lib/queries'
-import { htmlToPlainText, paragraphTextToHtml } from '../editor-utils'
+import { toMarkdownForForm, toMarkdownForStorage } from '../editor-utils'
 import { useResumeEditor } from '../resume-editor-context'
 import { StepPanel } from '../resume-editor-shell'
 
 export function SummaryStep() {
   const { resume, saveResume, isSaving, title } = useResumeEditor()
   const [summary, setSummary] = useState(() =>
-    htmlToPlainText(resume.sections.summary.content),
+    toMarkdownForForm(resume.sections.summary.content),
   )
 
   useEffect(() => {
-    setSummary(htmlToPlainText(resume.sections.summary.content))
+    setSummary(toMarkdownForForm(resume.sections.summary.content))
   }, [resume])
 
   async function handleSave() {
     const nextResume = cloneResumeDocument(resume)
-    nextResume.sections.summary.content = paragraphTextToHtml(summary)
+    nextResume.sections.summary.content = toMarkdownForStorage(summary)
 
     await saveResume({
       resume: nextResume,

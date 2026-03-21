@@ -3,6 +3,9 @@ import { createContext, useContext, useMemo } from 'react'
 
 import type { DocumentChange } from '@repo/core/agent'
 
+import { InlineTextDiff, splitInlineTextDiff } from '#/lib/inline-diff'
+import { MarkdownContent } from '#/components/ui/markdown-content'
+
 type PendingChangesContextValue = {
   changes: DocumentChange[]
 }
@@ -100,13 +103,65 @@ export function DiffText({
   }
 
   return (
-    <span className={className} {...rest}>
-      <span className="cover-letter-diff-old">
-        {change.original || '\u00A0'}
-      </span>
-      <span className="cover-letter-diff-new">
-        {change.proposed || '\u00A0'}
-      </span>
-    </span>
+    <InlineTextDiff
+      original={change.original || ''}
+      proposed={change.proposed || ''}
+      removedClassName="cover-letter-diff-old"
+      addedClassName="cover-letter-diff-new"
+      className={className}
+      {...rest}
+    />
+  )
+}
+
+const diffRemovedClassName = 'cover-letter-diff-old'
+const diffAddedClassName = 'cover-letter-diff-new'
+
+/** Renders markdown content with inline diff: red strikethrough for removed, green for added. */
+export function DiffMarkdown({
+  section,
+  field,
+  itemId,
+  content,
+  className,
+  style,
+}: Readonly<{
+  section: string
+  field: ChangeField
+  itemId?: string
+  content: string
+  className?: string
+  style?: React.CSSProperties
+}>) {
+  const change = usePendingChange(section, field, itemId)
+  const markdown = content?.trim() ?? ''
+
+  if (!change) {
+    return (
+      <MarkdownContent className={className} style={style}>
+        {markdown}
+      </MarkdownContent>
+    )
+  }
+
+  const originalMd = (change.original || '').trim()
+  const proposedMd = (change.proposed || '').trim()
+  const diff = splitInlineTextDiff(originalMd, proposedMd)
+
+  return (
+    <div className={className} style={style}>
+      {diff.prefix ? <MarkdownContent inline>{diff.prefix}</MarkdownContent> : null}
+      {diff.removed ? (
+        <span className={diffRemovedClassName}>
+          <MarkdownContent inline>{diff.removed}</MarkdownContent>
+        </span>
+      ) : null}
+      {diff.added ? (
+        <span className={diffAddedClassName}>
+          <MarkdownContent inline>{diff.added}</MarkdownContent>
+        </span>
+      ) : null}
+      {diff.suffix ? <MarkdownContent inline>{diff.suffix}</MarkdownContent> : null}
+    </div>
   )
 }

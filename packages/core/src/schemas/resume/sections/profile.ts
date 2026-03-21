@@ -9,7 +9,7 @@ export const profileSchema = itemSchema.extend({
   icon: z
     .string()
     .describe(
-      'Slug for the icon from https://simpleicons.org. For example, "github", "linkedin", etc.',
+      'Iconify icon name. Supports bare brand slugs like "github" and "linkedin" (resolved via simple-icons), or full Iconify names like "mdi:github" or "mdi/github".',
     ),
   url: urlSchema,
 });
