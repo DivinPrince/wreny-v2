@@ -15,7 +15,6 @@ type PendingChangesContextValue = {
 type CreatePendingChangesOptions = Readonly<{
   removedClassName: string
   addedClassName: string
-  passRestWhenNoChange?: boolean
 }>
 
 function matchChange(
@@ -38,7 +37,6 @@ function matchChange(
 export function createPendingChangesHelpers({
   removedClassName,
   addedClassName,
-  passRestWhenNoChange = false,
 }: CreatePendingChangesOptions) {
   const PendingChangesContext =
     createContext<PendingChangesContextValue | null>(null)
@@ -106,12 +104,10 @@ export function createPendingChangesHelpers({
     const change = usePendingChange(section, field, itemId)
 
     if (!change) {
-      return passRestWhenNoChange ? (
+      return (
         <span className={className} {...rest}>
           {children}
         </span>
-      ) : (
-        <span className={className}>{children}</span>
       )
     }
 

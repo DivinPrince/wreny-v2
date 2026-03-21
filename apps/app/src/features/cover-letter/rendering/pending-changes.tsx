@@ -13,5 +13,4 @@ export const {
 } = createPendingChangesHelpers({
   removedClassName: diffRemovedClassName,
   addedClassName: diffAddedClassName,
-  passRestWhenNoChange: true,
 })
