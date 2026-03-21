@@ -9,14 +9,23 @@ import { Hono } from "hono";
 import { ErrorCodes, VisibleError } from "@repo/core/error";
 import { type AppEnv, ok, requireAuth } from "./common";
 
+const GENERAL_SCOPE_ID = "general" as const;
+
 const documentTypeToDb = (
-  t: "resume" | "coverLetter",
-): "resume" | "cover_letter" =>
-  t === "coverLetter" ? "cover_letter" : "resume";
+  t: "resume" | "coverLetter" | "general",
+): "resume" | "cover_letter" | "general" => {
+  if (t === "coverLetter") return "cover_letter";
+  if (t === "general") return "general";
+  return "resume";
+};
+
 const documentTypeToApi = (
-  t: "resume" | "cover_letter",
-): "resume" | "coverLetter" =>
-  t === "cover_letter" ? "coverLetter" : "resume";
+  t: "resume" | "cover_letter" | "general",
+): "resume" | "coverLetter" | "general" => {
+  if (t === "cover_letter") return "coverLetter";
+  if (t === "general") return "general";
+  return "resume";
+};
 
 export const agentApi = new Hono<AppEnv>()
   .use("*", requireAuth)
@@ -26,13 +35,31 @@ export const agentApi = new Hono<AppEnv>()
     const documentType = c.req.query("documentType") as
       | "resume"
       | "coverLetter"
+      | "general"
       | undefined;
-    const documentId = c.req.query("documentId");
-    if (!documentType || !documentId) {
+    let documentId = c.req.query("documentId");
+    if (!documentType) {
       throw new VisibleError(
         "validation",
         ErrorCodes.Validation.INVALID_PARAMETER,
-        "documentType and documentId query params are required",
+        "documentType query param is required",
+      );
+    }
+    if (documentType === "general") {
+      documentId = documentId ?? GENERAL_SCOPE_ID;
+    }
+    if (!documentId) {
+      throw new VisibleError(
+        "validation",
+        ErrorCodes.Validation.INVALID_PARAMETER,
+        "documentId query param is required",
+      );
+    }
+    if (documentType === "general" && documentId !== GENERAL_SCOPE_ID) {
+      throw new VisibleError(
+        "validation",
+        ErrorCodes.Validation.INVALID_PARAMETER,
+        `For documentType=general, documentId must be "${GENERAL_SCOPE_ID}"`,
       );
     }
     const sessions = await SessionsService.listByDocument({
@@ -47,17 +74,23 @@ export const agentApi = new Hono<AppEnv>()
         documentType: documentTypeToApi(s.documentType),
         documentId: s.documentId,
         createdAt: s.createdAt,
+        preview: s.preview ?? null,
       })),
     );
   })
   .post("/sessions", async (c) => {
     const user = c.get("user")!;
     const body = (await c.req.json()) as {
-      documentType?: "resume" | "coverLetter";
+      documentType?: "resume" | "coverLetter" | "general";
       documentId?: string;
+      /** Client-generated session id (URL-first); optional. */
+      id?: string;
     };
     const documentType = body.documentType ?? "resume";
-    const documentId = body.documentId ?? "";
+    const documentId =
+      documentType === "general"
+        ? (body.documentId ?? GENERAL_SCOPE_ID)
+        : (body.documentId ?? "");
     if (!documentId) {
       throw new VisibleError(
         "validation",
@@ -65,10 +98,18 @@ export const agentApi = new Hono<AppEnv>()
         "documentId is required",
       );
     }
+    if (documentType === "general" && documentId !== GENERAL_SCOPE_ID) {
+      throw new VisibleError(
+        "validation",
+        ErrorCodes.Validation.INVALID_PARAMETER,
+        `For documentType general, documentId must be "${GENERAL_SCOPE_ID}"`,
+      );
+    }
     const session = await SessionsService.create({
       userId: user.id,
       documentType: documentTypeToDb(documentType),
       documentId,
+      id: body.id,
     });
     return ok(c, {
       id: session.id,
@@ -156,11 +197,15 @@ export const agentApi = new Hono<AppEnv>()
         "Session not found",
       );
     }
-    const activeDocumentType =
-      session.documentType === "cover_letter" ? "coverLetter" : "resume";
-    const activeDocumentId = session.documentId;
-
-    const systemContent = `Current user context: userId="${user.id}", name="${user.name}", email="${user.email}". The active document type is "${activeDocumentType}" and the active document ID is "${activeDocumentId}". This is an active ${activeDocumentType === "coverLetter" ? "cover letter" : "resume"} editing session, so unless the user clearly changes topics, assume their requests and follow-up questions refer to this document. Do not ask generic intake questions about whether they want to update a resume, refine a cover letter, or tailor documents when an active document is present. If the active document type is "resume", use this document ID when calling getResume and when proposing changes set documentType to "resume" and documentId to this active document ID. If the active document type is "coverLetter", use this document ID when calling getCoverLetter and when proposing changes set documentType to "coverLetter" and documentId to this active document ID. Use this userId when calling getUserProfile or any tool that needs the current user's ID.`;
+    const systemContent =
+      session.documentType === "general"
+        ? `Current user context: userId="${user.id}", name="${user.name}", email="${user.email}". This is a general dashboard chat: there is NO active resume or cover letter in the editor. Use tools with explicit IDs—call getResume, getCoverLetter, or getJobDetails with the id the user gives (or ask which document or job they mean if unclear). For proposeDocumentChanges, always set documentType and documentId to the target resume or cover letter. Use this userId when calling getUserProfile or any tool that needs the current user's ID.`
+        : (() => {
+            const activeDocumentType =
+              session.documentType === "cover_letter" ? "coverLetter" : "resume";
+            const activeDocumentId = session.documentId;
+            return `Current user context: userId="${user.id}", name="${user.name}", email="${user.email}". The active document type is "${activeDocumentType}" and the active document ID is "${activeDocumentId}". This is an active ${activeDocumentType === "coverLetter" ? "cover letter" : "resume"} editing session, so unless the user clearly changes topics, assume their requests and follow-up questions refer to this document. Do not ask generic intake questions about whether they want to update a resume, refine a cover letter, or tailor documents when an active document is present. If the active document type is "resume", use this document ID when calling getResume and when proposing changes set documentType to "resume" and documentId to this active document ID. If the active document type is "coverLetter", use this document ID when calling getCoverLetter and when proposing changes set documentType to "coverLetter" and documentId to this active document ID. Use this userId when calling getUserProfile or any tool that needs the current user's ID.`;
+          })();
 
     let messages: ResumeAgentUIMessage[] = (body.messages ??
       session.messages) as ResumeAgentUIMessage[];

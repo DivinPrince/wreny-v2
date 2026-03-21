@@ -48,6 +48,12 @@ const navRoutes: NavRoute[] = [
     icon: Icons.LayoutDashboard,
     match: (path: string) => path.startsWith("/dashboard/jobs"),
   },
+  {
+    title: "Agent",
+    url: "/dashboard/agent",
+    icon: Icons.Sparkles,
+    match: (path: string) => path.startsWith("/dashboard/agent"),
+  },
 ]
 
 function SidebarLogo() {

@@ -12,7 +12,7 @@ export const sessionsTable = pgTable("sessions", {
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
   documentType: text("document_type")
-    .$type<"resume" | "cover_letter">()
+    .$type<"resume" | "cover_letter" | "general">()
     .notNull(),
   documentId: text("document_id").notNull(),
   messages: jsonb("messages").$type<SessionMessage[]>().notNull().default([]),

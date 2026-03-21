@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useChat } from "@ai-sdk/react";
 import {
@@ -48,11 +48,13 @@ export function useAgentChat({
     sessionId,
     startNewSession,
     onSessionIdChange,
+    provisionIfNotFound: documentType === "general",
   });
   const [pendingMessage, setPendingMessage] = useState<{
     id: string;
     text: string;
   } | null>(null);
+  const prevSessionIdRef = useRef<string | null | undefined>(undefined);
 
   const transport = useMemo(() => {
     const apiUrl = session
@@ -77,12 +79,46 @@ export function useAgentChat({
     });
   }, [session?.id, getChatApiUrl]);
 
+  /** Stable while URL/session refer to the same conversation; avoids id flip agent-pending → real id wiping sync. */
+  const chatId =
+    sessionId?.trim() || session?.id || "agent-pending";
+
   const chat = useChat({
-    id: session?.id ?? "agent-pending",
+    id: chatId,
     messages: (session?.messages ?? []) as ResumeAgentUIMessage[],
     transport,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
   });
+
+  /**
+   * When navigating to /agent/:sessionId, useChat often keeps the same id before/after load, so the Chat
+   * instance is not recreated and stays empty. Hydrate from the loaded session once.
+   */
+  const sessionHydrationKey = session
+    ? `${session.id}:${(session.messages ?? []).length}:${(session.messages ?? []).at(-1)?.id ?? ""}`
+    : "";
+
+  useEffect(() => {
+    if (!session) return;
+    const sm = (session.messages ?? []) as ResumeAgentUIMessage[];
+    if (sm.length === 0) return;
+    chat.setMessages((prev) => (prev.length === 0 ? sm : prev));
+  }, [session, sessionHydrationKey, chat.setMessages]);
+
+  /** New chat: URL dropped `sessionId` — clear local thread (e.g. /dashboard/agent from /dashboard/agent/:id). */
+  useEffect(() => {
+    const sid = sessionId?.trim() || null;
+    if (prevSessionIdRef.current === undefined) {
+      prevSessionIdRef.current = sid;
+      return;
+    }
+    const prev = prevSessionIdRef.current;
+    prevSessionIdRef.current = sid;
+    if (prev && !sid) {
+      chat.setMessages([]);
+      setPendingMessage(null);
+    }
+  }, [sessionId, chat.setMessages]);
 
   // Send pending message when session becomes available
   useEffect(() => {

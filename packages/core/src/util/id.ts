@@ -84,6 +84,18 @@ export function createID(entity: keyof typeof prefixMap): string {
   return `${prefix}_${ulid()}`;
 }
 
+/** Client may generate this before navigating; must match {@link isAgentSessionId}. */
+export function createAgentSessionClientId(): string {
+  return createID("agent_session");
+}
+
+/** Validates agent session IDs (`agt_` + 26-char ULID body). */
+const AGENT_SESSION_ID_RE = /^agt_[0-9A-Z]{26}$/;
+
+export function isAgentSessionId(value: string): boolean {
+  return AGENT_SESSION_ID_RE.test(value);
+}
+
 export function generateULID(): string {
   return ulid();
 }

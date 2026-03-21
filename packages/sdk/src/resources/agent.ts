@@ -2,13 +2,15 @@ import type { ResumeAgentUIMessage } from "@repo/core/agent";
 import { APIResource } from "../core";
 import type { RequestOptions, Response } from "../types";
 
-export type DocumentType = "resume" | "coverLetter";
+export type DocumentType = "resume" | "coverLetter" | "general";
 
 export type AgentSessionInfo = {
   id: string;
   documentType: DocumentType;
   documentId: string;
   createdAt?: string;
+  /** First user message preview for session lists */
+  preview?: string | null;
 };
 
 export type AgentSession = AgentSessionInfo & {
@@ -40,7 +42,7 @@ export class AgentResource extends APIResource {
    * Create a new session for a document
    */
   createSession(
-    params: { documentType?: DocumentType; documentId: string },
+    params: { documentType?: DocumentType; documentId: string; id?: string },
     options?: RequestOptions,
   ): Promise<Response<AgentSession>> {
     return this._client.post(`${this.basePath}/sessions`, {
@@ -48,6 +50,7 @@ export class AgentResource extends APIResource {
       body: {
         documentType: params.documentType ?? "resume",
         documentId: params.documentId,
+        ...(params.id ? { id: params.id } : {}),
       },
     });
   }
