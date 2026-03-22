@@ -17,12 +17,23 @@ function getComponents(inline: boolean): Components {
       ) : (
         <p className="mb-2 last:mb-0">{children}</p>
       ),
-    ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-0.5">{children}</ul>,
-    ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-0.5">{children}</ol>,
+    ul: ({ children }) => (
+      <ul className="list-disc pl-5 mb-2 space-y-0.5">{children}</ul>
+    ),
+    ol: ({ children }) => (
+      <ol className="list-decimal pl-5 mb-2 space-y-0.5">{children}</ol>
+    ),
     li: ({ children }) => <li className="mb-0">{children}</li>,
-    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+    strong: ({ children }) => (
+      <strong className="font-semibold">{children}</strong>
+    ),
     a: ({ href, children }) => (
-      <a href={href} target="_blank" rel="noreferrer noopener" className="underline hover:no-underline">
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="underline hover:no-underline"
+      >
         {children}
       </a>
     ),
@@ -38,9 +49,13 @@ export function MarkdownContent({
   const content = children?.trim() || ''
   if (!content) return null
 
+  const Wrapper = inline ? 'span' : 'div'
+
   return (
-    <div className={cn(className)} style={style}>
-      <ReactMarkdown components={getComponents(inline)}>{content}</ReactMarkdown>
-    </div>
+    <Wrapper className={cn(className)} style={style}>
+      <ReactMarkdown components={getComponents(inline)}>
+        {content}
+      </ReactMarkdown>
+    </Wrapper>
   )
 }
