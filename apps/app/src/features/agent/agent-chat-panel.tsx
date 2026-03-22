@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { ArrowUp, Check, Eye, Paperclip, X } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
+import { useMediaQuery } from '#/hooks/use-media-query'
 import { cn } from '#/lib/utils'
 
 import {
@@ -39,24 +40,6 @@ const PAGE_COMPOSER_TITLE =
 
 /** Side-by-side document preview with chat from this breakpoint up (Tailwind `md`). */
 const AGENT_PREVIEW_SPLIT_MIN_PX = 768
-
-function subscribeMdUp(callback: () => void) {
-  const mq = window.matchMedia(`(min-width: ${AGENT_PREVIEW_SPLIT_MIN_PX}px)`)
-  mq.addEventListener('change', callback)
-  return () => mq.removeEventListener('change', callback)
-}
-
-function getMdUpSnapshot() {
-  return window.matchMedia(`(min-width: ${AGENT_PREVIEW_SPLIT_MIN_PX}px)`).matches
-}
-
-function getServerMdUpSnapshot() {
-  return true
-}
-
-function useMdUp() {
-  return useSyncExternalStore(subscribeMdUp, getMdUpSnapshot, getServerMdUpSnapshot)
-}
 
 function dashboardAttachmentUserPrefix(
   kind: 'resume' | 'coverLetter',
@@ -272,7 +255,7 @@ export function AgentPanelChat({
   placeholders,
   pageHero,
 }: AgentPanelChatProps) {
-  const mdUp = useMdUp()
+  const mdUp = useMediaQuery(AGENT_PREVIEW_SPLIT_MIN_PX)
   const [input, setInput] = useState('')
   const [pageAttachment, setPageAttachment] = useState<PageDocumentAttachment | null>(null)
   const [attachmentPreview, setAttachmentPreview] = useState<PageDocumentAttachment | null>(null)

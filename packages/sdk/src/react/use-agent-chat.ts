@@ -89,6 +89,8 @@ export function useAgentChat({
     transport,
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
   });
+  const setChatMessagesRef = useRef(chat.setMessages);
+  setChatMessagesRef.current = chat.setMessages;
 
   /**
    * When navigating to /agent/:sessionId, useChat often keeps the same id before/after load, so the Chat
@@ -102,8 +104,8 @@ export function useAgentChat({
     if (!session) return;
     const sm = (session.messages ?? []) as ResumeAgentUIMessage[];
     if (sm.length === 0) return;
-    chat.setMessages((prev) => (prev.length === 0 ? sm : prev));
-  }, [session, sessionHydrationKey, chat.setMessages]);
+    setChatMessagesRef.current((prev) => (prev.length === 0 ? sm : prev));
+  }, [session, sessionHydrationKey]);
 
   /** New chat: URL dropped `sessionId` — clear local thread (e.g. /dashboard/agent from /dashboard/agent/:id). */
   useEffect(() => {
@@ -115,10 +117,10 @@ export function useAgentChat({
     const prev = prevSessionIdRef.current;
     prevSessionIdRef.current = sid;
     if (prev && !sid) {
-      chat.setMessages([]);
+      setChatMessagesRef.current([]);
       setPendingMessage(null);
     }
-  }, [sessionId, chat.setMessages]);
+  }, [sessionId]);
 
   // Send pending message when session becomes available
   useEffect(() => {

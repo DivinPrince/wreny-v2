@@ -6,27 +6,14 @@ import { Drawer } from 'vaul'
 import { X } from 'lucide-react'
 
 import { Button } from '#/components/ui/button'
+import { useMediaQuery } from '#/hooks/use-media-query'
 import { cn } from '#/lib/utils'
 
 /** Aligns with Tailwind `sm` (640px). SSR defaults to desktop to avoid open-state mismatch. */
 const SM_MIN_PX = 640
 
-function subscribeSmUp(callback: () => void) {
-  const mq = window.matchMedia(`(min-width: ${SM_MIN_PX}px)`)
-  mq.addEventListener('change', callback)
-  return () => mq.removeEventListener('change', callback)
-}
-
-function getSmUpSnapshot() {
-  return window.matchMedia(`(min-width: ${SM_MIN_PX}px)`).matches
-}
-
-function getServerSmUpSnapshot() {
-  return true
-}
-
 function useSmUp() {
-  return React.useSyncExternalStore(subscribeSmUp, getSmUpSnapshot, getServerSmUpSnapshot)
+  return useMediaQuery(SM_MIN_PX)
 }
 
 function Dialog(props: React.ComponentProps<typeof DialogPrimitive.Root>) {
