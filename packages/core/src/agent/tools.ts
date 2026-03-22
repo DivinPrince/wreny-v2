@@ -25,37 +25,79 @@ import type { ResumeDocument } from "../schemas/resume";
 import type { CoverLetterDocument } from "../schemas/cover-letter";
 import { UserService } from "../user";
 import { changeProposalSchema } from "./schemas";
+import {
+  coverLetterDocumentToMarkdown,
+  resumeDocumentToMarkdown,
+} from "./document-to-markdown";
 
 export const getResume = tool({
   description:
-    "Fetch a resume document by ID. Returns the full structured resume including basics, all sections (summary, experience, education, skills, projects, etc.), and metadata.",
+    "Fetch a resume by ID. Default: markdown preview (readable content, section visibility notes, and edit references: section keys + item ids for proposeDocumentChanges). Use format \"json\" only when you need the raw structured document (rare).",
   inputSchema: z.object({
     resumeId: z.string().describe("The resume ID to fetch"),
+    format: z
+      .enum(["markdown", "json"])
+      .optional()
+      .describe(
+        "markdown (default): preview text. json: full ResumeDocument object.",
+      ),
   }),
-  execute: async ({ resumeId }) => {
+  execute: async ({ resumeId, format = "markdown" }) => {
     const resume = await ResumeService.byId(resumeId);
     if (!resume) return { error: "Resume not found" };
+    if (format === "json") {
+      return {
+        id: resume.id,
+        title: resume.title,
+        format: "json" as const,
+        data: resume.data,
+      };
+    }
     return {
       id: resume.id,
       title: resume.title,
-      data: resume.data,
+      format: "markdown" as const,
+      markdown: resumeDocumentToMarkdown({
+        id: resume.id,
+        title: resume.title,
+        data: resume.data,
+      }),
     };
   },
 });
 
 export const getCoverLetter = tool({
   description:
-    "Fetch a cover letter document by ID. Returns the full structured cover letter including sender, recipient, context, content (greeting, opening, body paragraphs, closing, signature), and metadata.",
+    "Fetch a cover letter by ID. Default: markdown preview with edit references. Use format \"json\" only when you need the raw structured document.",
   inputSchema: z.object({
     coverLetterId: z.string().describe("The cover letter ID to fetch"),
+    format: z
+      .enum(["markdown", "json"])
+      .optional()
+      .describe(
+        "markdown (default): preview text. json: full CoverLetterDocument object.",
+      ),
   }),
-  execute: async ({ coverLetterId }) => {
+  execute: async ({ coverLetterId, format = "markdown" }) => {
     const coverLetter = await CoverLetterService.byId(coverLetterId);
     if (!coverLetter) return { error: "Cover letter not found" };
+    if (format === "json") {
+      return {
+        id: coverLetter.id,
+        title: coverLetter.title,
+        format: "json" as const,
+        data: coverLetter.data,
+      };
+    }
     return {
       id: coverLetter.id,
       title: coverLetter.title,
-      data: coverLetter.data,
+      format: "markdown" as const,
+      markdown: coverLetterDocumentToMarkdown({
+        id: coverLetter.id,
+        title: coverLetter.title,
+        data: coverLetter.data,
+      }),
     };
   },
 });
