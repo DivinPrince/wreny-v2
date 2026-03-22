@@ -48,14 +48,21 @@ function DialogOverlay({
   )
 }
 
+type DialogDesktopContentProps = React.ComponentProps<
+  typeof DialogPrimitive.Content
+>
+type DialogDrawerContentProps = React.ComponentProps<typeof Drawer.Content>
+type DialogContentSharedProps = {
+  [K in keyof DialogDesktopContentProps & keyof DialogDrawerContentProps]:
+    DialogDesktopContentProps[K]
+}
+
 function DialogContent({
   className,
   children,
   showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean
-}) {
+}: DialogContentSharedProps & { showCloseButton?: boolean }) {
   const smUp = useSmUp()
 
   const closeButton = showCloseButton ? (
