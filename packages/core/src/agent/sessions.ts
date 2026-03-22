@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { withTransaction } from "../drizzle/transaction";
@@ -11,24 +11,6 @@ import { sessionsTable } from "./sessions.sql";
 export * from "./sessions.sql";
 
 const PREVIEW_MAX = 72;
-
-function firstUserMessagePreview(
-  messages: { role: string; parts: unknown[] }[],
-): string | null {
-  for (const m of messages) {
-    if (m.role !== "user") continue;
-    const parts = m.parts as Array<{ type?: string; text?: string }>;
-    const text = parts
-      .filter((p) => p.type === "text" && typeof p.text === "string")
-      .map((p) => p.text)
-      .join("")
-      .trim();
-    if (!text) continue;
-    if (text.length <= PREVIEW_MAX) return text;
-    return `${text.slice(0, PREVIEW_MAX - 1)}…`;
-  }
-  return null;
-}
 
 export namespace SessionsService {
   export const CreateInput = z.object({
@@ -120,7 +102,25 @@ export namespace SessionsService {
             documentType: sessionsTable.documentType,
             documentId: sessionsTable.documentId,
             createdAt: sessionsTable.createdAt,
-            messages: sessionsTable.messages,
+            preview: sql<string | null>`(
+              SELECT CASE
+                WHEN preview.text_value = '' THEN NULL
+                WHEN length(preview.text_value) <= ${PREVIEW_MAX} THEN preview.text_value
+                ELSE left(preview.text_value, ${PREVIEW_MAX - 1}) || '…'
+              END
+              FROM (
+                SELECT trim(coalesce(string_agg(part.value->>'text', '' ORDER BY part.ord), '')) AS text_value
+                FROM (
+                  SELECT msg.value
+                  FROM jsonb_array_elements(${sessionsTable.messages}) WITH ORDINALITY AS msg(value, ord)
+                  WHERE msg.value->>'role' = 'user'
+                  ORDER BY msg.ord
+                  LIMIT 1
+                ) first_user
+                CROSS JOIN LATERAL jsonb_array_elements(coalesce(first_user.value->'parts', '[]'::jsonb)) WITH ORDINALITY AS part(value, ord)
+                WHERE part.value->>'type' = 'text'
+              ) preview
+            )`,
           })
           .from(sessionsTable)
           .where(
@@ -137,7 +137,7 @@ export namespace SessionsService {
           documentType: row.documentType,
           documentId: row.documentId,
           createdAt: row.createdAt,
-          preview: firstUserMessagePreview(row.messages),
+          preview: row.preview,
         }));
       });
     },

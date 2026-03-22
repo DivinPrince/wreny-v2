@@ -586,10 +586,7 @@ export function AgentPanelChat({
           )}
         >
           <div
-            className={cn(
-              'flex items-end gap-0 overflow-hidden rounded-t-lg bg-muted/30',
-              messages.length > 0 && 'border-t border-foreground/8',
-            )}
+            className="flex items-end gap-0 overflow-hidden rounded-t-lg bg-muted/30"
           >
             <AutosizeTextarea
               value={input}
