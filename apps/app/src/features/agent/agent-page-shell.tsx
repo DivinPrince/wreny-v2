@@ -10,7 +10,7 @@ export function AgentPageShell({ children }: Readonly<{ children: ReactNode }>) 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border/40 px-4 py-2.5">
+      <header className="sticky top-0 z-20 flex shrink-0 items-center justify-between gap-3 border-b border-border/40 bg-background px-4 py-2.5 supports-backdrop-filter:backdrop-blur-sm">
         <AgentRecentChatsDialog />
         <Button
           type="button"

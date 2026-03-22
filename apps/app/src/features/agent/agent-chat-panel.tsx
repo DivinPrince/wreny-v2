@@ -1,20 +1,25 @@
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { ArrowUp, Check, Paperclip, X } from 'lucide-react'
+import { ArrowUp, Check, Eye, Paperclip, X } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import type { DocumentChange, ResumeAgentUIMessage } from '@repo/core/agent'
 
 import { AgentMarkdown } from '#/components/ui/agent-markdown'
 import { AutosizeTextarea } from '#/components/ui/autosize-textarea'
 import { Button } from '#/components/ui/button'
-import { useSidebar } from '#/components/ui/sidebar'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '#/components/ui/dialog'
 import { cn } from '#/lib/utils'
 
+import {
+  AgentDashboardDocumentPreview,
+  AgentOpenInBuilderLink,
+} from '#/features/agent/agent-dashboard-document-preview'
+import { agentDocumentPreviewAsideWidthClass } from '#/features/agent/agent-preview-layout'
 import {
   AgentPageAttachControls,
   type PageDocumentAttachment,
@@ -32,6 +37,27 @@ export type AgentChatPlaceholders = {
 const PAGE_COMPOSER_TITLE =
   'Enter to send. Shift+Enter adds a new line.'
 
+/** Side-by-side document preview with chat from this breakpoint up (Tailwind `md`). */
+const AGENT_PREVIEW_SPLIT_MIN_PX = 768
+
+function subscribeMdUp(callback: () => void) {
+  const mq = window.matchMedia(`(min-width: ${AGENT_PREVIEW_SPLIT_MIN_PX}px)`)
+  mq.addEventListener('change', callback)
+  return () => mq.removeEventListener('change', callback)
+}
+
+function getMdUpSnapshot() {
+  return window.matchMedia(`(min-width: ${AGENT_PREVIEW_SPLIT_MIN_PX}px)`).matches
+}
+
+function getServerMdUpSnapshot() {
+  return true
+}
+
+function useMdUp() {
+  return useSyncExternalStore(subscribeMdUp, getMdUpSnapshot, getServerMdUpSnapshot)
+}
+
 function dashboardAttachmentUserPrefix(
   kind: 'resume' | 'coverLetter',
   title: string,
@@ -45,6 +71,7 @@ function dashboardAttachmentUserPrefix(
 
 function splitDashboardAttachmentUserText(full: string): {
   kind: 'resume' | 'coverLetter'
+  id: string
   title: string
   body: string
 } | null {
@@ -74,10 +101,16 @@ function splitDashboardAttachmentUserText(full: string): {
   const expectedPrefix = dashboardAttachmentUserPrefix(kind, title, id)
   if (!full.startsWith(expectedPrefix)) return null
 
-  return { kind, title, body: full.slice(expectedPrefix.length) }
+  return { kind, id, title, body: full.slice(expectedPrefix.length) }
 }
 
-function UserMessageContent({ text }: Readonly<{ text: string }>) {
+function UserMessageContent({
+  text,
+  onOpenAttachmentPreview,
+}: Readonly<{
+  text: string
+  onOpenAttachmentPreview: (doc: PageDocumentAttachment) => void
+}>) {
   const split = splitDashboardAttachmentUserText(text)
   if (!split) {
     return (
@@ -89,6 +122,15 @@ function UserMessageContent({ text }: Readonly<{ text: string }>) {
       ? `Resume · ${split.title}`
       : `Cover letter · ${split.title}`
 
+  const attachment: PageDocumentAttachment = {
+    kind: split.kind,
+    id: split.id,
+    title: split.title,
+  }
+
+  const builderLinkClass =
+    'text-[11px] font-medium text-primary-foreground/90 underline-offset-2 hover:underline'
+
   return (
     <div className="flex flex-col gap-2">
       <div
@@ -99,6 +141,35 @@ function UserMessageContent({ text }: Readonly<{ text: string }>) {
         <span className="min-w-0 truncate font-semibold tracking-tight">
           {chipLabel}
         </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1 px-2 text-[11px] font-semibold text-primary-foreground hover:bg-primary-foreground/15"
+          onClick={() => onOpenAttachmentPreview(attachment)}
+        >
+          <Eye className="size-3.5 shrink-0 opacity-90" aria-hidden />
+          Preview
+        </Button>
+        {split.kind === 'resume' ? (
+          <Link
+            to="/dashboard/resumes/$id/$step"
+            params={{ id: split.id, step: 'preview' }}
+            className={builderLinkClass}
+          >
+            Open in builder
+          </Link>
+        ) : (
+          <Link
+            to="/dashboard/cover-letters/$id/$step"
+            params={{ id: split.id, step: 'preview' }}
+            className={builderLinkClass}
+          >
+            Open in builder
+          </Link>
+        )}
       </div>
       {split.body ? (
         <span className="wrap-break-word whitespace-pre-wrap">{split.body}</span>
@@ -123,18 +194,10 @@ function PagePromptShell({
   )
 }
 
-/** Viewport-fixed dock; `left` follows dashboard sidebar width (expanded vs icon). */
-function pageComposerDockClassName(sidebar: {
-  isMobile: boolean
-  state: 'expanded' | 'collapsed'
-}) {
+/** Sits in document flow under the scroll region so width matches the dashboard inset (sidebar + preview spacer). */
+function pageComposerStripClassName() {
   return cn(
-    'fixed bottom-0 right-0 z-40 border-t border-border/50 bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] supports-backdrop-filter:backdrop-blur-md dark:shadow-[0_-8px_30px_rgba(0,0,0,0.25]',
-    sidebar.isMobile
-      ? 'left-0'
-      : sidebar.state === 'collapsed'
-        ? 'md:left-[var(--sidebar-width-icon)]'
-        : 'md:left-[var(--sidebar-width)]',
+    'z-10 shrink-0 border-t border-border/50 bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] supports-backdrop-filter:backdrop-blur-md dark:shadow-[0_-8px_30px_rgba(0,0,0,0.25)]',
   )
 }
 
@@ -209,17 +272,15 @@ export function AgentPanelChat({
   placeholders,
   pageHero,
 }: AgentPanelChatProps) {
-  const sidebar = useSidebar()
+  const mdUp = useMdUp()
   const [input, setInput] = useState('')
   const [pageAttachment, setPageAttachment] = useState<PageDocumentAttachment | null>(null)
+  const [attachmentPreview, setAttachmentPreview] = useState<PageDocumentAttachment | null>(null)
   const [approvalInFlight, setApprovalInFlight] = useState<{
     approved: boolean
     id: string
   } | null>(null)
   const messagesScrollRef = useRef<HTMLDivElement>(null)
-  const pageComposerDockRef = useRef<HTMLDivElement>(null)
-  /** Bottom inset under messages so the fixed composer never covers the last lines. */
-  const [pageComposerBottomInset, setPageComposerBottomInset] = useState(220)
 
   const scrollMessagesToEnd = useCallback((behavior: ScrollBehavior = 'smooth') => {
     const el = messagesScrollRef.current
@@ -272,36 +333,8 @@ export function AgentPanelChat({
     return () => cancelAnimationFrame(id)
   }, [isNewSession, messages, scrollMessagesToEnd, status])
 
-  useLayoutEffect(() => {
-    if (layout !== 'page' || isNewSession) return
-    const el = pageComposerDockRef.current
-    if (!el) return
-
-    const update = () => {
-      const h = el.getBoundingClientRect().height
-      setPageComposerBottomInset(Math.ceil(h) + 24)
-    }
-    update()
-    const ro = new ResizeObserver(update)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [isNewSession, layout, messages.length])
-
-  useEffect(() => {
-    if (layout !== 'page' || isNewSession) return
-    const scroller = messagesScrollRef.current
-    if (!scroller) return
-    const nearBottom =
-      scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight <
-      120
-    if (!nearBottom) return
-    requestAnimationFrame(() => scrollMessagesToEnd('auto'))
-  }, [
-    isNewSession,
-    layout,
-    pageComposerBottomInset,
-    scrollMessagesToEnd,
-  ])
+  const showPreviewAside =
+    layout === 'page' && mdUp && attachmentPreview !== null
 
   const sendWithContext = useCallback(
     (content: { text: string }) => {
@@ -424,11 +457,7 @@ export function AgentPanelChat({
   const messagesList = (
     <>
       {layout === 'page' && messages.length === 0 && (
-        <div
-          className="min-h-0 flex-1 shrink-0"
-          style={{ paddingBottom: pageComposerBottomInset }}
-          aria-hidden
-        />
+        <div className="min-h-0 flex-1 shrink-0" aria-hidden />
       )}
       {messages.length > 0 && (
         <div
@@ -437,11 +466,6 @@ export function AgentPanelChat({
             'flex min-h-0 flex-col overflow-x-hidden overflow-y-auto px-3 py-3',
             layout === 'page' ? 'flex-1 px-4 pt-4' : messagesScrollClassName,
           )}
-          style={
-            layout === 'page'
-              ? { paddingBottom: pageComposerBottomInset }
-              : undefined
-          }
         >
           <div className="flex flex-col gap-2">
             {messages.map((msg) => {
@@ -474,6 +498,7 @@ export function AgentPanelChat({
                           .filter((p) => p.type === 'text' && p.text)
                           .map((p) => p.text)
                           .join('')}
+                        onOpenAttachmentPreview={setAttachmentPreview}
                       />
                     ) : (
                       <MessageParts
@@ -517,10 +542,7 @@ export function AgentPanelChat({
       )}
 
       {layout === 'page' ? (
-        <div
-          ref={pageComposerDockRef}
-          className={pageComposerDockClassName(sidebar)}
-        >
+        <div className={pageComposerStripClassName()}>
           <PagePromptShell className="pb-1 pt-0">
             <div className="flex items-end gap-1.5 p-2">
               <AutosizeTextarea
@@ -600,15 +622,95 @@ export function AgentPanelChat({
     </>
   )
 
+  const previewDoc = attachmentPreview
+  const attachmentPreviewDialogEl =
+    previewDoc != null && (layout !== 'page' || !mdUp) ? (
+      <Dialog
+        open
+        onOpenChange={(open) => {
+          if (!open) setAttachmentPreview(null)
+        }}
+      >
+        <DialogContent
+          showCloseButton
+          className="flex max-h-[min(92dvh,900px)] w-[calc(100%-1.5rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl"
+        >
+          <DialogHeader className="shrink-0 pr-10">
+            <DialogTitle className="truncate text-left">
+              {previewDoc.kind === 'resume' ? 'Resume' : 'Cover letter'}
+              {' · '}
+              {previewDoc.title}
+            </DialogTitle>
+          </DialogHeader>
+          <AgentDashboardDocumentPreview
+            attachment={previewDoc}
+            density="dialog"
+            className="min-h-0"
+          />
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border/40 px-4 py-3">
+            <AgentOpenInBuilderLink attachment={previewDoc} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    ) : null
+
   if (layout === 'page') {
     return (
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
-        {messagesList}
+      <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
+        {attachmentPreviewDialogEl}
+
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-row overflow-hidden">
+          <div
+            className={cn(
+              'flex min-h-0 flex-1 flex-col overflow-hidden',
+              showPreviewAside ? 'min-w-[22rem]' : 'min-w-0',
+            )}
+          >
+            {messagesList}
+          </div>
+          {showPreviewAside && previewDoc ? (
+            <aside
+              className={cn(
+                'flex min-h-0 shrink-0 flex-col border-l border-border/40 bg-background/95 shadow-[inset_1px_0_0_rgba(0,0,0,0.04)] supports-backdrop-filter:backdrop-blur-md dark:bg-muted/30 dark:shadow-[inset_1px_0_0_rgba(255,255,255,0.06)]',
+                agentDocumentPreviewAsideWidthClass,
+              )}
+            >
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/40 px-3 py-2.5">
+                <p className="min-w-0 truncate text-xs font-semibold tracking-tight text-foreground">
+                  {previewDoc.kind === 'resume' ? 'Resume' : 'Cover letter'}
+                  <span className="font-normal text-muted-foreground"> · </span>
+                  <span className="text-muted-foreground">{previewDoc.title}</span>
+                </p>
+                <div className="flex shrink-0 items-center gap-1">
+                  <AgentOpenInBuilderLink attachment={previewDoc} />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-8 shrink-0 rounded-full"
+                    aria-label="Close preview"
+                    onClick={() => setAttachmentPreview(null)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="min-h-0 min-w-0 flex-1 overflow-auto">
+                <AgentDashboardDocumentPreview attachment={previewDoc} density="panel" />
+              </div>
+            </aside>
+          ) : null}
+        </div>
       </div>
     )
   }
 
-  return <div className="flex w-full min-w-[280px] flex-col">{messagesList}</div>
+  return (
+    <>
+      {attachmentPreviewDialogEl}
+      <div className="flex w-full min-w-[280px] flex-col">{messagesList}</div>
+    </>
+  )
 }
 
 function MessageParts({
