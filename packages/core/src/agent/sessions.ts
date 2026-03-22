@@ -109,7 +109,13 @@ export namespace SessionsService {
                 ELSE left(preview.text_value, ${PREVIEW_MAX - 1}) || '…'
               END
               FROM (
-                SELECT trim(coalesce(string_agg(part.value->>'text', '' ORDER BY part.ord), '')) AS text_value
+                SELECT trim(
+                  regexp_replace(
+                    coalesce(string_agg(part.value->>'text', '' ORDER BY part.ord), ''),
+                    '^The user attached the dashboard (resume|cover letter) "[^"]+". Use documentType "(resume|coverLetter)" and documentId "[^"]+" when calling (getResume|getCoverLetter) or proposeDocumentChanges for this document\\.[[:space:]]*',
+                    ''
+                  )
+                ) AS text_value
                 FROM (
                   SELECT msg.value
                   FROM jsonb_array_elements(${sessionsTable.messages}) WITH ORDINALITY AS msg(value, ord)

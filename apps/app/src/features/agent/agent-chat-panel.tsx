@@ -396,7 +396,7 @@ export function AgentPanelChat({
           }}
           placeholder={placeholders.initial}
           title={layout === 'page' ? PAGE_COMPOSER_TITLE : undefined}
-          minHeight={layout === 'page' ? 56 : 56}
+          minHeight={56}
           maxHeight={layout === 'page' ? 120 : 160}
           className={cn(
             textareaBase,
