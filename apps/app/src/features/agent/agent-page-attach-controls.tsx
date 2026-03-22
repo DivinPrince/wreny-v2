@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import {
+  FilePenLine,
   FilePlus2,
   FileText,
+  FileUser,
   Linkedin,
   Paperclip,
   Plus,
@@ -73,13 +75,47 @@ function DashboardDocumentsDialog({
         <DialogHeader className="border-b border-border/40 px-4 py-3">
           <DialogTitle>Add from dashboard</DialogTitle>
         </DialogHeader>
-        <div className="px-4 pb-4">
-          <Tabs defaultValue="resumes" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="resumes">Resumes</TabsTrigger>
-              <TabsTrigger value="cover-letters">Cover letters</TabsTrigger>
+        <div className="px-4 pb-4 pt-1">
+          <Tabs defaultValue="resumes" className="flex w-full flex-col">
+            <TabsList
+              className={cn(
+                'grid h-auto w-full shrink-0 grid-cols-2 gap-1 rounded-xl border border-border/50 bg-muted/20 p-1',
+                'shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]',
+              )}
+            >
+              <TabsTrigger
+                value="resumes"
+                className={cn(
+                  'min-h-11 gap-2 rounded-lg py-2.5 text-sm font-semibold tracking-tight',
+                  'text-muted-foreground transition-[color,box-shadow,background-color]',
+                  'data-[state=active]:bg-background data-[state=active]:text-foreground',
+                  'data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-border/50',
+                  'data-[state=inactive]:hover:bg-muted/45 data-[state=inactive]:hover:text-foreground/90',
+                )}
+              >
+                <FileUser className="size-4 shrink-0 opacity-80" aria-hidden />
+                Resumes
+              </TabsTrigger>
+              <TabsTrigger
+                value="cover-letters"
+                className={cn(
+                  'min-h-11 gap-2 rounded-lg py-2.5 text-sm font-semibold tracking-tight',
+                  'text-muted-foreground transition-[color,box-shadow,background-color]',
+                  'data-[state=active]:bg-background data-[state=active]:text-foreground',
+                  'data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-border/50',
+                  'data-[state=inactive]:hover:bg-muted/45 data-[state=inactive]:hover:text-foreground/90',
+                )}
+              >
+                <FilePenLine className="size-4 shrink-0 opacity-80" aria-hidden />
+                Cover letters
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="resumes" className="mt-3 max-h-[min(360px,50dvh)] overflow-y-auto">
+            {/* Fixed-height panel so switching tabs does not resize the dialog */}
+            <div className="mt-4 flex h-[min(360px,50dvh)] shrink-0 flex-col overflow-hidden">
+              <TabsContent
+                value="resumes"
+                className="mt-0 flex min-h-0 flex-1 flex-col overflow-y-auto outline-none"
+              >
               {resumesQuery.isPending ? (
                 <p className="py-8 text-center text-xs text-muted-foreground">Loading resumes…</p>
               ) : resumesQuery.isError ? (
@@ -123,7 +159,10 @@ function DashboardDocumentsDialog({
                 </ul>
               )}
             </TabsContent>
-            <TabsContent value="cover-letters" className="mt-3 max-h-[min(360px,50dvh)] overflow-y-auto">
+              <TabsContent
+                value="cover-letters"
+                className="mt-0 flex min-h-0 flex-1 flex-col overflow-y-auto outline-none"
+              >
               {lettersQuery.isPending ? (
                 <p className="py-8 text-center text-xs text-muted-foreground">Loading cover letters…</p>
               ) : lettersQuery.isError ? (
@@ -167,6 +206,7 @@ function DashboardDocumentsDialog({
                 </ul>
               )}
             </TabsContent>
+            </div>
           </Tabs>
         </div>
       </DialogContent>

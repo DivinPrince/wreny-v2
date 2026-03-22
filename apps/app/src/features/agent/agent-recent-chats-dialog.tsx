@@ -77,11 +77,12 @@ export function AgentRecentChatsDialog({
           Recent chats
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[min(520px,85dvh)] overflow-hidden p-0 sm:max-w-md">
+      <DialogContent className="max-h-[min(560px,90dvh)] gap-0 overflow-hidden p-0 sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Recent chats</DialogTitle>
         </DialogHeader>
-        <div className="max-h-[min(420px,70dvh)] overflow-y-auto px-1 pb-3">
+        <div className="px-4 pb-4 pt-1">
+          <div className="h-[min(360px,50dvh)] shrink-0 overflow-y-auto px-1 pb-3">
           {isPending ? (
             <p className="px-3 py-6 text-center text-xs text-muted-foreground">Loading…</p>
           ) : isError ? (
@@ -145,6 +146,7 @@ export function AgentRecentChatsDialog({
               ))}
             </ul>
           )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
