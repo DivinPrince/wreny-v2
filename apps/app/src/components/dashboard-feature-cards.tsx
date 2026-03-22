@@ -10,12 +10,15 @@ export type DashboardFeatureCard = {
 }
 
 const AI_AGENT_CARD_ID = 'ai-agent'
+const IMPORT_PDF_CARD_ID = 'import-pdf'
 
 type DashboardFeatureCardsProps = {
   cards: DashboardFeatureCard[]
   listAriaLabel: string
   onAiAgentClick: () => void
   aiAgentDisabled?: boolean
+  onImportPdfClick?: () => void
+  importPdfDisabled?: boolean
 }
 
 export function DashboardFeatureCards({
@@ -23,6 +26,8 @@ export function DashboardFeatureCards({
   listAriaLabel,
   onAiAgentClick,
   aiAgentDisabled,
+  onImportPdfClick,
+  importPdfDisabled,
 }: DashboardFeatureCardsProps) {
   const itemClass = 'h-full min-h-0 w-full min-w-0 text-left'
 
@@ -39,7 +44,10 @@ export function DashboardFeatureCards({
       {cards.map((card) => {
         const Icon = card.icon
         const isWrenyLogo = card.id === AI_AGENT_CARD_ID
-        const isInteractive = card.id === AI_AGENT_CARD_ID
+        const isImportPdf =
+          card.id === IMPORT_PDF_CARD_ID && Boolean(onImportPdfClick)
+        const isInteractive =
+          card.id === AI_AGENT_CARD_ID || isImportPdf
 
         const content = (
           <div
@@ -73,12 +81,21 @@ export function DashboardFeatureCards({
         )
 
         if (isInteractive) {
+          const disabled =
+            card.id === AI_AGENT_CARD_ID
+              ? aiAgentDisabled
+              : importPdfDisabled
+          const onClick =
+            card.id === AI_AGENT_CARD_ID
+              ? onAiAgentClick
+              : onImportPdfClick!
+
           return (
             <button
               key={card.id}
               type="button"
-              onClick={onAiAgentClick}
-              disabled={aiAgentDisabled}
+              onClick={onClick}
+              disabled={disabled}
               className={cn(
                 itemClass,
                 'disabled:cursor-not-allowed disabled:opacity-50'

@@ -603,3 +603,46 @@
     pointer-events: inherit;
   }
 }
+
+/*
+ * PDF import — vertical content scan (top → bottom, then back).
+ * Horizontal bar + fade trail above, same idea as Animata content-scan rotated 90°.
+ */
+@keyframes content-scan-sweep-y {
+  0% {
+    top: 0;
+  }
+  100% {
+    top: calc(100% - 5rem);
+  }
+}
+
+.document-scan-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: 5rem;
+  flex-direction: column-reverse;
+  pointer-events: none;
+  animation: content-scan-sweep-y 0.85s ease-in-out infinite alternate;
+}
+
+.document-scan-sweep-bar {
+  height: 0.375rem;
+  width: 100%;
+  flex-shrink: 0;
+  border-radius: 1px;
+  background: var(--primary);
+}
+
+.document-scan-sweep-fade {
+  min-height: 0;
+  flex: 1 1 0;
+  width: 100%;
+  background: linear-gradient(
+    to top,
+    color-mix(in oklch, var(--primary) 72%, transparent) 0%,
+    transparent 100%
+  );
+}

@@ -2,8 +2,6 @@ name: wreny-v2
 agents:
   Cursor:
     command: agent
-    auto_start: true
-    auto_restart: true
     preset: cursor
 processes:
   sst:dev:

@@ -46,6 +46,11 @@ export async function createResume(input: Pick<ResumeInfo, 'title' | 'data'>) {
   return response.data
 }
 
+export async function importResumeFromPdf(file: File) {
+  const response = await api.resumes.importFromPdf(file, file.name)
+  return response.data
+}
+
 export async function updateResume(resumeId: string, data: ResumeDocument, title?: string) {
   const response = await api.resumes.update(resumeId, {
     data,
@@ -106,6 +111,21 @@ export function useCreateResume() {
       navigate({
         to: '/dashboard/resumes/$id/$step',
         params: { id: resume.id, step: 'contact' },
+      })
+    },
+  })
+}
+
+export function useImportResumeFromPdf() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file: File) => importResumeFromPdf(file),
+    onSuccess: (resume) => {
+      queryClient.invalidateQueries({ queryKey: resumeKeys.all })
+      navigate({
+        to: '/dashboard/resumes/$id/$step',
+        params: { id: resume.id, step: 'preview' },
       })
     },
   })

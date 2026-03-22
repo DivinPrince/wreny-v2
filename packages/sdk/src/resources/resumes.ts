@@ -33,6 +33,20 @@ export class ResumesResource extends APIResource {
     });
   }
 
+  importFromPdf(
+    file: File | Blob,
+    filename: string,
+    options?: RequestOptions,
+  ): Promise<Response<Resume>> {
+    const body = new FormData();
+    body.append("file", file, filename);
+    return this._client.post("/api/resumes/import-pdf", {
+      ...options,
+      body,
+      timeout: options?.timeout ?? 120_000,
+    });
+  }
+
   update(
     id: string,
     data: Omit<ResumeUpdateInput, "id">,

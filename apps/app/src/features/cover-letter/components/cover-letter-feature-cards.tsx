@@ -1,14 +1,15 @@
+import { useRef } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { FileText } from 'lucide-react'
-import { RiLinkedinBoxFill } from '@remixicon/react'
 
 import {
   DashboardFeatureCards,
   type DashboardFeatureCard,
 } from '#/components/dashboard-feature-cards'
+import { DocumentScanningOverlay } from '#/components/document-scanning-overlay'
 import { Icons } from '#/components/ui/icons'
-import { useSession } from '#/lib/auth-client'
 
-import { useCreateCoverLetter } from '../lib/queries'
+import { useImportCoverLetterFromPdf } from '../lib/queries'
 
 const featureCards: DashboardFeatureCard[] = [
   {
@@ -22,25 +23,38 @@ const featureCards: DashboardFeatureCard[] = [
     title: 'Import from PDF',
     description: 'Convert your existing cover letter',
     icon: FileText,
-  },
-  {
-    id: 'import-linkedin',
-    title: 'Import from LinkedIn',
-    description: 'Pull context from your profile',
-    icon: RiLinkedinBoxFill,
-  },
+  }
 ]
 
 export function CoverLetterFeatureCards() {
-  const { data: session } = useSession()
-  const createMutation = useCreateCoverLetter()
+  const navigate = useNavigate()
+  const importPdfMutation = useImportCoverLetterFromPdf()
+  const pdfInputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <DashboardFeatureCards
-      cards={featureCards}
-      listAriaLabel="Cover letter shortcuts"
-      onAiAgentClick={() => createMutation.mutate({ user: session?.user })}
-      aiAgentDisabled={createMutation.isPending}
-    />
+    <>
+      <DocumentScanningOverlay open={importPdfMutation.isPending} />
+      <input
+        ref={pdfInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        className="sr-only"
+        aria-hidden
+        tabIndex={-1}
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (file) importPdfMutation.mutate(file)
+        }}
+      />
+      <DashboardFeatureCards
+        cards={featureCards}
+        listAriaLabel="Cover letter shortcuts"
+        onAiAgentClick={() => navigate({ to: '/dashboard/agent' })}
+        aiAgentDisabled={importPdfMutation.isPending}
+        onImportPdfClick={() => pdfInputRef.current?.click()}
+        importPdfDisabled={importPdfMutation.isPending}
+      />
+    </>
   )
 }

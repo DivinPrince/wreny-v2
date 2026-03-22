@@ -47,6 +47,11 @@ export async function createCoverLetter(
   return response.data
 }
 
+export async function importCoverLetterFromPdf(file: File) {
+  const response = await api.coverLetters.importFromPdf(file, file.name)
+  return response.data
+}
+
 export async function updateCoverLetter(
   coverLetterId: string,
   data: CoverLetterDocument,
@@ -120,6 +125,22 @@ export function useCreateCoverLetter() {
         title: 'Untitled Cover Letter',
         data: buildNewCoverLetter('classic', vars?.user),
       }),
+    onSuccess: (coverLetter) => {
+      queryClient.invalidateQueries({ queryKey: coverLetterKeys.all })
+      navigate({
+        to: '/dashboard/cover-letters/$id/$step',
+        params: { id: coverLetter.id, step: 'preview' },
+      })
+    },
+  })
+}
+
+export function useImportCoverLetterFromPdf() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (file: File) => importCoverLetterFromPdf(file),
     onSuccess: (coverLetter) => {
       queryClient.invalidateQueries({ queryKey: coverLetterKeys.all })
       navigate({

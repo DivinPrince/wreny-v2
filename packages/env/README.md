@@ -33,8 +33,8 @@ Use in: API server, CLI tools, database scripts. **Never access on client** – 
 | `API_URL` | `http://localhost:3000` | API base URL |
 | `API_PORT` | `5001` | API server port |
 | `RESEND_API_KEY`, `EMAIL_FROM` | — | Email (Resend) |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | — | Stripe |
-| `PAYMENT_PROVIDER` | `stripe` | `stripe` or `paypal` |
+| `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET` | — | [Polar](https://polar.sh) billing (API + webhook verify) |
+| `PAYMENT_PROVIDER` | `polar` | `polar` or `paypal` |
 | `AWS_REGION`, `S3_BUCKET_NAME` | — | AWS S3 |
 | `GCS_*` | — | Google Cloud Storage |
 | `GOOGLE_GENERATIVE_AI_API_KEY`, `FIRECRAWL_API_KEY` | — | AI/integrations |

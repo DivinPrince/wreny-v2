@@ -1,5 +1,7 @@
 import { Actor } from "@repo/core/actor";
 import { CoverLetterService } from "@repo/core/cover-letter";
+import { ErrorCodes, VisibleError } from "@repo/core/error";
+import { extractCoverLetterFromPdf } from "@repo/core/pdf-import";
 import { Hono } from "hono";
 import { z } from "zod";
 import { generateCoverLetterPdf } from "./cover-letter-pdf";
@@ -13,6 +15,7 @@ import {
   success,
   validate,
 } from "./common";
+import { parsePdfUpload } from "./pdf-import-form";
 
 const coverLetterIdSchema = z.object({
   id: z.string(),
@@ -49,6 +52,30 @@ export const coverLettersApi = new Hono<AppEnv>()
     const coverLetter = await CoverLetterService.create({
       userId: Actor.userID(),
       ...c.req.valid("json"),
+    });
+
+    return ok(c, coverLetter, 201);
+  })
+  .post("/import-pdf", async (c) => {
+    const { bytes, title } = await parsePdfUpload(c, {
+      titleFallback: "Imported cover letter",
+    });
+
+    let data;
+    try {
+      data = await extractCoverLetterFromPdf(bytes);
+    } catch {
+      throw new VisibleError(
+        "internal",
+        ErrorCodes.Server.SERVICE_UNAVAILABLE,
+        "We could not extract a cover letter from this PDF. Try a text-based PDF or a clearer scan.",
+      );
+    }
+
+    const coverLetter = await CoverLetterService.create({
+      userId: Actor.userID(),
+      title,
+      data,
     });
 
     return ok(c, coverLetter, 201);

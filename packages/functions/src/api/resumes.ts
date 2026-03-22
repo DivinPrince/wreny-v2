@@ -1,4 +1,6 @@
 import { Actor } from "@repo/core/actor";
+import { ErrorCodes, VisibleError } from "@repo/core/error";
+import { extractResumeFromPdf } from "@repo/core/pdf-import";
 import { ResumeService } from "@repo/core/resume";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -13,6 +15,7 @@ import {
   success,
   validate,
 } from "./common";
+import { parsePdfUpload } from "./pdf-import-form";
 
 const resumeIdSchema = z.object({
   id: z.string(),
@@ -49,6 +52,30 @@ export const resumesApi = new Hono<AppEnv>()
     const resume = await ResumeService.create({
       userId: Actor.userID(),
       ...c.req.valid("json"),
+    });
+
+    return ok(c, resume, 201);
+  })
+  .post("/import-pdf", async (c) => {
+    const { bytes, title } = await parsePdfUpload(c, {
+      titleFallback: "Imported resume",
+    });
+
+    let data;
+    try {
+      data = await extractResumeFromPdf(bytes);
+    } catch {
+      throw new VisibleError(
+        "internal",
+        ErrorCodes.Server.SERVICE_UNAVAILABLE,
+        "We could not extract a resume from this PDF. Try a text-based PDF or a clearer scan.",
+      );
+    }
+
+    const resume = await ResumeService.create({
+      userId: Actor.userID(),
+      title,
+      data,
     });
 
     return ok(c, resume, 201);
