@@ -71,7 +71,7 @@ function DashboardAgentLayout() {
           </div>
         </div>
       ) : (
-        <>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <AgentPanelChat
             layout="page"
             isNewSession={isNewSession}
@@ -86,7 +86,7 @@ function DashboardAgentLayout() {
             pageHero={sessionId ? undefined : agentPageHero}
           />
           <Outlet />
-        </>
+        </div>
       )}
     </AgentPageShell>
   )

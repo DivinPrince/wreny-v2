@@ -9,7 +9,7 @@ export function AgentPageShell({ children }: Readonly<{ children: ReactNode }>) 
   const navigate = useNavigate()
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border/40 px-4 py-2.5">
         <AgentRecentChatsDialog />
         <Button
@@ -25,7 +25,9 @@ export function AgentPageShell({ children }: Readonly<{ children: ReactNode }>) 
         </Button>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col px-4 py-6">{children}</div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-6 pb-0">
+        {children}
+      </div>
     </div>
   )
 }

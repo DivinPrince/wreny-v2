@@ -26,7 +26,7 @@ export default function UserButton() {
   const displayName = user?.name ?? user?.email ?? "User";
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"

@@ -1,11 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { ArrowUp, Check, X } from 'lucide-react'
+import { ArrowUp, Check, Paperclip, X } from 'lucide-react'
 import type { DocumentChange, ResumeAgentUIMessage } from '@repo/core/agent'
 
 import { AgentMarkdown } from '#/components/ui/agent-markdown'
 import { AutosizeTextarea } from '#/components/ui/autosize-textarea'
 import { Button } from '#/components/ui/button'
+import { useSidebar } from '#/components/ui/sidebar'
 import { cn } from '#/lib/utils'
 
 import {
@@ -25,13 +32,109 @@ export type AgentChatPlaceholders = {
 const PAGE_COMPOSER_TITLE =
   'Enter to send. Shift+Enter adds a new line.'
 
-function PagePromptShell({ children }: { children: ReactNode }) {
+function dashboardAttachmentUserPrefix(
+  kind: 'resume' | 'coverLetter',
+  title: string,
+  id: string,
+): string {
+  if (kind === 'resume') {
+    return `The user attached the dashboard resume "${title}". Use documentType "resume" and documentId "${id}" when calling getResume or proposeDocumentChanges for this document.\n\n`
+  }
+  return `The user attached the dashboard cover letter "${title}". Use documentType "coverLetter" and documentId "${id}" when calling getCoverLetter or proposeDocumentChanges for this document.\n\n`
+}
+
+function splitDashboardAttachmentUserText(full: string): {
+  kind: 'resume' | 'coverLetter'
+  title: string
+  body: string
+} | null {
+  const resumeLead = 'The user attached the dashboard resume "'
+  const coverLead = 'The user attached the dashboard cover letter "'
+  const kind: 'resume' | 'coverLetter' | null = full.startsWith(resumeLead)
+    ? 'resume'
+    : full.startsWith(coverLead)
+      ? 'coverLetter'
+      : null
+  if (!kind) return null
+
+  const titleStart = kind === 'resume' ? resumeLead.length : coverLead.length
+  const titleEnd = full.indexOf('". Use documentType "', titleStart)
+  if (titleEnd === -1) return null
+  const title = full.slice(titleStart, titleEnd)
+  if (!title) return null
+
+  const idKey = 'documentId "'
+  const idKeyAt = full.indexOf(idKey, titleEnd)
+  if (idKeyAt === -1) return null
+  const idValueStart = idKeyAt + idKey.length
+  const idValueEnd = full.indexOf('" when calling', idValueStart)
+  if (idValueEnd === -1) return null
+  const id = full.slice(idValueStart, idValueEnd)
+
+  const expectedPrefix = dashboardAttachmentUserPrefix(kind, title, id)
+  if (!full.startsWith(expectedPrefix)) return null
+
+  return { kind, title, body: full.slice(expectedPrefix.length) }
+}
+
+function UserMessageContent({ text }: Readonly<{ text: string }>) {
+  const split = splitDashboardAttachmentUserText(text)
+  if (!split) {
+    return (
+      <span className="wrap-break-word whitespace-pre-wrap">{text}</span>
+    )
+  }
+  const chipLabel =
+    split.kind === 'resume'
+      ? `Resume · ${split.title}`
+      : `Cover letter · ${split.title}`
+
   return (
-    <div className="mx-auto w-full max-w-xl shrink-0 pb-3 pt-1">
+    <div className="flex flex-col gap-2">
+      <div
+        className="flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-primary-foreground/25 bg-primary-foreground/12 py-1 pl-2.5 pr-2 text-[11px] text-primary-foreground"
+        title={chipLabel}
+      >
+        <Paperclip className="size-3 shrink-0 opacity-80" aria-hidden />
+        <span className="min-w-0 truncate font-semibold tracking-tight">
+          {chipLabel}
+        </span>
+      </div>
+      {split.body ? (
+        <span className="wrap-break-word whitespace-pre-wrap">{split.body}</span>
+      ) : null}
+    </div>
+  )
+}
+
+function PagePromptShell({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn('mx-auto w-full max-w-xl shrink-0 pb-3 pt-1', className)}>
       <div className="overflow-hidden rounded-xl border border-border/50 bg-muted/25 dark:bg-muted/20">
         {children}
       </div>
     </div>
+  )
+}
+
+/** Viewport-fixed dock; `left` follows dashboard sidebar width (expanded vs icon). */
+function pageComposerDockClassName(sidebar: {
+  isMobile: boolean
+  state: 'expanded' | 'collapsed'
+}) {
+  return cn(
+    'fixed bottom-0 right-0 z-40 border-t border-border/50 bg-background/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] supports-backdrop-filter:backdrop-blur-md dark:shadow-[0_-8px_30px_rgba(0,0,0,0.25]',
+    sidebar.isMobile
+      ? 'left-0'
+      : sidebar.state === 'collapsed'
+        ? 'md:left-[var(--sidebar-width-icon)]'
+        : 'md:left-[var(--sidebar-width)]',
   )
 }
 
@@ -106,13 +209,23 @@ export function AgentPanelChat({
   placeholders,
   pageHero,
 }: AgentPanelChatProps) {
+  const sidebar = useSidebar()
   const [input, setInput] = useState('')
   const [pageAttachment, setPageAttachment] = useState<PageDocumentAttachment | null>(null)
   const [approvalInFlight, setApprovalInFlight] = useState<{
     approved: boolean
     id: string
   } | null>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesScrollRef = useRef<HTMLDivElement>(null)
+  const pageComposerDockRef = useRef<HTMLDivElement>(null)
+  /** Bottom inset under messages so the fixed composer never covers the last lines. */
+  const [pageComposerBottomInset, setPageComposerBottomInset] = useState(220)
+
+  const scrollMessagesToEnd = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const el = messagesScrollRef.current
+    if (!el) return
+    el.scrollTo({ top: el.scrollHeight, behavior })
+  }, [])
 
   const lastMessage = messages.at(-1)
   const hasPendingApproval = messages.some((message) =>
@@ -148,10 +261,47 @@ export function AgentPanelChat({
   }, [approvalInFlight, status])
 
   useEffect(() => {
-    if (isNewSession || messages.length === 0) return
+    if (isNewSession) return
+    if (messages.length === 0) return
 
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [isNewSession, messages, status])
+    const behavior: ScrollBehavior =
+      status === 'streaming' || status === 'submitted' ? 'auto' : 'smooth'
+    const id = requestAnimationFrame(() => {
+      scrollMessagesToEnd(behavior)
+    })
+    return () => cancelAnimationFrame(id)
+  }, [isNewSession, messages, scrollMessagesToEnd, status])
+
+  useLayoutEffect(() => {
+    if (layout !== 'page' || isNewSession) return
+    const el = pageComposerDockRef.current
+    if (!el) return
+
+    const update = () => {
+      const h = el.getBoundingClientRect().height
+      setPageComposerBottomInset(Math.ceil(h) + 24)
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [isNewSession, layout, messages.length])
+
+  useEffect(() => {
+    if (layout !== 'page' || isNewSession) return
+    const scroller = messagesScrollRef.current
+    if (!scroller) return
+    const nearBottom =
+      scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight <
+      120
+    if (!nearBottom) return
+    requestAnimationFrame(() => scrollMessagesToEnd('auto'))
+  }, [
+    isNewSession,
+    layout,
+    pageComposerBottomInset,
+    scrollMessagesToEnd,
+  ])
 
   const sendWithContext = useCallback(
     (content: { text: string }) => {
@@ -159,10 +309,11 @@ export function AgentPanelChat({
         sendMessage(content)
         return
       }
-      const header =
-        pageAttachment.kind === 'resume'
-          ? `The user attached the dashboard resume "${pageAttachment.title}". Use documentType "resume" and documentId "${pageAttachment.id}" when calling getResume or proposeDocumentChanges for this document.\n\n`
-          : `The user attached the dashboard cover letter "${pageAttachment.title}". Use documentType "coverLetter" and documentId "${pageAttachment.id}" when calling getCoverLetter or proposeDocumentChanges for this document.\n\n`
+      const header = dashboardAttachmentUserPrefix(
+        pageAttachment.kind === 'resume' ? 'resume' : 'coverLetter',
+        pageAttachment.title,
+        pageAttachment.id,
+      )
       sendMessage({ text: header + content.text })
     },
     [layout, pageAttachment, sendMessage],
@@ -174,7 +325,7 @@ export function AgentPanelChat({
     if (!trimmed) return
     sendWithContext({ text: trimmed })
     setInput('')
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50)
+    setTimeout(() => scrollMessagesToEnd('smooth'), 50)
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -273,16 +424,24 @@ export function AgentPanelChat({
   const messagesList = (
     <>
       {layout === 'page' && messages.length === 0 && (
-        <div className="min-h-0 flex-1" aria-hidden />
+        <div
+          className="min-h-0 flex-1 shrink-0"
+          style={{ paddingBottom: pageComposerBottomInset }}
+          aria-hidden
+        />
       )}
       {messages.length > 0 && (
         <div
+          ref={messagesScrollRef}
           className={cn(
-            'flex flex-col overflow-y-auto px-3 py-3',
-            layout === 'page'
-              ? 'min-h-0 flex-1 px-4 py-4'
-              : messagesScrollClassName,
+            'flex min-h-0 flex-col overflow-x-hidden overflow-y-auto px-3 py-3',
+            layout === 'page' ? 'flex-1 px-4 pt-4' : messagesScrollClassName,
           )}
+          style={
+            layout === 'page'
+              ? { paddingBottom: pageComposerBottomInset }
+              : undefined
+          }
         >
           <div className="flex flex-col gap-2">
             {messages.map((msg) => {
@@ -310,12 +469,12 @@ export function AgentPanelChat({
                     )}
                   >
                     {msg.role === 'user' ? (
-                      <span className="whitespace-pre-wrap wrap-break-word">
-                        {(msg.parts as Array<{ type: string; text?: string }>)
+                      <UserMessageContent
+                        text={(msg.parts as Array<{ type: string; text?: string }>)
                           .filter((p) => p.type === 'text' && p.text)
                           .map((p) => p.text)
                           .join('')}
-                      </span>
+                      />
                     ) : (
                       <MessageParts
                         parts={msg.parts}
@@ -354,18 +513,15 @@ export function AgentPanelChat({
               </div>
             )}
           </div>
-          <div ref={messagesEndRef} />
         </div>
       )}
 
-      <div
-        className={cn(
-          messages.length > 0 && layout !== 'page' && 'border-t border-foreground/8',
-          layout === 'page' && 'shrink-0',
-        )}
-      >
-        {layout === 'page' ? (
-          <PagePromptShell>
+      {layout === 'page' ? (
+        <div
+          ref={pageComposerDockRef}
+          className={pageComposerDockClassName(sidebar)}
+        >
+          <PagePromptShell className="pb-1 pt-0">
             <div className="flex items-end gap-1.5 p-2">
               <AutosizeTextarea
                 value={input}
@@ -400,7 +556,13 @@ export function AgentPanelChat({
               disabled={isComposerDisabled}
             />
           </PagePromptShell>
-        ) : (
+        </div>
+      ) : (
+        <div
+          className={cn(
+            messages.length > 0 && 'border-t border-foreground/8',
+          )}
+        >
           <div
             className={cn(
               'flex items-end gap-0 overflow-hidden rounded-t-lg bg-muted/30',
@@ -433,14 +595,14 @@ export function AgentPanelChat({
               <ArrowUp className="size-3.5" />
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </>
   )
 
   if (layout === 'page') {
     return (
-      <div className="flex min-h-0 min-h-[min(360px,calc(100dvh-9rem))] w-full min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
         {messagesList}
       </div>
     )

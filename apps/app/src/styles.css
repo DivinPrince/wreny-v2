@@ -134,6 +134,8 @@
   }
   html {
     @apply font-sans;
+    /* Reserve space for scrollbar so Radix modal/menus don’t shift layout */
+    scrollbar-gutter: stable;
   }
   .typography {
     max-width: 65ch;
