@@ -23,7 +23,10 @@ export function isUrl(value: string | null | undefined) {
 
 export function isEmptyString(value: string) {
   if (!value || typeof value !== 'string') return true
-  return value.trim().length === 0
+  const trimmed = value.trim()
+  if (!trimmed) return true
+  // Legacy editor stored empty rich-text values as this literal HTML.
+  return trimmed === '<p></p>'
 }
 
 export function hexToRgb(hex: string, alpha = 0) {
