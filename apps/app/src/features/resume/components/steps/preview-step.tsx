@@ -921,7 +921,10 @@ export function PreviewStep() {
       />
 
       <div ref={previewContainerRef} className="resume-print-root min-h-0 flex-1 overflow-auto rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-4">
-        <div className="resume-print-frame mx-auto max-w-[860px]" style={{ zoom: previewScale }}>
+        <div
+          className="resume-print-frame mx-auto w-full min-w-0 max-w-[860px]"
+          style={{ zoom: previewScale }}
+        >
           <ResumeRenderer
             resume={previewDraft}
             pendingChanges={pendingChanges.map((c) => ({

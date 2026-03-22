@@ -17,11 +17,14 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as ResumePdfIdRouteImport } from './routes/resume-pdf/$id'
 import { Route as CoverLetterPdfIdRouteImport } from './routes/cover-letter-pdf/$id'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as DashboardAgentRouteRouteImport } from './routes/dashboard/agent/route'
 import { Route as DashboardResumesIndexRouteImport } from './routes/dashboard/resumes/index'
 import { Route as DashboardJobsIndexRouteImport } from './routes/dashboard/jobs/index'
 import { Route as DashboardCoverLettersIndexRouteImport } from './routes/dashboard/cover-letters/index'
+import { Route as DashboardAgentIndexRouteImport } from './routes/dashboard/agent/index'
 import { Route as DashboardResumesIdRouteImport } from './routes/dashboard/resumes/$id'
 import { Route as DashboardCoverLettersIdRouteImport } from './routes/dashboard/cover-letters/$id'
+import { Route as DashboardAgentSessionIdRouteImport } from './routes/dashboard/agent/$sessionId'
 import { Route as DashboardResumesIdIndexRouteImport } from './routes/dashboard/resumes/$id/index'
 import { Route as DashboardCoverLettersIdIndexRouteImport } from './routes/dashboard/cover-letters/$id/index'
 import { Route as DashboardResumesIdStepRouteImport } from './routes/dashboard/resumes/$id/$step'
@@ -67,6 +70,11 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardAgentRouteRoute = DashboardAgentRouteRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardResumesIndexRoute = DashboardResumesIndexRouteImport.update({
   id: '/resumes/',
   path: '/resumes/',
@@ -83,6 +91,11 @@ const DashboardCoverLettersIndexRoute =
     path: '/cover-letters/',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardAgentIndexRoute = DashboardAgentIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardAgentRouteRoute,
+} as any)
 const DashboardResumesIdRoute = DashboardResumesIdRouteImport.update({
   id: '/resumes/$id',
   path: '/resumes/$id',
@@ -92,6 +105,11 @@ const DashboardCoverLettersIdRoute = DashboardCoverLettersIdRouteImport.update({
   id: '/cover-letters/$id',
   path: '/cover-letters/$id',
   getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAgentSessionIdRoute = DashboardAgentSessionIdRouteImport.update({
+  id: '/$sessionId',
+  path: '/$sessionId',
+  getParentRoute: () => DashboardAgentRouteRoute,
 } as any)
 const DashboardResumesIdIndexRoute = DashboardResumesIdIndexRouteImport.update({
   id: '/',
@@ -121,12 +139,15 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/dashboard/agent': typeof DashboardAgentRouteRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/cover-letter-pdf/$id': typeof CoverLetterPdfIdRoute
   '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/agent/$sessionId': typeof DashboardAgentSessionIdRoute
   '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRouteWithChildren
   '/dashboard/resumes/$id': typeof DashboardResumesIdRouteWithChildren
+  '/dashboard/agent/': typeof DashboardAgentIndexRoute
   '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs/': typeof DashboardJobsIndexRoute
   '/dashboard/resumes/': typeof DashboardResumesIndexRoute
@@ -143,6 +164,8 @@ export interface FileRoutesByTo {
   '/cover-letter-pdf/$id': typeof CoverLetterPdfIdRoute
   '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/agent/$sessionId': typeof DashboardAgentSessionIdRoute
+  '/dashboard/agent': typeof DashboardAgentIndexRoute
   '/dashboard/cover-letters': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs': typeof DashboardJobsIndexRoute
   '/dashboard/resumes': typeof DashboardResumesIndexRoute
@@ -157,12 +180,15 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/dashboard/agent': typeof DashboardAgentRouteRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/cover-letter-pdf/$id': typeof CoverLetterPdfIdRoute
   '/resume-pdf/$id': typeof ResumePdfIdRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/agent/$sessionId': typeof DashboardAgentSessionIdRoute
   '/dashboard/cover-letters/$id': typeof DashboardCoverLettersIdRouteWithChildren
   '/dashboard/resumes/$id': typeof DashboardResumesIdRouteWithChildren
+  '/dashboard/agent/': typeof DashboardAgentIndexRoute
   '/dashboard/cover-letters/': typeof DashboardCoverLettersIndexRoute
   '/dashboard/jobs/': typeof DashboardJobsIndexRoute
   '/dashboard/resumes/': typeof DashboardResumesIndexRoute
@@ -178,12 +204,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/signin'
     | '/signup'
+    | '/dashboard/agent'
     | '/api/$'
     | '/cover-letter-pdf/$id'
     | '/resume-pdf/$id'
     | '/dashboard/'
+    | '/dashboard/agent/$sessionId'
     | '/dashboard/cover-letters/$id'
     | '/dashboard/resumes/$id'
+    | '/dashboard/agent/'
     | '/dashboard/cover-letters/'
     | '/dashboard/jobs/'
     | '/dashboard/resumes/'
@@ -200,6 +229,8 @@ export interface FileRouteTypes {
     | '/cover-letter-pdf/$id'
     | '/resume-pdf/$id'
     | '/dashboard'
+    | '/dashboard/agent/$sessionId'
+    | '/dashboard/agent'
     | '/dashboard/cover-letters'
     | '/dashboard/jobs'
     | '/dashboard/resumes'
@@ -213,12 +244,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/signin'
     | '/signup'
+    | '/dashboard/agent'
     | '/api/$'
     | '/cover-letter-pdf/$id'
     | '/resume-pdf/$id'
     | '/dashboard/'
+    | '/dashboard/agent/$sessionId'
     | '/dashboard/cover-letters/$id'
     | '/dashboard/resumes/$id'
+    | '/dashboard/agent/'
     | '/dashboard/cover-letters/'
     | '/dashboard/jobs/'
     | '/dashboard/resumes/'
@@ -296,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/agent': {
+      id: '/dashboard/agent'
+      path: '/agent'
+      fullPath: '/dashboard/agent'
+      preLoaderRoute: typeof DashboardAgentRouteRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/resumes/': {
       id: '/dashboard/resumes/'
       path: '/resumes'
@@ -317,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCoverLettersIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/agent/': {
+      id: '/dashboard/agent/'
+      path: '/'
+      fullPath: '/dashboard/agent/'
+      preLoaderRoute: typeof DashboardAgentIndexRouteImport
+      parentRoute: typeof DashboardAgentRouteRoute
+    }
     '/dashboard/resumes/$id': {
       id: '/dashboard/resumes/$id'
       path: '/resumes/$id'
@@ -330,6 +378,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/cover-letters/$id'
       preLoaderRoute: typeof DashboardCoverLettersIdRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/agent/$sessionId': {
+      id: '/dashboard/agent/$sessionId'
+      path: '/$sessionId'
+      fullPath: '/dashboard/agent/$sessionId'
+      preLoaderRoute: typeof DashboardAgentSessionIdRouteImport
+      parentRoute: typeof DashboardAgentRouteRoute
     }
     '/dashboard/resumes/$id/': {
       id: '/dashboard/resumes/$id/'
@@ -362,6 +417,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardAgentRouteRouteChildren {
+  DashboardAgentSessionIdRoute: typeof DashboardAgentSessionIdRoute
+  DashboardAgentIndexRoute: typeof DashboardAgentIndexRoute
+}
+
+const DashboardAgentRouteRouteChildren: DashboardAgentRouteRouteChildren = {
+  DashboardAgentSessionIdRoute: DashboardAgentSessionIdRoute,
+  DashboardAgentIndexRoute: DashboardAgentIndexRoute,
+}
+
+const DashboardAgentRouteRouteWithChildren =
+  DashboardAgentRouteRoute._addFileChildren(DashboardAgentRouteRouteChildren)
+
 interface DashboardCoverLettersIdRouteChildren {
   DashboardCoverLettersIdStepRoute: typeof DashboardCoverLettersIdStepRoute
   DashboardCoverLettersIdIndexRoute: typeof DashboardCoverLettersIdIndexRoute
@@ -392,6 +460,7 @@ const DashboardResumesIdRouteWithChildren =
   DashboardResumesIdRoute._addFileChildren(DashboardResumesIdRouteChildren)
 
 interface DashboardRouteChildren {
+  DashboardAgentRouteRoute: typeof DashboardAgentRouteRouteWithChildren
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardCoverLettersIdRoute: typeof DashboardCoverLettersIdRouteWithChildren
   DashboardResumesIdRoute: typeof DashboardResumesIdRouteWithChildren
@@ -401,6 +470,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAgentRouteRoute: DashboardAgentRouteRouteWithChildren,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardCoverLettersIdRoute: DashboardCoverLettersIdRouteWithChildren,
   DashboardResumesIdRoute: DashboardResumesIdRouteWithChildren,

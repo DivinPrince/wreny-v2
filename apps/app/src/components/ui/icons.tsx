@@ -9,7 +9,8 @@ import {
     XCircle,
     ChevronRight,
     CircleCheck,
-    CircleDashed
+    CircleDashed,
+    Sparkles,
   } from "lucide-react";
   import {
     RiLinkedinBoxFill,
@@ -382,6 +383,7 @@ import {
     Logo,
     LogoWithText,
     CircleDashed,
-    CircleCheck
+    CircleCheck,
+    Sparkles,
   };
   

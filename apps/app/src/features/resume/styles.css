@@ -98,6 +98,26 @@
   overflow: hidden;
 }
 
+/* Main + sidebar columns: default min-width:auto lets content spill into the next
+   grid track; the sidebar is painted later, so bg-highlight covers overflowing text. */
+.resume-page .main,
+.resume-page .sidebar {
+  min-width: 0;
+}
+
+.resume-page .main {
+  overflow-x: hidden;
+}
+
+.resume-page :where(.grid) > * {
+  min-width: 0;
+}
+
+/* Section rows (e.g. Projects): flex children also default to min-width:auto. */
+.resume-page :where(.main, .sidebar) .flex.justify-between > *:not(.shrink-0) {
+  min-width: 0;
+}
+
 .resume-page.hide-icons .ph {
   display: none;
 }
