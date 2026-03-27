@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState, type ComponentType, type SVGProps } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { FileText } from 'lucide-react'
 import { RiLinkedinBoxFill } from '@remixicon/react'
@@ -10,7 +10,8 @@ import {
 import { DocumentScanningOverlay } from '#/components/document-scanning-overlay'
 import { Icons } from '#/components/ui/icons'
 
-import { useImportResumeFromPdf } from '../lib/queries'
+import { LinkedInResumeImportDialog } from './linkedin-resume-import-dialog'
+import { useImportResumeFromLinkedIn, useImportResumeFromPdf } from '../lib/queries'
 
 const featureCards: DashboardFeatureCard[] = [
   {
@@ -29,18 +30,28 @@ const featureCards: DashboardFeatureCard[] = [
     id: 'import-linkedin',
     title: 'Import from LinkedIn',
     description: 'Pull your experience from LinkedIn',
-    icon: RiLinkedinBoxFill,
+    icon: RiLinkedinBoxFill as ComponentType<SVGProps<SVGSVGElement>>,
   },
 ]
 
 export function ResumeFeatureCards() {
   const navigate = useNavigate()
   const importPdfMutation = useImportResumeFromPdf()
+  const importLinkedInMutation = useImportResumeFromLinkedIn()
+  const [linkedinImportOpen, setLinkedinImportOpen] = useState(false)
   const pdfInputRef = useRef<HTMLInputElement>(null)
+
+  const importBusy =
+    importPdfMutation.isPending || importLinkedInMutation.isPending
 
   return (
     <>
       <DocumentScanningOverlay open={importPdfMutation.isPending} />
+      <LinkedInResumeImportDialog
+        open={linkedinImportOpen}
+        onOpenChange={setLinkedinImportOpen}
+        mutation={importLinkedInMutation}
+      />
       <input
         ref={pdfInputRef}
         type="file"
@@ -58,9 +69,11 @@ export function ResumeFeatureCards() {
         cards={featureCards}
         listAriaLabel="Resume shortcuts"
         onAiAgentClick={() => navigate({ to: '/dashboard/agent' })}
-        aiAgentDisabled={importPdfMutation.isPending}
+        aiAgentDisabled={importBusy}
         onImportPdfClick={() => pdfInputRef.current?.click()}
-        importPdfDisabled={importPdfMutation.isPending}
+        importPdfDisabled={importBusy}
+        onImportLinkedInClick={() => setLinkedinImportOpen(true)}
+        importLinkedInDisabled={importBusy}
       />
     </>
   )

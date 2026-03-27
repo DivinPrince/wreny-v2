@@ -19,6 +19,7 @@ const apiRoutes = new Hono<AppEnv>()
         "/api/auth/*",
         "/api/resumes",
         "/api/resumes/import-pdf",
+        "/api/resumes/import-linkedin",
         "/api/cover-letters",
         "/api/cover-letters/import-pdf",
         "/api/jobs",

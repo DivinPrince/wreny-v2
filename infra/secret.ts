@@ -7,6 +7,8 @@ export const secret = {
   LinkedinClientId: new sst.Secret("LinkedinClientId"),
   LinkedinClientSecret: new sst.Secret("LinkedinClientSecret"),
   GoogleVertexApiKey: new sst.Secret("GoogleVertexApiKey"),
+  /** Relevance Stack `YOUR_API_KEY` → `RELEVANCE_LINKEDIN_IMPORT_API_KEY` on the API Lambda. */
+  RelevanceLinkedInImportApiKey: new sst.Secret("RelevanceLinkedInImportApiKey"),
 };
 
 export const allSecrets = Object.values(secret);

@@ -18,7 +18,7 @@ export const urls = new sst.Linkable("Urls", {
 const apiFn = new sst.aws.Function("ApiFn", {
   handler: "./packages/functions/src/index.handler",
   streaming: true,
-  timeout: "2 minutes",
+  timeout: "15 minutes",
   link: [bus, mediaBucket, urls, ...allSecrets],
   url: {
     cors: false,
@@ -34,6 +34,7 @@ const apiFn = new sst.aws.Function("ApiFn", {
     GOOGLE_CLIENT_SECRET: secret.GoogleClientSecret.value,
     LINKEDIN_CLIENT_ID: secret.LinkedinClientId.value,
     LINKEDIN_CLIENT_SECRET: secret.LinkedinClientSecret.value,
+    RELEVANCE_LINKEDIN_IMPORT_API_KEY: secret.RelevanceLinkedInImportApiKey.value,
     S3_BUCKET_NAME: mediaBucket.name,
   },
 });

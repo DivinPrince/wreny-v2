@@ -14,6 +14,8 @@ export const resumePdfExtractSchema = z.object({
       email: z.string().default(""),
       phone: z.string().default(""),
       location: z.string().default(""),
+      /** Profile photo URL (e.g. LinkedIn `profile_image_url` from webhook). */
+      pictureUrl: z.string().optional(),
       personalUrl: urlPairSchema.optional(),
     })
     .default({

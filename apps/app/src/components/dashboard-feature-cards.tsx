@@ -11,6 +11,7 @@ export type DashboardFeatureCard = {
 
 const AI_AGENT_CARD_ID = 'ai-agent'
 const IMPORT_PDF_CARD_ID = 'import-pdf'
+const IMPORT_LINKEDIN_CARD_ID = 'import-linkedin'
 
 type DashboardFeatureCardsProps = {
   cards: DashboardFeatureCard[]
@@ -19,6 +20,8 @@ type DashboardFeatureCardsProps = {
   aiAgentDisabled?: boolean
   onImportPdfClick?: () => void
   importPdfDisabled?: boolean
+  onImportLinkedInClick?: () => void
+  importLinkedInDisabled?: boolean
 }
 
 export function DashboardFeatureCards({
@@ -28,6 +31,8 @@ export function DashboardFeatureCards({
   aiAgentDisabled,
   onImportPdfClick,
   importPdfDisabled,
+  onImportLinkedInClick,
+  importLinkedInDisabled,
 }: DashboardFeatureCardsProps) {
   const itemClass = 'h-full min-h-0 w-full min-w-0 text-left'
 
@@ -46,8 +51,10 @@ export function DashboardFeatureCards({
         const isWrenyLogo = card.id === AI_AGENT_CARD_ID
         const isImportPdf =
           card.id === IMPORT_PDF_CARD_ID && Boolean(onImportPdfClick)
+        const isImportLinkedIn =
+          card.id === IMPORT_LINKEDIN_CARD_ID && Boolean(onImportLinkedInClick)
         const isInteractive =
-          card.id === AI_AGENT_CARD_ID || isImportPdf
+          card.id === AI_AGENT_CARD_ID || isImportPdf || isImportLinkedIn
 
         const content = (
           <div
@@ -84,11 +91,15 @@ export function DashboardFeatureCards({
           const disabled =
             card.id === AI_AGENT_CARD_ID
               ? aiAgentDisabled
-              : importPdfDisabled
+              : card.id === IMPORT_PDF_CARD_ID
+                ? importPdfDisabled
+                : importLinkedInDisabled
           const onClick =
             card.id === AI_AGENT_CARD_ID
               ? onAiAgentClick
-              : onImportPdfClick!
+              : card.id === IMPORT_PDF_CARD_ID
+                ? onImportPdfClick!
+                : onImportLinkedInClick!
 
           return (
             <button

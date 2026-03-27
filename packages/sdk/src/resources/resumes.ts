@@ -47,6 +47,17 @@ export class ResumesResource extends APIResource {
     });
   }
 
+  importFromLinkedIn(
+    linkedinUrl: string,
+    options?: RequestOptions,
+  ): Promise<Response<Resume>> {
+    return this._client.post("/api/resumes/import-linkedin", {
+      ...options,
+      body: { linkedinUrl },
+      timeout: options?.timeout ?? 900_000,
+    });
+  }
+
   update(
     id: string,
     data: Omit<ResumeUpdateInput, "id">,

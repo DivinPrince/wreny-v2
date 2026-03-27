@@ -41,6 +41,11 @@ export function mergeResumePdfExtract(extracted: ResumePdfExtract): ResumeDocume
     };
   }
 
+  const pic = b.pictureUrl?.trim();
+  if (pic) {
+    doc.basics.picture.url = normalizeUrlHref(pic);
+  }
+
   doc.sections.summary.content = extracted.summary.trim();
 
   doc.sections.experience.items = extracted.experience

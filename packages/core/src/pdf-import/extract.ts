@@ -1,7 +1,7 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject } from "ai";
 
 import type { CoverLetterDocument, ResumeDocument } from "../schemas";
+import { getResumeAiModel } from "./ai-model";
 import { mergeCoverLetterPdfExtract } from "./merge-cover-letter";
 import { mergeResumePdfExtract } from "./merge-resume";
 import {
@@ -33,23 +33,11 @@ Rules:
 - If the recipient is unknown, leave recipient fields empty.
 - jobUrl must be a full URL or empty string.`;
 
-function googleModel() {
-  const apiKey =
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-    process.env.GOOGLE_VERTEX_API_KEY ||
-    "";
-  if (!apiKey) {
-    throw new Error("Missing GOOGLE_GENERATIVE_AI_API_KEY (or GOOGLE_VERTEX_API_KEY)");
-  }
-  const google = createGoogleGenerativeAI({ apiKey });
-  return google("gemini-2.5-flash");
-}
-
 export async function extractResumeFromPdf(
   pdfBytes: Uint8Array,
 ): Promise<ResumeDocument> {
   const { object } = await generateObject({
-    model: googleModel(),
+    model: getResumeAiModel(),
     schema: resumePdfExtractSchema,
     schemaName: "ResumePdfExtract",
     schemaDescription: "Structured resume fields extracted from a PDF",
@@ -75,7 +63,7 @@ export async function extractCoverLetterFromPdf(
   pdfBytes: Uint8Array,
 ): Promise<CoverLetterDocument> {
   const { object } = await generateObject({
-    model: googleModel(),
+    model: getResumeAiModel(),
     schema: coverLetterPdfExtractSchema,
     schemaName: "CoverLetterPdfExtract",
     schemaDescription: "Structured cover letter fields extracted from a PDF",
@@ -95,4 +83,44 @@ export async function extractCoverLetterFromPdf(
   });
 
   return mergeCoverLetterPdfExtract(object);
+}
+
+const LINKEDIN_SCRAPER_PROMPT = `You convert LinkedIn profile data from a third-party scraper (JSON below) into the same structured resume fields we use for PDF extraction.
+
+Rules:
+- Use only information present in the JSON; do not invent employers, dates, degrees, or contact details.
+- Map headline to basics.headline; map full name to basics.name; location fields to basics.location; public profile URL to basics.personalUrl and to profiles (network "LinkedIn", icon "linkedin").
+- Experience: each role → company, position/title, location, date range as one string, summary with markdown bullets "- point" when the source lists bullets.
+- Education, skills, certifications, projects: map when the JSON includes them; omit empty array entries.
+- Email/phone: only if explicitly in the JSON.
+- If the payload is empty or unusable, return mostly empty strings and arrays.`;
+
+/** Normalize LinkedIn profile import JSON (webhook payload rows) into a full resume document. */
+export async function extractResumeFromLinkedInScraperItems(
+  items: unknown[],
+): Promise<ResumeDocument> {
+  const payload =
+    items.length === 0
+      ? "[]"
+      : JSON.stringify(items).slice(0, 450_000);
+
+  const { object } = await generateObject({
+    model: getResumeAiModel(),
+    schema: resumePdfExtractSchema,
+    schemaName: "ResumePdfExtract",
+    schemaDescription: "Structured resume fields from LinkedIn scraper JSON",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `${LINKEDIN_SCRAPER_PROMPT}\n\nJSON:\n${payload}`,
+          },
+        ],
+      },
+    ],
+  });
+
+  return mergeResumePdfExtract(object);
 }

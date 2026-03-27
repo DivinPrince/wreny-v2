@@ -17,6 +17,8 @@ export const env = createEnv({
     GOOGLE_CLIENT_SECRET: z.string().optional(),
     LINKEDIN_CLIENT_ID: z.string().optional(),
     LINKEDIN_CLIENT_SECRET: z.string().optional(),
+    /** Relevance Stack YOUR_API_KEY for LinkedIn profile import (`Authorization` header). */
+    RELEVANCE_LINKEDIN_IMPORT_API_KEY: z.string().optional(),
     API_PORT: z.coerce.number().default(5001),
     RESEND_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().default("1000 Hills <noreply@1000hills.rw>"),

@@ -10,6 +10,7 @@ import {
 } from '#/components/ui/dropdown-menu'
 import { cn } from '#/lib/utils'
 
+import { LinkedInResumeImportDialog } from './linkedin-resume-import-dialog'
 import { useResumeCreateEntry } from '../lib/use-resume-create-entry'
 
 export function CreateNewResumeRow() {
@@ -18,20 +19,29 @@ export function CreateNewResumeRow() {
     busy,
     createMutation,
     importPdfMutation,
+    importLinkedInMutation,
+    linkedinImportOpen,
+    setLinkedinImportOpen,
     startManual,
     openPdfPicker,
-    goToLinkedInAgent,
+    openLinkedInImport,
   } = useResumeCreateEntry()
 
-  const label = importPdfMutation.isPending
-    ? 'Importing…'
-    : createMutation.isPending
-      ? 'Creating…'
-      : 'Create new resume'
+  const label =
+    importPdfMutation.isPending || importLinkedInMutation.isPending
+      ? 'Importing…'
+      : createMutation.isPending
+        ? 'Creating…'
+        : 'Create new resume'
 
   return (
     <>
       <DocumentScanningOverlay open={importPdfMutation.isPending} />
+      <LinkedInResumeImportDialog
+        open={linkedinImportOpen}
+        onOpenChange={setLinkedinImportOpen}
+        mutation={importLinkedInMutation}
+      />
       <input
         ref={pdfInputRef}
         type="file"
@@ -79,7 +89,13 @@ export function CreateNewResumeRow() {
             <FileText className="size-3.5" aria-hidden />
             Import from PDF
           </DropdownMenuItem>
-          <DropdownMenuItem className="gap-2" onSelect={() => goToLinkedInAgent()}>
+          <DropdownMenuItem
+            className="gap-2"
+            onSelect={(e) => {
+              e.preventDefault()
+              openLinkedInImport()
+            }}
+          >
             <RiLinkedinBoxFill className="size-3.5" aria-hidden />
             Import from LinkedIn
           </DropdownMenuItem>

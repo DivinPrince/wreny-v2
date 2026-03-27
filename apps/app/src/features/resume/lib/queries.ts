@@ -51,6 +51,11 @@ export async function importResumeFromPdf(file: File) {
   return response.data
 }
 
+export async function importResumeFromLinkedIn(linkedinUrl: string) {
+  const response = await api.resumes.importFromLinkedIn(linkedinUrl)
+  return response.data
+}
+
 export async function updateResume(resumeId: string, data: ResumeDocument, title?: string) {
   const response = await api.resumes.update(resumeId, {
     data,
@@ -121,6 +126,21 @@ export function useImportResumeFromPdf() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (file: File) => importResumeFromPdf(file),
+    onSuccess: (resume) => {
+      queryClient.invalidateQueries({ queryKey: resumeKeys.all })
+      navigate({
+        to: '/dashboard/resumes/$id/$step',
+        params: { id: resume.id, step: 'preview' },
+      })
+    },
+  })
+}
+
+export function useImportResumeFromLinkedIn() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (linkedinUrl: string) => importResumeFromLinkedIn(linkedinUrl),
     onSuccess: (resume) => {
       queryClient.invalidateQueries({ queryKey: resumeKeys.all })
       navigate({

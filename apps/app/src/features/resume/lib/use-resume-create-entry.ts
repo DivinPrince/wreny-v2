@@ -1,25 +1,32 @@
-import { useRef } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useRef, useState } from 'react'
 
 import { useSession } from '#/lib/auth-client'
 
-import { useCreateResume, useImportResumeFromPdf } from './queries'
+import {
+  useCreateResume,
+  useImportResumeFromLinkedIn,
+  useImportResumeFromPdf,
+} from './queries'
 
 export function useResumeCreateEntry() {
-  const navigate = useNavigate()
   const { data: session } = useSession()
   const createMutation = useCreateResume()
   const importPdfMutation = useImportResumeFromPdf()
+  const importLinkedInMutation = useImportResumeFromLinkedIn()
   const pdfInputRef = useRef<HTMLInputElement>(null)
+  const [linkedinImportOpen, setLinkedinImportOpen] = useState(false)
 
-  const busy = createMutation.isPending || importPdfMutation.isPending
+  const busy =
+    createMutation.isPending ||
+    importPdfMutation.isPending ||
+    importLinkedInMutation.isPending
 
   const openPdfPicker = () => {
     setTimeout(() => pdfInputRef.current?.click(), 0)
   }
 
-  const goToLinkedInAgent = () => {
-    navigate({ to: '/dashboard/agent' })
+  const openLinkedInImport = () => {
+    setLinkedinImportOpen(true)
   }
 
   return {
@@ -27,8 +34,11 @@ export function useResumeCreateEntry() {
     busy,
     createMutation,
     importPdfMutation,
+    importLinkedInMutation,
+    linkedinImportOpen,
+    setLinkedinImportOpen,
     startManual: () => createMutation.mutate({ user: session?.user }),
     openPdfPicker,
-    goToLinkedInAgent,
+    openLinkedInImport,
   }
 }
