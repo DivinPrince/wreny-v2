@@ -23,10 +23,13 @@ export function LinkedInResumeImportDialog({
   open,
   onOpenChange,
   mutation,
+  onImported,
 }: Readonly<{
   open: boolean
   onOpenChange: (open: boolean) => void
   mutation: LinkedInImportMutation
+  /** Called after a successful import, before the dialog closes. */
+  onImported?: (resume: ResumeInfo) => void
 }>) {
   const [url, setUrl] = useState('')
   const [localError, setLocalError] = useState<string | null>(null)
@@ -56,8 +59,8 @@ export function LinkedInResumeImportDialog({
         <DialogHeader>
           <DialogTitle>Import from LinkedIn</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-3 py-1">
-          <div className="grid gap-1.5">
+        <div className="grid gap-3 px-4 pt-4 pb-2">
+          <div className="grid gap-2">
             <Label htmlFor="linkedin-profile-url">Profile URL</Label>
             <Input
               id="linkedin-profile-url"
@@ -79,7 +82,7 @@ export function LinkedInResumeImportDialog({
             </p>
           ) : null}
         </div>
-        <div className="flex flex-col-reverse gap-2 border-t border-border/40 px-4 py-3 sm:flex-row sm:justify-end sm:gap-2">
+        <div className="flex flex-col-reverse gap-2 border-t border-border/40 px-4 pt-3 pb-4 sm:flex-row sm:justify-end sm:gap-2">
           <Button
             type="button"
             variant="outline"
@@ -114,7 +117,8 @@ export function LinkedInResumeImportDialog({
                 return
               }
               mutation.mutate(trimmed, {
-                onSuccess: () => {
+                onSuccess: (resume) => {
+                  onImported?.(resume)
                   onOpenChange(false)
                 },
               })

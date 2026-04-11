@@ -321,7 +321,7 @@ export function AgentPanelChat({
 
   const sendWithContext = useCallback(
     (content: { text: string }) => {
-      if (layout !== 'page' || pageAttachment == null) {
+      if (pageAttachment == null) {
         sendMessage(content)
         return
       }
@@ -332,7 +332,7 @@ export function AgentPanelChat({
       )
       sendMessage({ text: header + content.text })
     },
-    [layout, pageAttachment, sendMessage],
+    [pageAttachment, sendMessage],
   )
 
   function handleSend() {

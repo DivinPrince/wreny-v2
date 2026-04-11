@@ -5,6 +5,7 @@ import { logger } from "hono/logger";
 import { agentApi } from "./agent";
 import { coverLettersApi } from "./cover-letters";
 import { handleError, type AppEnv, sessionMiddleware } from "./common";
+import { importsApi } from "./imports";
 import { jobsApi } from "./jobs";
 import { resumesApi } from "./resumes";
 import { uploadApi } from "./upload";
@@ -20,6 +21,7 @@ const apiRoutes = new Hono<AppEnv>()
         "/api/resumes",
         "/api/resumes/import-pdf",
         "/api/resumes/import-linkedin",
+        "/api/imports/document-pdf",
         "/api/cover-letters",
         "/api/cover-letters/import-pdf",
         "/api/jobs",
@@ -41,11 +43,13 @@ const apiRoutes = new Hono<AppEnv>()
         jobs: "/api/jobs",
         users: "/api/users",
         upload: "/api/cms/upload",
+        imports: "/api/imports",
         agent: "/api/agent",
       },
     }),
   )
   .route("/resumes", resumesApi)
+  .route("/imports", importsApi)
   .route("/cover-letters", coverLettersApi)
   .route("/jobs", jobsApi)
   .route("/users", usersApi)

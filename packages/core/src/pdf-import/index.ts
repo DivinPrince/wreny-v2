@@ -1,4 +1,9 @@
 export {
+  classifyImportedDocumentKindFromPdf,
+  importedDocumentKindSchema,
+  type ImportedDocumentKind,
+} from "./classify-imported-document-pdf";
+export {
   extractCoverLetterFromPdf,
   extractResumeFromLinkedInScraperItems,
   extractResumeFromPdf,
