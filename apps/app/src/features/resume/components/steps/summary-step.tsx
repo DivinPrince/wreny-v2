@@ -2,15 +2,17 @@ import { useEffect, useState } from 'react'
 
 import { Button } from '#/components/ui/button'
 import { Label } from '#/components/ui/label'
-import { Textarea } from '#/components/ui/textarea'
+import { MarkdownTextarea } from '#/components/ui/markdown-textarea'
 
 import { cloneResumeDocument } from '../../lib/queries'
 import { toMarkdownForForm, toMarkdownForStorage } from '../editor-utils'
+import { SectionChromeSettings } from '../section-chrome-settings'
 import { useResumeEditor } from '../resume-editor-context'
 import { StepPanel } from '../resume-editor-shell'
 
 export function SummaryStep() {
   const { resume, saveResume, isSaving, title } = useResumeEditor()
+  const summarySection = resume.sections.summary
   const [summary, setSummary] = useState(() =>
     toMarkdownForForm(resume.sections.summary.content),
   )
@@ -31,21 +33,39 @@ export function SummaryStep() {
 
   return (
     <StepPanel className="gap-6">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">Summary</h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Keep it concise and outcome-focused.
-        </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold">Summary</h2>
+          <p className="max-w-2xl text-sm text-muted-foreground">
+            Keep it concise and outcome-focused.
+          </p>
+        </div>
+        <SectionChromeSettings
+          values={{
+            name: summarySection.name,
+            visible: summarySection.visible,
+            columns: summarySection.columns,
+            separateLinks: summarySection.separateLinks,
+          }}
+          onChange={(v) => {
+            void (async () => {
+              const nextResume = cloneResumeDocument(resume)
+              Object.assign(nextResume.sections.summary, v)
+              await saveResume({ resume: nextResume, title })
+            })()
+          }}
+        />
       </div>
 
       <div className="grid flex-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-8">
         <div className="flex flex-col xl:border-r xl:pr-8 xl:border-border">
           <div className="space-y-2">
             <Label htmlFor="resume-summary">Professional summary</Label>
-            <Textarea
+            <MarkdownTextarea
               id="resume-summary"
               value={summary}
-              onChange={(event) => setSummary(event.target.value)}
+              onChange={setSummary}
+              disabled={isSaving}
               className="min-h-[420px]"
               placeholder="A highly accomplished and results-oriented technology professional..."
             />

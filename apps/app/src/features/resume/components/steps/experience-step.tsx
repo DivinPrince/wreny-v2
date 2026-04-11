@@ -30,17 +30,18 @@ import {
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { MonthPicker } from '#/components/ui/month-picker'
-import { Textarea } from '#/components/ui/textarea'
+import { MarkdownTextarea } from '#/components/ui/markdown-textarea'
 
 import { cloneResumeDocument } from '../../lib/queries'
 import {
   formatDateRange,
   generateEditorId,
-  linesToMarkdown,
-  markdownToLines,
   parseDateRange,
   sanitizeOptionalUrl,
+  toMarkdownForForm,
+  toMarkdownForStorage,
 } from '../editor-utils'
+import { SectionChromeSettings } from '../section-chrome-settings'
 import { useResumeEditor } from '../resume-editor-context'
 import { StepPanel } from '../resume-editor-shell'
 
@@ -72,7 +73,7 @@ function buildFormState(item: Experience): ExperienceFormState {
     startDate: range.start,
     endDate: range.end,
     isCurrent: range.isCurrent,
-    summary: markdownToLines(item.summary),
+    summary: toMarkdownForForm(item.summary),
     url: item.url.href,
   }
 }
@@ -162,6 +163,7 @@ function ExperienceSortableItem({
 
 export function ExperienceStep() {
   const { resume, saveResume, isSaving, title } = useResumeEditor()
+  const experienceSection = resume.sections.experience
   const [items, setItems] = useState<Experience[]>(resume.sections.experience.items)
   const [selectedId, setSelectedId] = useState(
     resume.sections.experience.items[0]?.id ?? '',
@@ -264,7 +266,7 @@ export function ExperienceStep() {
               end: form.endDate,
               isCurrent: form.isCurrent,
             }),
-            summary: linesToMarkdown(form.summary),
+            summary: toMarkdownForStorage(form.summary),
             url: {
               ...item.url,
               href: sanitizeOptionalUrl(form.url),
@@ -287,8 +289,25 @@ export function ExperienceStep() {
 
   return (
     <StepPanel className="gap-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">Experience</h2>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold">Experience</h2>
+        </div>
+        <SectionChromeSettings
+          values={{
+            name: experienceSection.name,
+            visible: experienceSection.visible,
+            columns: experienceSection.columns,
+            separateLinks: experienceSection.separateLinks,
+          }}
+          onChange={(v) => {
+            void (async () => {
+              const nextResume = cloneResumeDocument(resume)
+              Object.assign(nextResume.sections.experience, v)
+              await saveResume({ resume: nextResume, title })
+            })()
+          }}
+        />
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-8">
@@ -539,14 +558,13 @@ export function ExperienceStep() {
                     Generate Bullets
                   </Button>
                 </div>
-                <Textarea
+                <MarkdownTextarea
                   id="experience-summary"
                   value={form.summary}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, summary: event.target.value }))
-                  }
+                  onChange={(summary) => setForm((current) => ({ ...current, summary }))}
+                  disabled={isSaving}
                   className="min-h-48 rounded-xl"
-                  placeholder="Write one achievement per line"
+                  placeholder="Achievements and impact — use **bold**, lists, or headings as needed"
                 />
               </div>
 

@@ -19,6 +19,7 @@ import type {
 
 import { cn, isEmptyString, isUrl } from '../lib/template-utils'
 import { BrandIcon } from '../rendering/brand-icon'
+import { CustomFieldIcon } from '../rendering/custom-field-icon'
 import {
   DiffView,
   DeletedItemDiff,
@@ -98,7 +99,7 @@ const Header = () => {
               <div
                 className="flex items-center gap-x-1.5 border-r pr-2 last:border-r-0 last:pr-0"
               >
-                <i className={cn(`ph ph-bold ph-${item.icon}`, 'text-primary')} />
+                <CustomFieldIcon slug={item.icon} />
                 {isUrl(item.value) ? (
                   <a href={item.value} target="_blank" rel="noreferrer noopener nofollow">
                     <DiffText section="basics" field="value" itemId={item.id}>

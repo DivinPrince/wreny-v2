@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ResumeInfo } from '@repo/core/resume'
 import type { ResumeDocument } from '@repo/core/schemas'
@@ -37,11 +37,6 @@ export function ResumeEditorProvider({
   const [resume, setResume] = useState<ResumeDocument>(() =>
     normalizeResumeDocument(resumeInfo.data),
   )
-
-  useEffect(() => {
-    setResume(normalizeResumeDocument(resumeInfo.data))
-    setTitle(resumeInfo.title)
-  }, [resumeInfo])
 
   const saveMutation = useMutation({
     mutationFn: async ({ resume: nextResume, title: nextTitle }: SaveResumeArgs) =>

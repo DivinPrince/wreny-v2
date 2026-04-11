@@ -1,10 +1,13 @@
 import { forwardRef } from 'react'
 
+import { cn } from '#/lib/utils'
+
 type BrandIconProps = {
   slug: string
+  className?: string
 }
 
-function getIconifyPath(slug: string) {
+export function getIconifyPath(slug: string) {
   if (!slug) {
     return ''
   }
@@ -23,21 +26,23 @@ function getIconifyPath(slug: string) {
   return `simple-icons/${slug}`
 }
 
-export const BrandIcon = forwardRef<HTMLImageElement, BrandIconProps>(({ slug }, ref) => {
-  const iconifyPath = getIconifyPath(slug)
+export const BrandIcon = forwardRef<HTMLImageElement, BrandIconProps>(
+  ({ slug, className }, ref) => {
+    const iconifyPath = getIconifyPath(slug)
 
-  if (!iconifyPath) {
-    return null
-  }
+    if (!iconifyPath) {
+      return null
+    }
 
-  return (
-    <img
-      ref={ref}
-      alt={slug}
-      className="size-4"
-      src={`https://api.iconify.design/${iconifyPath}.svg`}
-    />
-  )
-})
+    return (
+      <img
+        ref={ref}
+        alt={slug}
+        className={cn('size-4 shrink-0', className)}
+        src={`https://api.iconify.design/${iconifyPath}.svg`}
+      />
+    )
+  },
+)
 
 BrandIcon.displayName = 'BrandIcon'

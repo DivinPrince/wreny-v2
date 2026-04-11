@@ -32,6 +32,7 @@ import { Label } from '#/components/ui/label'
 
 import { cloneResumeDocument } from '../../lib/queries'
 import { generateEditorId } from '../editor-utils'
+import { SectionChromeSettings } from '../section-chrome-settings'
 import { useResumeEditor } from '../resume-editor-context'
 import { StepPanel } from '../resume-editor-shell'
 
@@ -218,6 +219,7 @@ function ProficiencySelector({
 
 export function SkillsStep() {
   const { resume, saveResume, isSaving, title } = useResumeEditor()
+  const skillsSection = resume.sections.skills
   const [items, setItems] = useState<Skill[]>(resume.sections.skills.items)
   const [selectedId, setSelectedId] = useState(resume.sections.skills.items[0]?.id ?? '')
   const [form, setForm] = useState<SkillFormState>(() =>
@@ -322,8 +324,25 @@ export function SkillsStep() {
 
   return (
     <StepPanel className="gap-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">Skills</h2>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold">Skills</h2>
+        </div>
+        <SectionChromeSettings
+          values={{
+            name: skillsSection.name,
+            visible: skillsSection.visible,
+            columns: skillsSection.columns,
+            separateLinks: skillsSection.separateLinks,
+          }}
+          onChange={(v) => {
+            void (async () => {
+              const nextResume = cloneResumeDocument(resume)
+              Object.assign(nextResume.sections.skills, v)
+              await saveResume({ resume: nextResume, title })
+            })()
+          }}
+        />
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-8">

@@ -5,12 +5,12 @@ import { parseAsString, useQueryState } from 'nuqs'
 import {
   defaultAward,
   defaultCertification,
+  defaultCustomFieldIcon,
   defaultCustomSection,
   defaultEducation,
   defaultExperience,
   defaultInterest,
   defaultLanguage,
-  defaultLayout,
   defaultProfile,
   defaultProject,
   defaultPublication,
@@ -55,6 +55,10 @@ import { pageSizeMap } from '../../lib/template-utils'
 import { MM_TO_PX } from '../../rendering/page'
 import { ResumeRenderer } from '../../rendering/resume-renderer'
 import { useResumeEditor } from '../resume-editor-context'
+import {
+  ensureCustomResumeSection,
+  ensureResumeSectionInLayout,
+} from '../../lib/resume-layout'
 
 const fontOptions = [
   'Open Sans',
@@ -172,76 +176,11 @@ function normalizeStringArray(value: unknown) {
   return []
 }
 
-function formatSectionName(section: string) {
-  const raw = section.startsWith('custom.') ? section.slice('custom.'.length) : section
-  return raw
-    .split(/[._-]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-}
-
-function ensureResumeSectionInLayout(resume: ResumeDocument, section: string) {
-  if (section === 'basics') {
-    return
-  }
-
-  const exists = resume.metadata.layout.some((page) =>
-    page.some((column) => column.includes(section)),
-  )
-  if (exists) {
-    return
-  }
-
-  if (resume.metadata.layout.length === 0) {
-    resume.metadata.layout = structuredClone(defaultLayout)
-  }
-
-  const firstPage = resume.metadata.layout[0] ?? []
-  if (resume.metadata.layout[0] == null) {
-    resume.metadata.layout[0] = firstPage
-  }
-
-  let preferredColumnIndex = defaultLayout[0]?.findIndex((column) => column.includes(section)) ?? -1
-  if (preferredColumnIndex < 0) {
-    preferredColumnIndex = firstPage.length > 1 ? 1 : 0
-  }
-
-  while (firstPage.length <= preferredColumnIndex) {
-    firstPage.push([])
-  }
-
-  const targetColumn = firstPage[preferredColumnIndex]
-  if (targetColumn) {
-    targetColumn.push(section)
-  }
-}
-
-function ensureCustomResumeSection(resume: ResumeDocument, section: string) {
-  if (!section.startsWith('custom.')) {
-    return
-  }
-
-  const customId = section.slice('custom.'.length)
-  if (!customId || resume.sections.custom[customId]) {
-    return
-  }
-
-  resume.sections.custom[customId] = {
-    name: formatSectionName(section),
-    columns: 1,
-    separateLinks: true,
-    visible: true,
-    id: customId,
-    items: [],
-  }
-}
-
 function createPreviewResumeItem(section: string, payload: Record<string, unknown>) {
   if (section === 'basics') {
     return {
       id: crypto.randomUUID(),
-      icon: typeof payload.icon === 'string' ? payload.icon : 'link',
+      icon: typeof payload.icon === 'string' ? payload.icon : defaultCustomFieldIcon,
       name: typeof payload.name === 'string' ? payload.name : '',
       value: typeof payload.value === 'string' ? payload.value : '',
     }

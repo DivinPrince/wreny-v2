@@ -36,7 +36,7 @@ function RouteComponent() {
   }
 
   return (
-    <ResumeEditorProvider resumeInfo={resumeInfo}>
+    <ResumeEditorProvider key={resumeInfo.id} resumeInfo={resumeInfo}>
       <ResumeEditorShell resumeId={resumeInfo.id}>
         <Outlet />
       </ResumeEditorShell>

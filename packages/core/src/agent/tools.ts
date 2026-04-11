@@ -7,6 +7,7 @@ import { ResumeService } from "../resume";
 import {
   defaultAward,
   defaultCertification,
+  defaultCustomFieldIcon,
   defaultCustomSection,
   defaultEducation,
   defaultExperience,
@@ -329,7 +330,7 @@ function createResumeItem(section: string, payload: EditableRecord) {
   if (section === "basics") {
     return {
       id: crypto.randomUUID(),
-      icon: typeof payload.icon === "string" ? payload.icon : "link",
+      icon: typeof payload.icon === "string" ? payload.icon : defaultCustomFieldIcon,
       name: typeof payload.name === "string" ? payload.name : "",
       value: typeof payload.value === "string" ? payload.value : "",
     };

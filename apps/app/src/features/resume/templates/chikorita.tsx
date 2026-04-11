@@ -20,6 +20,7 @@ import type {
 import { Fragment, type ReactNode } from 'react'
 import { cn, isEmptyString, isUrl } from '../lib/template-utils'
 import { BrandIcon } from '../rendering/brand-icon'
+import { CustomFieldIcon } from '../rendering/custom-field-icon'
 import {
   DiffView,
   DeletedItemDiff,
@@ -133,7 +134,7 @@ function Header() {
           {basics.customFields.map((item) => (
             <Fragment key={item.id}>
               <div className="flex items-center gap-x-1.5">
-                <i className={cn(`ph ph-bold ph-${item.icon}`, 'text-primary')} />
+                <CustomFieldIcon slug={item.icon} />
                 {isUrl(item.value) ? (
                   <a href={item.value} target="_blank" rel="noreferrer noopener nofollow">
                     <DiffText section="basics" field="value" itemId={item.id}>

@@ -30,7 +30,7 @@ import {
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { MonthPicker } from '#/components/ui/month-picker'
-import { Textarea } from '#/components/ui/textarea'
+import { MarkdownTextarea } from '#/components/ui/markdown-textarea'
 
 import { cloneResumeDocument } from '../../lib/queries'
 import {
@@ -41,6 +41,7 @@ import {
   parseDateRange,
   sanitizeOptionalUrl,
 } from '../editor-utils'
+import { SectionChromeSettings } from '../section-chrome-settings'
 import { useResumeEditor } from '../resume-editor-context'
 import { StepPanel } from '../resume-editor-shell'
 
@@ -164,6 +165,7 @@ function EducationSortableItem({
 
 export function EducationStep() {
   const { resume, saveResume, isSaving, title } = useResumeEditor()
+  const educationSection = resume.sections.education
   const [items, setItems] = useState<Education[]>(resume.sections.education.items)
   const [selectedId, setSelectedId] = useState(
     resume.sections.education.items[0]?.id ?? '',
@@ -290,8 +292,25 @@ export function EducationStep() {
 
   return (
     <StepPanel className="gap-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">Education</h2>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-lg font-semibold">Education</h2>
+        </div>
+        <SectionChromeSettings
+          values={{
+            name: educationSection.name,
+            visible: educationSection.visible,
+            columns: educationSection.columns,
+            separateLinks: educationSection.separateLinks,
+          }}
+          onChange={(v) => {
+            void (async () => {
+              const nextResume = cloneResumeDocument(resume)
+              Object.assign(nextResume.sections.education, v)
+              await saveResume({ resume: nextResume, title })
+            })()
+          }}
+        />
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-8">
@@ -538,12 +557,11 @@ export function EducationStep() {
 
               <div className="space-y-2">
                 <Label htmlFor="education-summary">Details or achievements</Label>
-                <Textarea
+                <MarkdownTextarea
                   id="education-summary"
                   value={form.summary}
-                  onChange={(event) =>
-                    setForm((current) => ({ ...current, summary: event.target.value }))
-                  }
+                  onChange={(summary) => setForm((current) => ({ ...current, summary }))}
+                  disabled={isSaving}
                   className="min-h-44"
                   placeholder="Relevant coursework, distinction, thesis, or leadership details"
                 />

@@ -1,27 +1,25 @@
 import type { ReactNode } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Check, ChevronDown } from 'lucide-react'
 
+import { Button } from '#/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '#/components/ui/dropdown-menu'
 import { cn } from '#/lib/utils'
 
-const editSteps = [
-  { id: 'contact', label: 'Contact' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'education', label: 'Education' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'summary', label: 'Summary' },
-] as const
+import {
+  isPrimaryResumeStep,
+  isResumeEditorStep,
+  primaryResumeStepIds,
+  resumeContentStepDefinitions,
+} from './resume-editor-steps'
 
-const editorSteps = [
-  ...editSteps,
-  { id: 'preview', label: 'Preview' },
-] as const
-
-export type ResumeEditorStep = (typeof editorSteps)[number]['id']
-
-export function isResumeEditorStep(value: string): value is ResumeEditorStep {
-  return editorSteps.some((step) => step.id === value)
-}
+export type { ResumeEditorStep } from './resume-editor-steps'
+export { isResumeEditorStep } from './resume-editor-steps'
 
 function getStepFromPathname(pathname: string) {
   const step = pathname.split('/').filter(Boolean).at(-1) ?? 'contact'
@@ -40,6 +38,21 @@ export function ResumeEditorShell({
   })
   const currentStep = getStepFromPathname(pathname)
 
+  const primarySteps = resumeContentStepDefinitions.filter((step) =>
+    (primaryResumeStepIds as readonly string[]).includes(step.id),
+  )
+
+  const overflowSteps = resumeContentStepDefinitions.filter(
+    (step) => !(primaryResumeStepIds as readonly string[]).includes(step.id),
+  )
+
+  const showPromoted =
+    currentStep !== 'preview' && !isPrimaryResumeStep(currentStep)
+
+  const promoted = showPromoted
+    ? resumeContentStepDefinitions.find((s) => s.id === currentStep)
+    : undefined
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-muted/20 p-4 sm:p-6">
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4">
@@ -52,37 +65,86 @@ export function ResumeEditorShell({
             Back to resumes
           </Link>
 
-          <nav className="flex flex-wrap items-center gap-2">
-            {/* Connected edit steps */}
+          <nav className="flex min-w-0 flex-wrap items-center gap-2">
             <div
               role="tablist"
-              className="inline-flex rounded-xl border border-input bg-muted/50 p-1"
+              className="inline-flex min-w-0 max-w-full flex-wrap items-center gap-1 rounded-xl border border-input bg-muted/50 p-1 sm:flex-nowrap"
             >
-              {editSteps.map((step) => (
+              {primarySteps.map((step) => (
                 <Link
                   key={step.id}
                   to="/dashboard/resumes/$id/$step"
                   params={{ id: resumeId, step: step.id }}
                   role="tab"
                   className={cn(
-                    'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                    'shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                     currentStep === step.id
-                      ? 'bg-background text-foreground'
+                      ? 'bg-background text-foreground shadow-sm'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                   )}
                 >
                   {step.label}
                 </Link>
               ))}
+
+              {promoted ? (
+                <Link
+                  key={promoted.id}
+                  to="/dashboard/resumes/$id/$step"
+                  params={{ id: resumeId, step: promoted.id }}
+                  role="tab"
+                  className={cn(
+                    'shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                    currentStep === promoted.id
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                >
+                  {promoted.label}
+                </Link>
+              ) : null}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      'h-8 shrink-0 gap-1 rounded-lg px-3 text-sm font-medium',
+                      overflowSteps.some((s) => s.id === currentStep)
+                        ? 'bg-background/80 text-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )}
+                  >
+                    More
+                    <ChevronDown className="size-3.5 opacity-70" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-[200px]">
+                  {overflowSteps.map((step) => (
+                    <DropdownMenuItem key={step.id} asChild>
+                      <Link
+                        to="/dashboard/resumes/$id/$step"
+                        params={{ id: resumeId, step: step.id }}
+                        className="flex cursor-pointer items-center justify-between gap-2"
+                      >
+                        <span>{step.label}</span>
+                        {currentStep === step.id ? (
+                          <Check className="size-4 shrink-0 opacity-70" />
+                        ) : null}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            {/* Separator */}
             <div
               aria-hidden
-              className="h-8 w-px shrink-0 bg-border"
+              className="hidden h-8 w-px shrink-0 bg-border sm:block"
             />
 
-            {/* Preview tab */}
             <Link
               to="/dashboard/resumes/$id/$step"
               params={{ id: resumeId, step: 'preview' }}

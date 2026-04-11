@@ -20,6 +20,7 @@ import type {
 
 import { cn, isEmptyString, isUrl } from '../lib/template-utils'
 import { BrandIcon } from '../rendering/brand-icon'
+import { CustomFieldIcon } from '../rendering/custom-field-icon'
 import {
   DiffView,
   DeletedItemDiff,
@@ -218,7 +219,7 @@ const BasicsCustomFieldRow = ({ item }: Readonly<{ item: CustomField }>) => {
 
   return (
     <div className="flex items-center gap-x-1.5">
-      <i className={cn(`ph ph-bold ph-${item.icon}`, 'text-primary')} />
+      <CustomFieldIcon slug={item.icon} />
       {isUrl(pendingValue) ? (
         <a href={pendingValue} target="_blank" rel="noreferrer noopener nofollow">
           <DiffText section="basics" field={diffField} itemId={item.id}>
