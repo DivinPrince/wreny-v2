@@ -4,6 +4,7 @@ import {
   Bot,
   Brain,
   DraftingCompass,
+  ListChecks,
   Mail,
   Maximize2,
   Shield,
@@ -44,13 +45,13 @@ export function FeaturesSection({
         <div className="grid items-center gap-12 md:grid-cols-2 md:gap-12 lg:gap-24">
           <div className={`w-full ${orientation === 'left' ? 'md:order-last' : ''}`}>
             <div className="max-w-xl md:pr-6 lg:pr-0">
-              <h2 className="text-4xl font-semibold lg:text-5xl">{heading}</h2>
-              <p className="mt-6">{description}</p>
+              <h2 className="text-2xl font-semibold lg:text-3xl">{heading}</h2>
+              <p className="mt-4 text-[0.95rem] text-muted-foreground">{description}</p>
             </div>
-            <ul className="mt-8 divide-y border-y *:flex *:items-center *:gap-3 *:py-3">
+            <ul className="mt-6 divide-y border-y text-sm *:flex *:items-center *:gap-3 *:py-2.5">
               {features.map((feature, index) => (
                 <li key={index}>
-                  <feature.icon className="size-5" />
+                  <feature.icon className="size-4" />
                   {feature.text}
                 </li>
               ))}
@@ -115,14 +116,14 @@ export function FeaturesSection({
 
 const FEATURE_SECTIONS = [
   {
-    heading: 'AI-Optimized Resume Builder',
+    heading: 'Shape your resume to the job—not a generic one-pager',
     description:
-      'Our intelligent resume builder helps you create professional, ATS-friendly resumes that highlight your most relevant skills and experiences for each job application.',
+      'Adjust emphasis, wording, and structure for each role so hiring managers see the experience that fits their posting, not a wall of everything you have ever done.',
     features: [
-      { icon: Brain, text: 'Job-specific optimization that increases interview chances' },
-      { icon: Activity, text: 'Keyword analysis to match requirements in job descriptions' },
-      { icon: Shield, text: 'ATS compatibility scoring and improvement suggestions' },
-      { icon: DraftingCompass, text: 'Multiple premium and free templates' },
+      { icon: Brain, text: 'Surface the wins that match what the listing asks for' },
+      { icon: Activity, text: 'Spot gaps against the job description before you hit submit' },
+      { icon: Shield, text: 'Layouts and guidance aimed at readable, ATS-friendly files' },
+      { icon: DraftingCompass, text: 'Swap templates without redoing your content from scratch' },
     ],
     video: {
       src: '/resume-optimization.mp4',
@@ -130,14 +131,14 @@ const FEATURE_SECTIONS = [
     orientation: 'right' as const,
   },
   {
-    heading: 'AI Cover Letter Generator',
+    heading: 'A cover letter that sounds like you read the posting',
     description:
-      'Create personalized cover letters in minutes with our AI-powered tool that adapts to each specific job application, highlighting your most relevant qualifications.',
+      'Draft a first version fast, then edit in place. Tie your story to the company and role instead of sending the same opening paragraph to everyone.',
     features: [
-      { icon: Bot, text: 'AI-generated content tailored to job descriptions' },
-      { icon: Zap, text: 'Create compelling cover letters in under 5 minutes' },
-      { icon: Mail, text: "Match your resume's design and content for consistency" },
-      { icon: Activity, text: 'Built-in editor with formatting and customization options' },
+      { icon: Bot, text: 'Starting point grounded in the job description you paste or summarize' },
+      { icon: Zap, text: 'Go from blank page to something you can send in one sitting' },
+      { icon: Mail, text: 'Keep tone and structure aligned with your resume' },
+      { icon: Activity, text: 'Tweak sentences in the editor until you are happy to sign your name' },
     ],
     video: {
       src: '/cover-letter.mp4',
@@ -145,14 +146,14 @@ const FEATURE_SECTIONS = [
     orientation: 'left' as const,
   },
   {
-    heading: 'Job Application Tracker',
+    heading: 'One board for every application',
     description:
-      'Stay organized throughout your job search with our intuitive Kanban-style tracking system that helps you manage applications, interviews, and offers all in one place.',
+      'Move roles from applied to interview to offer without digging through email. Keep the posting and your notes next to each company so follow-ups take seconds, not a spreadsheet hunt.',
     features: [
-      { icon: Activity, text: 'Visual Kanban board for tracking application statuses' },
-      { icon: Bot, text: 'Application reminders and follow-up notifications' },
-      { icon: Shield, text: 'Store and organize job descriptions and requirements' },
-      { icon: Brain, text: 'Track interview stages and feedback' },
+      { icon: Activity, text: 'See status at a glance instead of replaying what you sent where' },
+      { icon: ListChecks, text: 'Fewer open tabs: each company, link, and stage lives in one column' },
+      { icon: Shield, text: 'Keep job descriptions and links attached to each application' },
+      { icon: Brain, text: 'Log stages and feedback so you know what to prep for next' },
     ],
     video: {
       src: '/job-tracking.mp4',

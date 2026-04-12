@@ -10,27 +10,27 @@ interface AiCoverLetterFeature {
 const aiFeatures: AiCoverLetterFeature[] = [
   {
     id: 'ai-tailored',
-    title: 'AI-Tailored Content',
+    title: 'Grounded in the role',
     description:
-      'Our AI-generated content is specifically tailored to each job description, highlighting your most relevant qualifications.',
+      'Start from the posting you care about so the letter cites real responsibilities instead of vague enthusiasm.',
   },
   {
     id: 'quick-creation',
-    title: 'Quick Creation',
+    title: 'Draft fast, refine calmly',
     description:
-      'Create compelling, professional cover letters in under 5 minutes, saving you time during your job search.',
+      'Get a workable first pass quickly, then edit at your own pace—no staring at a blank doc after work.',
   },
   {
     id: 'design-consistency',
-    title: 'Design Consistency',
+    title: 'Matches your resume',
     description:
-      "Match your resume's design and content for a consistent, professional application package.",
+      'Keep layout and tone aligned with the resume you are sending so the packet feels intentional.',
   },
   {
     id: 'built-in-editor',
-    title: 'Built-in Editor',
+    title: 'Edit before you send',
     description:
-      'Use our comprehensive editor with formatting and customization options to perfect your cover letter.',
+      'Change wording, order, and emphasis in one place until it sounds like something you would sign.',
   },
 ]
 
@@ -43,9 +43,10 @@ export default function CoverLetters() {
 
       <div className="mx-auto max-w-5xl px-5">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-semibold lg:text-4xl mb-3">Cover Letters</h2>
-          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Create personalized, ATS-optimized cover letters in seconds with our advanced AI technology.
+          <h2 className="text-2xl font-semibold lg:text-3xl mb-3">Cover letters tied to the job, not a stock opener</h2>
+          <p className="text-[0.95rem] text-muted-foreground max-w-2xl mx-auto">
+            Turn a job description into a draft you can edit—so you explain why this company and this role,
+            not why you need any job.
           </p>
         </div>
 
@@ -69,12 +70,12 @@ export default function CoverLetters() {
           <div className="inline-block relative">
             <div className="bg-black text-white py-2.5 px-5 rounded-full flex items-center justify-between gap-8 shadow-md">
               <a href="/signup" className="text-sm font-medium flex items-center hover:underline">
-                Try AI Cover Letters <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                Write a letter for my next role <ExternalLink className="ml-2 h-3.5 w-3.5" />
               </a>
             </div>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            Our AI assistant helps you create tailored cover letters for every application
+            One flow per application: adjust, save, and send when it feels right
           </p>
         </div>
       </div>

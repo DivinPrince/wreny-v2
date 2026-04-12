@@ -46,10 +46,10 @@ export default function ResumeTemplates() {
 
       <div className="mx-auto max-w-5xl px-5">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-semibold lg:text-4xl mb-3">ATS-Friendly Resume Templates</h2>
-          <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Choose from our collection of professionally designed templates that are optimized to pass
-            Applicant Tracking Systems and impress recruiters.
+          <h2 className="text-2xl font-semibold lg:text-3xl mb-3">Templates that stay readable in applicant systems</h2>
+          <p className="text-[0.95rem] text-muted-foreground max-w-2xl mx-auto">
+            Clean structure and typography first—so your content gets through parsing and still looks
+            sharp when a human opens the PDF.
           </p>
         </div>
 
@@ -105,7 +105,7 @@ export default function ResumeTemplates() {
               </Button>
 
               <a href="/signup" className="text-sm font-medium flex items-center hover:underline">
-                View All Templates <ExternalLink className="ml-2 h-3.5 w-3.5" />
+                Pick a template and start <ExternalLink className="ml-2 h-3.5 w-3.5" />
               </a>
 
               <Button
@@ -121,7 +121,7 @@ export default function ResumeTemplates() {
             </div>
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            12+ professional templates available, with new designs added regularly
+            Twelve layouts to start from—swap anytime without losing your content
           </p>
         </div>
       </div>

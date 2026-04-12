@@ -6,13 +6,12 @@ export const Route = createFileRoute('/')({
   head: () => ({
     meta: [
       {
-        title:
-          'Free Resume Builder - Optimize your job search with AI-powered resumes and cover letters',
+        title: 'Wreny — Resumes, cover letters, and job tracking in one app',
       },
       {
         name: 'description',
         content:
-          'Create ATS-optimized resumes, personalized cover letters, and track your job applications with our AI assistant that matches your skills to exactly what employers are looking for.',
+          'Tailor your resume and cover letter to each role, export a clean PDF, and track applications without spreadsheets. Start free.',
       },
     ],
   }),

@@ -1,44 +1,50 @@
 import { Button } from '#/components/ui/button'
 import { Link } from '@tanstack/react-router'
+import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Hero() {
   const [thumbFailed, setThumbFailed] = useState(false)
 
   return (
-    <div className="relative hero-container bg-secondary rounded-[40px] py-8 mt-4">
-      <div className="mx-auto text-center max-w-[1200px] mb-8 space-y-8">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Build Resumes That Get You Hired
-        </h1>
-        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-          AI-powered resume builder that creates professional, ATS-optimized resumes in minutes.
-          Perfect formatting, compelling content, zero hassle.
-        </p>
-        <div className="flex flex-col gap-4 items-center">
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button asChild className="h-12">
-              <Link to="/signup">Get Started — It&apos;s free</Link>
+    <section className="pt-8 md:pt-12 pb-0">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="max-w-[660px] space-y-5">
+          <h1 className="text-[1.75rem] md:text-[2.5rem] md:leading-[1.15] font-bold tracking-tight">
+            More <em className="font-bold italic">interviews</em> from the
+            applications you already{' '}
+            <em className="font-bold italic">send.</em>
+          </h1>
+          <p className="text-[0.95rem] md:text-lg text-muted-foreground max-w-[500px]">
+            Tailor your resume and cover letter to each posting, track where you
+            applied, and export a clean PDF—without fighting the formatting.
+          </p>
+          <div className="pt-1">
+            <Button asChild className="h-10 px-5 rounded-lg text-sm gap-2">
+              <Link to="/signup">
+                Create my free resume
+                <ArrowUpRight className="size-4" />
+              </Link>
             </Button>
           </div>
         </div>
-      </div>
-      <div className="flex justify-center relative isolate md:container md:mx-auto">
-        <div className="h-[220px] md:h-[420px] w-full md:w-[80%] rounded-t-[40px] overflow-hidden relative bg-muted">
-          {!thumbFailed ? (
-            <img
-              src="/thumbnail.png"
-              alt="Professional resume builder with AI-powered features"
-              className="w-full h-full object-cover object-top rounded-t-[40px]"
-              width={1200}
-              height={675}
-              loading="lazy"
-              onError={() => setThumbFailed(true)}
-            />
-          ) : null}
+
+        <div className="mt-8 md:mt-10 relative">
+          <div className="rounded-t-2xl overflow-hidden border border-border/60 border-b-0 shadow-2xl shadow-black/5 bg-muted max-h-[280px] md:max-h-[420px]">
+            {!thumbFailed ? (
+              <img
+                src="/thumbnail.png"
+                alt="Wreny resume editor showing a structured resume preview"
+                className="w-full h-auto block"
+                width={1200}
+                height={675}
+                loading="lazy"
+                onError={() => setThumbFailed(true)}
+              />
+            ) : null}
+          </div>
         </div>
-        <div className="z-[-1] bg-gradient-to-b from-primary/20 to-primary/10 rounded-t-[40px] w-[90%] absolute left-1/2 -translate-x-1/2 bottom-0 h-[74%] max-md:hidden" />
       </div>
-    </div>
+    </section>
   )
 }

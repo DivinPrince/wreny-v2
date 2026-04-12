@@ -11,12 +11,13 @@ export default function Pricing({ showFree = true }: PricingProps) {
   const filteredPlans = plans.filter((plan) => showFree || plan.slug !== 'free')
 
   return (
-    <section className="py-20" id="pricing">
+    <section className="py-14" id="pricing">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-semibold lg:text-5xl mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Choose the plan that works for your job search needs.
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-semibold lg:text-3xl mb-3">Pay for how hard you are job searching</h2>
+          <p className="text-[0.95rem] text-muted-foreground max-w-2xl mx-auto">
+            Start free while you test the waters. Move up when you want more resumes, exports, and AI
+            help across a heavier search.
           </p>
         </div>
 
@@ -86,8 +87,10 @@ export default function Pricing({ showFree = true }: PricingProps) {
                   >
                     <a href={`/signup?plan=${plan.slug}`}>
                       {plan.slug === 'free'
-                        ? 'Get started'
-                        : `Choose ${plan.name.toLowerCase()} plan`}
+                        ? 'Start free'
+                        : plan.slug === 'pro'
+                          ? 'Upgrade to Pro'
+                          : 'Get Lifetime access'}
                     </a>
                   </Button>
                 </div>

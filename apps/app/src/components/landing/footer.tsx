@@ -1,7 +1,5 @@
 import { Icons } from '#/components/ui/icons'
-import { Separator } from '#/components/ui/separator'
 import { Link } from '@tanstack/react-router'
-import { Fragment } from 'react'
 
 interface FooterLink {
   href: string
@@ -35,7 +33,7 @@ const footerSections: FooterSection[] = [
     ],
   },
   {
-    title: 'Design Templates',
+    title: 'Templates',
     links: [
       { href: '#resumes', label: 'Resume Templates' },
       { href: '#ats-resumes', label: 'ATS Resume Templates' },
@@ -50,85 +48,77 @@ const socialLinks = [
   {
     href: 'https://www.youtube.com/@divinprince',
     icon: '/icons/youtube.svg',
-    alt: 'YouTube logo',
+    alt: 'YouTube',
   },
   {
     href: 'https://www.x.com/divinprnc',
     icon: '/icons/x.svg',
-    alt: 'X logo',
+    alt: 'X',
   },
 ]
 
 export function Footer() {
   return (
-    <footer className="bg-muted/80 border-t border-primary/10">
-      <div className="mx-auto max-w-7xl px-8 py-24">
-        <div className="flex flex-col flex-wrap lg:flex-row lg:flex-nowrap lg:items-start">
-          <div className="flex flex-shrink-0 text-left lg:flex-col">
-            <div className="flex-1">
-              <Link
-                to="/"
-                aria-current="page"
-                className="relative flex items-center justify-start gap-2"
-              >
-                <Icons.Logo />
-              </Link>
-
-              <p className="mt-3 text-sm text-primary/80">
-                Optimize your job search &amp;
-                <br /> resume with Wreny
-              </p>
-
-              <p className="mt-3 text-sm text-primary/60">
-                Copyright © {new Date().getFullYear()} - All rights reserved
-              </p>
-            </div>
-            <div className="mt-auto flex items-end gap-2 lg:items-center">
-              {socialLinks.map((social, index) => (
-                <Fragment key={social.href}>
-                  <a href={social.href} target="_blank" rel="noopener noreferrer">
-                    <img src={social.icon} height={16} width={16} alt={social.alt} />
-                  </a>
-                  {index < socialLinks.length - 1 ? (
-                    <Separator orientation="vertical" className="h-6" />
-                  ) : null}
-                </Fragment>
+    <footer className="bg-foreground text-background">
+      <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+          <div className="col-span-2 md:col-span-1">
+            <Link to="/" className="inline-block">
+              <Icons.LogoWithText className="h-8 w-28 brightness-0 invert" />
+            </Link>
+            <p className="mt-4 text-sm text-background/60 max-w-[240px] leading-relaxed">
+              Resumes, cover letters, and applications—in one place.
+            </p>
+            <div className="mt-5 flex items-center gap-4">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.href}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="opacity-60 hover:opacity-100 transition-opacity"
+                >
+                  <img
+                    src={social.icon}
+                    height={16}
+                    width={16}
+                    alt={social.alt}
+                    className="brightness-0 invert"
+                  />
+                </a>
               ))}
             </div>
           </div>
-          <div className="mt-10 flex flex-grow flex-wrap text-center lg:mt-0 justify-between">
-            {footerSections.map((section) => (
-              <div key={section.title} className="flex flex-col items-start px-4">
-                <div className="text-lg font-semibold mb-3 tracking-widest text-primary lg:text-left">
-                  {section.title}
-                </div>
 
-                <div className="mb-10 flex flex-col justify-center gap-2 text-sm items-start">
-                  {section.links.map((link) =>
-                    link.isExternal ? (
-                      <a
-                        key={link.href}
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary font-semibold"
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <a
-                        key={link.href}
-                        href={link.href}
-                        className="text-muted-foreground hover:text-primary font-semibold"
-                      >
-                        {link.label}
-                      </a>
-                    ),
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-sm font-medium mb-4">{section.title}</h3>
+              <ul className="space-y-2.5">
+                {section.links.map((link) => (
+                  <li key={link.href}>
+                    <a
+                      href={link.href}
+                      className="text-sm text-background/60 hover:text-background transition-colors"
+                      {...(link.isExternal
+                        ? { target: '_blank', rel: 'noopener noreferrer' }
+                        : {})}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12 pt-6 border-t border-background/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-background/40">
+            Copyright © {new Date().getFullYear()} Wreny. All rights reserved.
+          </p>
+          <a href="#" className="text-xs text-background/40 hover:text-background transition-colors">
+            Terms of Service
+          </a>
         </div>
       </div>
     </footer>

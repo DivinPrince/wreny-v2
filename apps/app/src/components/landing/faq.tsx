@@ -7,75 +7,75 @@ interface FAQItem {
 
 const faqItems: FAQItem[] = [
   {
-    question: 'Is Wreny free to use?',
+    question: 'Is there a free version?',
     answer:
-      'Yes, Wreny offers a free tier that includes basic resume building features. We also offer premium plans with advanced features for serious job seekers.',
+      'Yes. You can start on the free tier with core resume and cover letter features. Upgrade when you need more documents, exports, or AI capacity.',
   },
   {
-    question: 'How does the AI resume builder work?',
+    question: 'How does the AI help with my resume?',
     answer:
-      'Our AI resume builder analyzes your experience and skills, then generates tailored content that highlights your qualifications. It also optimizes your resume for Applicant Tracking Systems (ATS) to increase your chances of getting past automated screenings.',
+      'You bring your experience; the product helps you align wording and emphasis with a specific job. The goal is a resume a recruiter can scan quickly and that still reflects what you actually did.',
   },
   {
-    question: 'Are the resumes created with Wreny ATS-friendly?',
+    question: 'Will my resume work with applicant tracking systems?',
     answer:
-      "Absolutely! All our templates are designed to be ATS-friendly. Our system also provides suggestions to improve your resume's compatibility with ATS systems and increases your chances of getting your resume seen by hiring managers.",
+      'We prioritize clean structure and readable templates. You still choose what to include, but the layouts avoid common pitfalls that confuse parsers—without looking like a plain text file.',
   },
   {
-    question: 'Can I export my resume in different formats?',
+    question: 'What formats can I export?',
     answer:
-      'Yes, you can export your resume as a PDF file with our free plan. Premium plans allow exporting in additional formats like Word, TXT, and more.',
+      'Free accounts export to PDF. Pro and Lifetime include additional formats such as Word and plain text so you can submit the file a recruiter or portal asks for.',
   },
   {
-    question: 'How many resumes can I create?',
+    question: 'How many resumes can I save?',
     answer:
-      'Free users can create and save one resume. Pro users can create unlimited resumes, allowing you to tailor different versions for different job applications.',
+      'On the free tier you can maintain one saved resume. Pro and Lifetime unlock unlimited resumes so you can keep a version per industry or seniority level.',
   },
   {
-    question: 'Is my data secure with Wreny?',
+    question: 'How do you handle my data?',
     answer:
-      'Yes, we take data security very seriously. All your data is encrypted and stored securely. We never share your personal information with third parties without your consent.',
+      'We encrypt data in transit and store it securely. We do not sell your personal information. You can request deletion in line with our support and privacy policies.',
   },
   {
-    question: 'Can I cancel my subscription at any time?',
+    question: 'Can I cancel a subscription?',
     answer:
-      "Yes, you can cancel your subscription at any time. If you cancel, you'll continue to have access to premium features until the end of your billing cycle.",
+      'Yes. Cancel anytime from your account. You keep paid features until the end of the period you already paid for.',
   },
   {
     question: 'Do you offer refunds?',
     answer:
-      "We offer a 14-day money-back guarantee for all new subscriptions. If you're not satisfied with our service, contact our support team within 14 days of purchase for a full refund.",
+      'New subscriptions include a 14-day money-back window. Email support within 14 days of purchase if the product is not a fit—we will process eligible refunds according to our policy.',
   },
 ]
 
 export default function FAQ() {
   return (
-    <section className="py-20 bg-secondary/30" id="faq">
+    <section className="py-14 bg-secondary/30" id="faq">
       <div className="mx-auto max-w-4xl px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-semibold lg:text-5xl mb-4">Frequently Asked Questions</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to know about Wreny and how it can help your job search.
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-semibold lg:text-3xl mb-3">Questions, answered</h2>
+          <p className="text-[0.95rem] text-muted-foreground max-w-2xl mx-auto">
+            Straight answers about pricing, exports, and how Wreny fits into a real job search.
           </p>
         </div>
 
         <div className="divide-y border-y border-border">
           {faqItems.map((item, index) => (
             <details key={index} className="group py-2">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-lg font-medium text-left [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-3 text-[0.95rem] font-medium text-left [&::-webkit-details-marker]:hidden">
                 {item.question}
                 <ChevronDown className="size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
               </summary>
-              <p className="pb-4 text-muted-foreground">{item.answer}</p>
+              <p className="pb-4 text-sm text-muted-foreground">{item.answer}</p>
             </details>
           ))}
         </div>
 
         <div className="mt-12 text-center">
           <p className="text-muted-foreground">
-            Still have questions?{' '}
-            <a href="mailto:support@wreny.app" className="text-primary font-medium hover:underline">
-              Contact our support team
+            Still stuck?{' '}
+            <a href="mailto:divin@wreny.app" className="text-primary font-medium hover:underline">
+              Email divin@wreny.app
             </a>
           </p>
         </div>

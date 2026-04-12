@@ -31,7 +31,7 @@ export function Header() {
 
   return (
     <nav>
-      <div className="container mx-auto px-4">
+      <div className="mx-auto max-w-6xl px-6">
         <div className="flex h-[var(--header-height)] items-center justify-between">
           <Link to="/" className="flex gap-2 font-bold text-gray-800">
             <Icons.LogoWithText className="h-10 w-32" />
@@ -52,15 +52,15 @@ export function Header() {
           <div className="hidden md:flex items-center space-x-4">
             <Link
               to="/signin"
-              className={cn(buttonVariants({ variant: 'outline' }), 'h-12')}
+              className={cn(buttonVariants({ variant: 'outline' }))}
             >
-              Log In
+              Log in
             </Link>
             <Link
               to="/signup"
-              className={cn(buttonVariants({ variant: 'default' }), 'h-12')}
+              className={cn(buttonVariants({ variant: 'default' }))}
             >
-              Get Started
+              Create free account
             </Link>
           </div>
 
@@ -126,7 +126,7 @@ export function Header() {
               )}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Log In
+              Log in
             </Link>
             <Link
               to="/signup"
@@ -136,7 +136,7 @@ export function Header() {
               )}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Get Started
+              Create free account
             </Link>
           </div>
         </div>

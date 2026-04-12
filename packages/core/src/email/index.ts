@@ -5,7 +5,7 @@ const EMAIL_FROM = process.env.EMAIL_FROM || "Wreny <noreply@wreny.app>";
 const APP_NAME = "Wreny";
 const BRAND = "#4f46e5";
 const SUPPORT_EMAIL =
-  EMAIL_FROM.match(/<(.+)>/)?.[1] ?? "support@wreny.app";
+  EMAIL_FROM.match(/<(.+)>/)?.[1] ?? "divin@wreny.app";
 
 export const resend =
   RESEND_API_KEY && RESEND_API_KEY !== "re_xxxxxxxxxxxx"
