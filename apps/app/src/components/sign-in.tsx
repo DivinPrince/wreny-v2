@@ -5,7 +5,13 @@ import { Button } from '#/components/ui/button'
 import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { useState } from 'react'
-import { signInWithEmail, signInWithGoogle, signInWithLinkedIn } from '#/lib/auth-client'
+import {
+    getBetterAuthCallErrorMessage,
+    getThrownAuthErrorMessage,
+    signInWithEmail,
+    signInWithGoogle,
+    signInWithLinkedIn,
+} from '#/lib/auth-client'
 import { Link } from '@tanstack/react-router'
 
 export default function SignInPage() {
@@ -17,46 +23,53 @@ export default function SignInPage() {
 
     const handleEmailSignIn = async (e: React.FormEvent) => {
         e.preventDefault()
+        setError(null)
         setIsLoading(true)
         try {
             const result = await signInWithEmail(email, password)
-            if (result.error) {
-                throw new Error(result.error.message)
+            const errMsg = getBetterAuthCallErrorMessage(result)
+            if (errMsg) {
+                setError(errMsg)
+                return
             }
             window.location.href = '/'
         } catch (error: unknown) {
             console.error('Sign in error:', error)
-            setError(error instanceof Error ? error.message : 'An unknown error occurred')
+            setError(getThrownAuthErrorMessage(error))
         } finally {
             setIsLoading(false)
         }
     }
 
     const handleGoogleSignIn = async () => {
+        setError(null)
         setIsLoading(true)
         try {
             const result = await signInWithGoogle()
-            if (result.error) {
-                throw new Error(result.error.message)
+            const errMsg = getBetterAuthCallErrorMessage(result)
+            if (errMsg) {
+                setError(errMsg)
             }
         } catch (error: unknown) {
             console.error('Google sign in error:', error)
-            setError(error instanceof Error ? error.message : 'An unknown error occurred')
+            setError(getThrownAuthErrorMessage(error))
         } finally {
             setIsLoading(false)
         }
     }
 
     const handleLinkedInSignIn = async () => {
+        setError(null)
         setIsLoading(true)
         try {
             const result = await signInWithLinkedIn()
-            if (result.error) {
-                throw new Error(result.error.message)
+            const errMsg = getBetterAuthCallErrorMessage(result)
+            if (errMsg) {
+                setError(errMsg)
             }
         } catch (error: unknown) {
             console.error('LinkedIn sign in error:', error)
-            setError(error instanceof Error ? error.message : 'An unknown error occurred')
+            setError(getThrownAuthErrorMessage(error))
         } finally {
             setIsLoading(false)
         }
@@ -67,11 +80,6 @@ export default function SignInPage() {
             <form
                 onSubmit={handleEmailSignIn}
                 className="m-auto h-fit w-[460px]">
-                {error && (
-                    <div className="mt-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                        {error}
-                    </div>
-                )}
                 <div className="p-6">
                     <div>
                         <Link
@@ -83,6 +91,14 @@ export default function SignInPage() {
                             <span className="text-muted-foreground">Welcome back!</span> Sign in to your account
                         </h1>
                     </div>
+
+                    {error && (
+                        <div
+                            role="alert"
+                            className="mt-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                            {error}
+                        </div>
+                    )}
 
                     <div className="mt-6 space-y-2">
                         <Button

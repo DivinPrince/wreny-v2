@@ -1,4 +1,6 @@
 import {
+  getBetterAuthCallErrorMessage,
+  getThrownAuthErrorMessage,
   signInWithGoogle,
   signInWithLinkedIn,
   signUpWithEmail,
@@ -32,13 +34,15 @@ export default function SignUpPage() {
     setError(null);
     try {
       const result = await signUpWithEmail(email, password, name);
-      if (result.error) {
-        throw new Error(result.error.message);
+      const errMsg = getBetterAuthCallErrorMessage(result);
+      if (errMsg) {
+        setError(errMsg);
+        return;
       }
       setOtpSent(true);
     } catch (error: unknown) {
       console.error("Sign up error:", error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setError(getThrownAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -50,12 +54,15 @@ export default function SignUpPage() {
     setError(null);
     try {
       const result = await verifyOTP(email, otp);
-      if (result.error) {
-        throw new Error(result.error.message);
+      const errMsg = getBetterAuthCallErrorMessage(result);
+      if (errMsg) {
+        setError(errMsg);
+        return;
       }
+      window.location.href = "/";
     } catch (error: unknown) {
       console.error("OTP verification error:", error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setError(getThrownAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -66,12 +73,13 @@ export default function SignUpPage() {
     setError(null);
     try {
       const result = await signInWithGoogle();
-      if (result.error) {
-        throw new Error(result.error.message);
+      const errMsg = getBetterAuthCallErrorMessage(result);
+      if (errMsg) {
+        setError(errMsg);
       }
     } catch (error: unknown) {
       console.error("Google sign in error:", error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setError(getThrownAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -82,12 +90,13 @@ export default function SignUpPage() {
     setError(null);
     try {
       const result = await signInWithLinkedIn();
-      if (result.error) {
-        throw new Error(result.error.message);
+      const errMsg = getBetterAuthCallErrorMessage(result);
+      if (errMsg) {
+        setError(errMsg);
       }
     } catch (error: unknown) {
       console.error("LinkedIn sign in error:", error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setError(getThrownAuthErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

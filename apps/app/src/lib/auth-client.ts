@@ -16,6 +16,56 @@ export const client = createAuthClient({
   plugins: [emailOTPClient()],
 });
 
+/**
+ * Message from a Better Auth client call (`{ data, error }`).
+ * `error.message` is sometimes missing; avoid empty UI in that case.
+ */
+export function getBetterAuthCallErrorMessage(result: {
+  error?: unknown;
+}): string | null {
+  if (result.error == null) return null;
+  return normalizeBetterAuthError(result.error);
+}
+
+export function getThrownAuthErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+  return normalizeBetterAuthError(error);
+}
+
+function normalizeBetterAuthError(error: unknown): string {
+  if (error == null) {
+    return "Something went wrong. Please try again.";
+  }
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+  if (typeof error === "object") {
+    const o = error as Record<string, unknown>;
+    const message = o.message;
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+    const statusText = o.statusText;
+    if (typeof statusText === "string" && statusText.trim()) {
+      return statusText;
+    }
+    const code = o.code;
+    if (typeof code === "string" && code.trim()) {
+      return code
+        .split(/[-_]/g)
+        .filter(Boolean)
+        .map(
+          (w) =>
+            w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
+        )
+        .join(" ");
+    }
+  }
+  return "Something went wrong. Please try again.";
+}
+
 export const {
   signIn,
   signUp,

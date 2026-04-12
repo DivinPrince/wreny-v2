@@ -12,6 +12,8 @@
 }
 
 :root {
+  --header-height: 4rem;
+  --grid-size: 24px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.153 0.006 107.1);
   --card: oklch(1 0 0);
@@ -136,6 +138,15 @@
     @apply font-sans;
     /* Reserve space for scrollbar so Radix modal/menus don’t shift layout */
     scrollbar-gutter: stable;
+  }
+  .hero-container {
+    padding: calc(5px + var(--header-height)) 44px 0;
+  }
+  .landing-grid-bg {
+    background-image:
+      linear-gradient(to right, oklch(1 0 0 / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(1 0 0 / 0.05) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
   }
   .typography {
     max-width: 65ch;
