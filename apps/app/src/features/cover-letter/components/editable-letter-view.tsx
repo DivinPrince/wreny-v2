@@ -683,7 +683,7 @@ export function EditableLetterView() {
                         setOpenPanel((prev) => prev === 'agent' ? null : 'agent')
                       }
                     >
-                      <Icons.Logo className="size-4 rounded-[3px]" />
+                      <Icons.AiBeautify className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="top"><p>AI Agent</p></TooltipContent>

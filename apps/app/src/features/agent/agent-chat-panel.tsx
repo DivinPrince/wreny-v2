@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router'
 import type { DocumentChange, ResumeAgentUIMessage } from '@repo/core/agent'
 
 import { AgentMarkdown } from '#/components/ui/agent-markdown'
+import { Icons } from '#/components/ui/icons'
 import { AutosizeTextarea } from '#/components/ui/autosize-textarea'
 import { Button } from '#/components/ui/button'
 import {
@@ -411,6 +412,10 @@ export function AgentPanelChat({
       return (
         <div className="flex w-full flex-1 flex-col items-center justify-center px-2 py-6 sm:px-4">
           <div className="flex w-full max-w-xl flex-col items-center gap-5">
+            <Icons.AiBeautify
+              className="size-9 text-primary sm:size-10"
+              aria-hidden
+            />
             <h1 className="px-2 text-center text-lg font-semibold leading-snug tracking-tight text-foreground sm:text-xl">
               {pageHero.title}
             </h1>

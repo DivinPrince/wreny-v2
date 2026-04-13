@@ -3,7 +3,7 @@ import type { AgentSessionInfo } from '@repo/sdk'
 import { useApi } from '@repo/sdk/react'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInCalendarDays, format } from 'date-fns'
-import { FileText, History } from 'lucide-react'
+import { History } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
 import { Button } from '#/components/ui/button'
@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
+import { Icons } from '#/components/ui/icons'
 import { cn } from '#/lib/utils'
 
 import { GENERAL_DOCUMENT_ID, GENERAL_DOCUMENT_TYPE } from './agent-route-constants'
@@ -130,7 +131,7 @@ export function AgentRecentChatsDialog({
                                 {title}
                               </p>
                               <p className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-                                <FileText className="size-3 shrink-0 opacity-70" aria-hidden />
+                                <Icons.File className="size-3 shrink-0 opacity-70" aria-hidden />
                                 <span className="truncate">[Wreny] Agent</span>
                               </p>
                             </div>

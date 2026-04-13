@@ -1,7 +1,8 @@
 import { RiLinkedinBoxFill } from '@remixicon/react'
-import { ChevronDown, FileText, PenLine, Plus } from 'lucide-react'
+import { ChevronDown, PenLine, Plus } from 'lucide-react'
 
 import { DocumentScanningOverlay } from '#/components/document-scanning-overlay'
+import { Icons } from '#/components/ui/icons'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,7 +73,7 @@ export function CreateNewCoverLetterCard() {
             Manual — blank letter
           </DropdownMenuItem>
           <DropdownMenuItem className="gap-2" onSelect={() => openPdfPicker()}>
-            <FileText className="size-3.5" aria-hidden />
+            <Icons.File className="size-3.5" aria-hidden />
             Import from PDF
           </DropdownMenuItem>
           <DropdownMenuItem className="gap-2" onSelect={() => goToLinkedInAgent()}>

@@ -1,12 +1,11 @@
+import { RiLinkedinBoxFill } from '@remixicon/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import {
   FilePenLine,
   FilePlus2,
-  FileText,
   FileUser,
-  Linkedin,
   Paperclip,
   Plus,
   Upload,
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react'
 
 import { Button } from '#/components/ui/button'
+import { Icons } from '#/components/ui/icons'
 import {
   Dialog,
   DialogContent,
@@ -137,7 +137,7 @@ function DashboardDocumentsDialog({
                               onOpenChange(false)
                             }}
                           >
-                            <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                            <Icons.File className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-medium text-foreground">{r.title}</span>
@@ -184,7 +184,7 @@ function DashboardDocumentsDialog({
                               onOpenChange(false)
                             }}
                           >
-                            <FileText className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                            <Icons.File className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-medium text-foreground">{c.title}</span>
@@ -326,7 +326,7 @@ export function AgentPageAttachControls({
                 setLinkedinOpen(true)
               }}
             >
-              <Linkedin className="size-3.5" aria-hidden />
+              <RiLinkedinBoxFill className="size-3.5" aria-hidden />
               Add from LinkedIn
             </DropdownMenuItem>
           </DropdownMenuContent>

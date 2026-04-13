@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { isAgentSessionId } from '@repo/core/util'
 import { useAgentChat } from '@repo/sdk/react'
 import { createFileRoute, Outlet, useNavigate, useParams } from '@tanstack/react-router'
@@ -11,6 +11,7 @@ import {
   GENERAL_DOCUMENT_ID,
   GENERAL_DOCUMENT_TYPE,
 } from '#/features/agent/agent-route-constants'
+import { markDashboardAgentVisited } from '#/features/dashboard/lib/onboarding-storage'
 
 /**
  * Single layout for `/dashboard/agent` and `/dashboard/agent/:sessionId` so chat state survives
@@ -22,6 +23,10 @@ export const Route = createFileRoute('/dashboard/agent')({
 })
 
 function DashboardAgentLayout() {
+  useEffect(() => {
+    markDashboardAgentVisited()
+  }, [])
+
   const navigate = useNavigate()
   const { sessionId: rawSessionId } = useParams({ strict: false }) as {
     sessionId?: string

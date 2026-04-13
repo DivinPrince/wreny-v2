@@ -24,7 +24,6 @@ import {
   ChevronDown,
   Download,
   Ellipsis,
-  FileText,
   Highlighter,
   Minus,
   Plus,
@@ -605,7 +604,7 @@ function HideIconsToggle({ draft, setDraft }: DraftProps) {
             )
           }
         >
-          <FileText className="size-4" />
+          <Icons.File className="size-4" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="top">
@@ -891,7 +890,7 @@ export function PreviewStep() {
                   className="h-8 w-8 shrink-0 px-0"
                   onClick={() => setOpenPanel((prev) => prev === 'agent' ? null : 'agent')}
                 >
-                  <Icons.Logo className="size-4 rounded-[3px]" />
+                  <Icons.AiBeautify className="size-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">

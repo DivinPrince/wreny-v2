@@ -48,7 +48,6 @@ export function DashboardFeatureCards({
     >
       {cards.map((card) => {
         const Icon = card.icon
-        const isWrenyLogo = card.id === AI_AGENT_CARD_ID
         const isImportPdf =
           card.id === IMPORT_PDF_CARD_ID && Boolean(onImportPdfClick)
         const isImportLinkedIn =
@@ -67,15 +66,9 @@ export function DashboardFeatureCards({
               !isInteractive && 'cursor-default'
             )}
           >
-            {isWrenyLogo ? (
-              <div className="size-8 shrink-0 overflow-hidden rounded-md sm:size-9">
-                <Icon className="block h-full w-full" aria-hidden />
-              </div>
-            ) : (
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground sm:size-9 sm:rounded-lg">
-                <Icon className="size-4 sm:size-5" />
-              </div>
-            )}
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground sm:size-9 sm:rounded-lg">
+              <Icon className="size-4 sm:size-5" aria-hidden />
+            </div>
             <div className="min-w-0 flex-1">
               <p className="line-clamp-2 text-xs font-medium leading-snug text-foreground sm:line-clamp-none sm:text-base sm:leading-normal">
                 {card.title}

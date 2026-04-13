@@ -11,13 +11,13 @@ export default function CTA() {
 
           <div className="relative z-10 max-w-[660px] space-y-5">
             <h2 className="text-[1.75rem] md:text-[2.5rem] md:leading-[1.15] font-bold tracking-tight text-white">
-              Send the next application with a{' '}
-              <em className="font-bold italic">resume</em> you trust.
+              Join job seekers building packets that{' '}
+              <em className="font-bold italic">earn replies.</em>
             </h2>
-            <p className="text-[0.95rem] md:text-lg text-primary-foreground/70 max-w-[500px]">
-              Build, tailor, and track in one workflow. When you are ready to
-              apply, your file is clear, consistent, and aimed at that specific
-              posting.
+            <p className="text-[0.95rem] md:text-lg text-primary-foreground/70 max-w-[520px]">
+              Resume, cover letter, and tracker in one loop—so the next role you
+              apply to gets a tight story, a matching letter, and a follow-up
+              you can find in seconds.
             </p>
             <div className="pt-1 flex items-center gap-4">
               <Button

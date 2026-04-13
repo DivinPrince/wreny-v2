@@ -8,6 +8,7 @@ import { useState } from 'react'
 import {
     getBetterAuthCallErrorMessage,
     getThrownAuthErrorMessage,
+    POST_AUTH_CALLBACK_PATH,
     signInWithEmail,
     signInWithGoogle,
     signInWithLinkedIn,
@@ -32,7 +33,7 @@ export default function SignInPage() {
                 setError(errMsg)
                 return
             }
-            window.location.href = '/'
+            window.location.href = POST_AUTH_CALLBACK_PATH
         } catch (error: unknown) {
             console.error('Sign in error:', error)
             setError(getThrownAuthErrorMessage(error))

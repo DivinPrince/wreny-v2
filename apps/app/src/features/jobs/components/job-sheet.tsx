@@ -3,7 +3,6 @@ import { formatDistanceToNow } from "date-fns"
 import {
   BriefcaseBusiness,
   ChevronDown,
-  FileText,
   Info,
   Link as LinkIcon,
   Loader2,
@@ -17,6 +16,7 @@ import type { JobInfo } from "../lib/types"
 import { JobStatus } from "../lib/types"
 
 import { Button } from "#/components/ui/button"
+import { Icons } from "#/components/ui/icons"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -267,7 +267,7 @@ export function JobSheet({ job, open, onOpenChange }: JobSheetProps) {
 
           <details className="border-b">
             <summary className="flex cursor-pointer list-none items-center py-2 text-sm">
-              <FileText className="mr-2 size-4 shrink-0" />
+              <Icons.File className="mr-2 size-4 shrink-0" />
               <span>Description</span>
             </summary>
             <div className="pb-4">

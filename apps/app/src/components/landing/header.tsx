@@ -1,5 +1,6 @@
 import { buttonVariants } from '#/components/ui/button'
 import { Icons } from '#/components/ui/icons'
+import { useSession } from '#/lib/auth-client'
 import { cn } from '#/lib/utils'
 import { Link } from '@tanstack/react-router'
 import { Menu, X } from 'lucide-react'
@@ -13,6 +14,9 @@ const navItems = [
 ] as const
 
 export function Header() {
+  const { data: session } = useSession()
+  const isLoggedIn = Boolean(session?.user)
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMenuVisible, setIsMenuVisible] = useState(false)
 
@@ -50,18 +54,29 @@ export function Header() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link
-              to="/signin"
-              className={cn(buttonVariants({ variant: 'outline' }))}
-            >
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              className={cn(buttonVariants({ variant: 'default' }))}
-            >
-              Create free account
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                to="/dashboard"
+                className={cn(buttonVariants({ variant: 'default' }))}
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/signin"
+                  className={cn(buttonVariants({ variant: 'outline' }))}
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className={cn(buttonVariants({ variant: 'default' }))}
+                >
+                  Create free account
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="md:hidden">
@@ -118,26 +133,41 @@ export function Header() {
           </div>
 
           <div className="fixed bottom-0 left-0 right-0 border-t border-gray-100 bg-white p-4 space-y-3">
-            <Link
-              to="/signin"
-              className={cn(
-                buttonVariants({ variant: 'outline', size: 'lg' }),
-                'w-full justify-center text-gray-700',
-              )}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Log in
-            </Link>
-            <Link
-              to="/signup"
-              className={cn(
-                buttonVariants({ variant: 'default', size: 'lg' }),
-                'w-full justify-center',
-              )}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Create free account
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                to="/dashboard"
+                className={cn(
+                  buttonVariants({ variant: 'default', size: 'lg' }),
+                  'w-full justify-center',
+                )}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/signin"
+                  className={cn(
+                    buttonVariants({ variant: 'outline', size: 'lg' }),
+                    'w-full justify-center text-gray-700',
+                  )}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className={cn(
+                    buttonVariants({ variant: 'default', size: 'lg' }),
+                    'w-full justify-center',
+                  )}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Create free account
+                </Link>
+              </>
+            )}
           </div>
         </div>
       ) : null}

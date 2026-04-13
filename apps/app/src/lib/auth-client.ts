@@ -3,7 +3,10 @@ import { emailOTPClient } from "better-auth/client/plugins";
 
 const authBaseURL = import.meta.env.VITE_API_URL;
 
-function getCallbackURL(callbackPath = "/") {
+/** Path users land on after successful sign-in / sign-up (OAuth callback, verification links, etc.). */
+export const POST_AUTH_CALLBACK_PATH = "/dashboard";
+
+function getCallbackURL(callbackPath = POST_AUTH_CALLBACK_PATH) {
   if (typeof window === "undefined") {
     return callbackPath;
   }
@@ -74,7 +77,11 @@ export const {
 } = client;
 
 // Email and password authentication
-export const signInWithEmail = async (email: string, password: string, callbackURL = "/") => {
+export const signInWithEmail = async (
+  email: string,
+  password: string,
+  callbackURL = POST_AUTH_CALLBACK_PATH,
+) => {
   return await client.signIn.email({
     email,
     password,
@@ -82,7 +89,12 @@ export const signInWithEmail = async (email: string, password: string, callbackU
   });
 };
 
-export const signUpWithEmail = async (email: string, password: string, name?: string, callbackURL = "/") => {
+export const signUpWithEmail = async (
+  email: string,
+  password: string,
+  name?: string,
+  callbackURL = POST_AUTH_CALLBACK_PATH,
+) => {
   return await client.signUp.email({
     email,
     password,
@@ -92,7 +104,10 @@ export const signUpWithEmail = async (email: string, password: string, name?: st
 };
 
 // Email verification
-export const sendVerificationEmail = async (email: string, callbackURL = "/") => {
+export const sendVerificationEmail = async (
+  email: string,
+  callbackURL = POST_AUTH_CALLBACK_PATH,
+) => {
   return await client.sendVerificationEmail({
     email,
     callbackURL: getCallbackURL(callbackURL),
@@ -122,21 +137,21 @@ export const verifyEmailWithOTP = async (email: string, otp: string) => {
 };
 
 // Social authentication
-export const signInWithGoogle = async (callbackURL = "/") => {
+export const signInWithGoogle = async (callbackURL = POST_AUTH_CALLBACK_PATH) => {
   return await client.signIn.social({
     provider: "google",
     callbackURL: getCallbackURL(callbackURL),
   });
 };
 
-export const signInWithFacebook = async (callbackURL = "/") => {
+export const signInWithFacebook = async (callbackURL = POST_AUTH_CALLBACK_PATH) => {
   return await client.signIn.social({
     provider: "facebook",
     callbackURL: getCallbackURL(callbackURL),
   });
 };
 
-export const signInWithLinkedIn = async (callbackURL = "/") => {
+export const signInWithLinkedIn = async (callbackURL = POST_AUTH_CALLBACK_PATH) => {
   return await client.signIn.social({
     provider: "linkedin",
     callbackURL: getCallbackURL(callbackURL),

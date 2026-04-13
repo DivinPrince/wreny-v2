@@ -1,7 +1,5 @@
 import { useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { FileText } from 'lucide-react'
-
 import {
   DashboardFeatureCards,
   type DashboardFeatureCard,
@@ -16,13 +14,13 @@ const featureCards: DashboardFeatureCard[] = [
     id: 'ai-agent',
     title: 'AI Cover Letter Agent',
     description: 'Craft tailored cover letters with AI assistance',
-    icon: Icons.Logo,
+    icon: Icons.AiBeautify,
   },
   {
     id: 'import-pdf',
     title: 'Import from PDF',
     description: 'Convert your existing cover letter',
-    icon: FileText,
+    icon: Icons.File,
   }
 ]
 

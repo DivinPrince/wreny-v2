@@ -1,6 +1,5 @@
 import { useRef, useState, type ComponentType, type SVGProps } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { FileText } from 'lucide-react'
 import { RiLinkedinBoxFill } from '@remixicon/react'
 
 import {
@@ -18,13 +17,13 @@ const featureCards: DashboardFeatureCard[] = [
     id: 'ai-agent',
     title: 'AI Resume Agent',
     description: 'Build and refine your resume with AI assistance',
-    icon: Icons.Logo,
+    icon: Icons.AiBeautify,
   },
   {
     id: 'import-pdf',
     title: 'Import from PDF',
     description: 'Convert your existing PDF resume',
-    icon: FileText,
+    icon: Icons.File,
   },
   {
     id: 'import-linkedin',

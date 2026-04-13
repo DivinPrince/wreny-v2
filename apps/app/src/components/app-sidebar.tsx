@@ -51,7 +51,7 @@ const navRoutes: NavRoute[] = [
   {
     title: "Agent",
     url: "/dashboard/agent",
-    icon: Icons.Sparkles,
+    icon: Icons.AiBeautify,
     match: (path: string) => path.startsWith("/dashboard/agent"),
   },
 ]
@@ -64,10 +64,10 @@ function SidebarLogo() {
         to="/"
       >
         <span className="sr-only">Logo</span>
-        <Icons.Logo className="size-6" />
+        <Icons.Logo className="size-7" />
       </Link>
       <SidebarTrigger>
-        <Icons.PanelRightOpen className="size-3.5 text-muted-foreground/80 hover:text-foreground/80 hover:bg-transparent!" />
+        <Icons.PanelRightOpen className="size-4 text-muted-foreground/80 hover:text-foreground/80 hover:bg-transparent!" />
       </SidebarTrigger>
     </div>
   )
@@ -80,10 +80,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar variant="inset" {...props}>
-      <SidebarHeader className="h-11 shrink-0 px-2 py-1.5">
+      <SidebarHeader className="h-12 shrink-0 px-2.5 py-2">
         <SidebarLogo />
       </SidebarHeader>
-      <SidebarContent className="px-2 [&>li]:list-none gap-0.5">
+      <SidebarContent className="px-2.5 [&>li]:list-none gap-1">
         {navRoutes.map((item) => {
           const isActive = item.match(pathname)
 
@@ -93,9 +93,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 isActive={isActive}
                 asChild
                 className={cn(
-                  "relative h-8 gap-2 px-2 py-1.5 [&_svg]:size-3.5",
+                  "relative h-10 gap-2.5 px-3 py-2 text-[0.9375rem] leading-snug [&_svg]:size-[1.125rem]",
                   isActive &&
-                    "bg-sidebar-accent font-semibold text-sidebar-accent-foreground before:absolute before:left-0 before:top-1/2 before:h-4 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-primary"
+                    "bg-sidebar-accent font-semibold text-sidebar-accent-foreground before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-full before:bg-primary"
                 )}
               >
                 <Link to={item.url}>

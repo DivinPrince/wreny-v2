@@ -1,6 +1,7 @@
 import {
   getBetterAuthCallErrorMessage,
   getThrownAuthErrorMessage,
+  POST_AUTH_CALLBACK_PATH,
   signInWithGoogle,
   signInWithLinkedIn,
   signUpWithEmail,
@@ -59,7 +60,7 @@ export default function SignUpPage() {
         setError(errMsg);
         return;
       }
-      window.location.href = "/";
+      window.location.href = POST_AUTH_CALLBACK_PATH;
     } catch (error: unknown) {
       console.error("OTP verification error:", error);
       setError(getThrownAuthErrorMessage(error));

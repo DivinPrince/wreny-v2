@@ -1,7 +1,8 @@
 import { RiLinkedinBoxFill } from '@remixicon/react'
-import { ChevronDown, FileText, PenLine, Plus } from 'lucide-react'
+import { ChevronDown, PenLine, Plus } from 'lucide-react'
 
 import { DocumentScanningOverlay } from '#/components/document-scanning-overlay'
+import { Icons } from '#/components/ui/icons'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,7 +69,7 @@ export function CreateNewResumeRow() {
               className="flex shrink-0 items-center justify-center rounded border border-dashed border-muted-foreground/25 bg-muted/50 text-muted-foreground"
               style={{ width: 56, height: 76 }}
             >
-              <FileText className="size-4" />
+              <Icons.File className="size-4" />
             </div>
             <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
               <Plus className="size-4 shrink-0" />
@@ -86,7 +87,7 @@ export function CreateNewResumeRow() {
             Manual — blank resume
           </DropdownMenuItem>
           <DropdownMenuItem className="gap-2" onSelect={() => openPdfPicker()}>
-            <FileText className="size-3.5" aria-hidden />
+            <Icons.File className="size-3.5" aria-hidden />
             Import from PDF
           </DropdownMenuItem>
           <DropdownMenuItem
